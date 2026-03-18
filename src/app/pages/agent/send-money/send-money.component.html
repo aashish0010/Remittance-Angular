@@ -468,8 +468,8 @@
             <div class="field-with-action">
               <mat-form-field appearance="outline">
                 <mat-label>Bank Name</mat-label>
-                <mat-select [(ngModel)]="newReceiver.bankName" (selectionChange)="selectedBranch = null" searchable placeholder="Select bank">
-                  <mat-option *ngFor="let b of payoutBanks" [value]="b.bankName">{{ b.bankName }}</mat-option>
+                <mat-select [(ngModel)]="selectedBankId" (selectionChange)="onBankSelected()" searchable placeholder="Select bank">
+                  <mat-option *ngFor="let b of payoutBanks" [value]="b.id">{{ b.bankName }}</mat-option>
                 </mat-select>
               </mat-form-field>
               <button mat-icon-button color="primary" matTooltip="Select Branch" (click)="openBranchPopup()"
@@ -497,8 +497,8 @@
           <div *ngIf="isCashTransfer()" class="form-grid cols-1">
             <mat-form-field appearance="outline">
               <mat-label>Location</mat-label>
-              <mat-select [(ngModel)]="newReceiver.bankName" searchable placeholder="Select location">
-                <mat-option *ngFor="let b of payoutBanks" [value]="b.bankName">{{ b.bankName }}</mat-option>
+              <mat-select [(ngModel)]="selectedLocationId" (selectionChange)="onLocationSelected()" searchable placeholder="Select location">
+                <mat-option *ngFor="let l of payoutLocations" [value]="l.id">{{ l.locationName }}</mat-option>
               </mat-select>
             </mat-form-field>
           </div>
@@ -508,8 +508,8 @@
           <div *ngIf="isWalletTransfer()" class="form-grid cols-2">
             <mat-form-field appearance="outline">
               <mat-label>Wallet Name</mat-label>
-              <mat-select [(ngModel)]="newReceiver.bankName" searchable placeholder="Select wallet">
-                <mat-option *ngFor="let b of payoutBanks" [value]="b.bankName">{{ b.bankName }}</mat-option>
+              <mat-select [(ngModel)]="selectedLocationId" (selectionChange)="onLocationSelected()" searchable placeholder="Select wallet">
+                <mat-option *ngFor="let l of payoutLocations" [value]="l.id">{{ l.locationName }}</mat-option>
               </mat-select>
             </mat-form-field>
             <mat-form-field appearance="outline">

@@ -543,14 +543,33 @@ export class SendMoneyComponent implements OnInit {
     return name.includes('wallet') || name.includes('mobile');
   }
 
+  onBankSelected(): void {
+    this.selectedBranch = null;
+    const bank = this.payoutBanks.find(b => b.id === this.selectedBankId);
+    if (bank) {
+      this.newReceiver.bankName = bank.bankName;
+      this.newReceiver.bankCode = bank.bankCode || '';
+      this.newReceiver.bankId = bank.id;
+    }
+  }
+
+  onLocationSelected(): void {
+    const loc = this.payoutLocations.find(l => l.id === this.selectedLocationId);
+    if (loc) {
+      this.newReceiver.bankName = loc.locationName;
+      this.newReceiver.bankCode = loc.locationCode || '';
+      this.newReceiver.bankId = loc.id;
+    }
+  }
+
   // ---------------------------------------------------------------------------
   // Branch Popup
   // ---------------------------------------------------------------------------
 
   openBranchPopup(): void {
-    const bankName = this.newReceiver.bankName || (this.selectedReceiver?.bankName);
-    if (!bankName) return;
-    const bank = this.payoutBanks.find(b => b.bankName === bankName);
+    const bank = this.selectedBankId
+      ? this.payoutBanks.find(b => b.id === this.selectedBankId)
+      : null;
     if (!bank) return;
     this.branchBank = bank;
     this.branchList = (bank.branches || []).filter(br => br.isActive);
@@ -672,6 +691,23 @@ export class SendMoneyComponent implements OnInit {
       receiverBankName = receiverBankName || selectedBank.bankName;
       receiverBankCode = selectedBank.bankCode || '';
       receiverBankId = selectedBank.id;
+    }
+
+    // Fallback to receiver's stored bank/branch info for existing receivers
+    if (!receiverBankId && this.selectedReceiver.bankId) {
+      receiverBankId = this.selectedReceiver.bankId;
+    }
+    if (!receiverBankCode && this.selectedReceiver.bankCode) {
+      receiverBankCode = this.selectedReceiver.bankCode;
+    }
+    if (!receiverBranchId && this.selectedReceiver.branchId) {
+      receiverBranchId = this.selectedReceiver.branchId;
+    }
+    if (!receiverBranchName && this.selectedReceiver.branchName) {
+      receiverBranchName = this.selectedReceiver.branchName;
+    }
+    if (!receiverBranchCode && this.selectedReceiver.branchCode) {
+      receiverBranchCode = this.selectedReceiver.branchCode;
     }
 
     const paymentMethodName = this.paymentMethods.find(pm => pm.id === this.selectedPaymentMethodId)?.name || '';

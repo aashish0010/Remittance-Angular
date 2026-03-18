@@ -1106,6 +1106,104 @@ $radius: 12px;
   }
 }
 
+// ---------------------------------------------------------------------------
+// Dark Mode
+// ---------------------------------------------------------------------------
+:host-context(.dark-mode) {
+  .panel-header h3,
+  .panel-title,
+  .calc-title,
+  .calc-value-lg,
+  .calc-value-rate,
+  .calc-total-row,
+  .list-name,
+  .selected-name,
+  .success-title,
+  .success-row,
+  .branch-popup-header h3,
+  .branch-list-name,
+  .summary-value { color: #e2e8f0; }
+
+  .calc-label,
+  .calc-no-rate,
+  .calc-detail-row,
+  .calc-loading-text,
+  .form-section-label,
+  .agent-info-detail,
+  .list-detail,
+  .selected-detail,
+  .summary-label,
+  .success-ref,
+  .branch-list-detail,
+  .currency-suffix,
+  .step-text,
+  .empty-state { color: #94a3b8; }
+
+  .form-section-label { border-bottom-color: #334155; }
+
+  .step-circle { background: #334155; color: #94a3b8; }
+  .step-line { background: #334155; }
+
+  .agent-info-bar {
+    background: rgba(26,86,219,.12);
+    border-color: rgba(26,86,219,.25);
+  }
+  .agent-info-name { color: #e2e8f0; }
+
+  .customer-list {
+    border-color: #334155;
+  }
+  .list-item {
+    border-bottom-color: #334155;
+    &:hover { background: rgba(255,255,255,.04); }
+    &.selected { background: rgba(26,86,219,.15); border-left-color: #60a5fa; }
+  }
+  .list-badge { background: #334155; color: #94a3b8; }
+
+  .selected-banner {
+    background: rgba(46,125,50,.12);
+    border-color: rgba(46,125,50,.3);
+  }
+  .receiver-banner { background: rgba(124,58,237,.12); border-color: rgba(124,58,237,.3); }
+
+  .success-details { background: #1e293b; }
+  .success-row span:first-child { color: #94a3b8; }
+
+  .branch-popup {
+    background: #1e293b;
+    box-shadow: 0 16px 48px rgba(0,0,0,.5);
+  }
+  .branch-popup-header { border-bottom-color: #334155; }
+  .branch-list-item {
+    &:hover { background: rgba(255,255,255,.04); }
+    &.selected { background: rgba(26,86,219,.15); border-left-color: #60a5fa; }
+  }
+  .branch-list-icon { background: rgba(26,86,219,.12); }
+
+  .branch-selected-bar {
+    background: rgba(26,86,219,.12);
+    border-color: rgba(26,86,219,.25);
+  }
+
+  .calc-ready {
+    background: rgba(46,125,50,.12);
+    color: #4ade80;
+  }
+
+  .error-alert { background: rgba(211,47,47,.12); border-color: rgba(211,47,47,.3); }
+  .warn-alert { background: rgba(237,108,2,.12); border-color: rgba(237,108,2,.3); }
+  .info-alert { background: rgba(26,86,219,.12); border-color: rgba(26,86,219,.25); }
+  .form-error { background: rgba(211,47,47,.12); border-color: rgba(211,47,47,.3); }
+  .calc-error { background: rgba(237,108,2,.12); border-color: rgba(237,108,2,.3); }
+
+  .compliance-warn { background: rgba(237,108,2,.12); border-color: rgba(237,108,2,.3); }
+  .compliance-block { background: rgba(211,47,47,.12); border-color: rgba(211,47,47,.3); }
+
+  .wallet-info { background: rgba(124,58,237,.12); border-color: rgba(124,58,237,.3); color: #c4b5fd; }
+
+  .status-badge { background: rgba(237,108,2,.15); color: #fbbf24; }
+}
+
 @media (max-width: 600px) {
   .form-grid {
     &.cols-2,

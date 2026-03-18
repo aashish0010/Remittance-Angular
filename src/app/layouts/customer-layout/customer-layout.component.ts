@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MatToolbarModule } from '@angular/material/toolbar';
@@ -26,10 +26,15 @@ import { MatDividerModule } from '@angular/material/divider';
   templateUrl: './customer-layout.component.html',
   styleUrls: ['./customer-layout.component.scss']
 })
-export class CustomerLayoutComponent {
+export class CustomerLayoutComponent implements OnInit {
   isDarkMode = false;
   drawerOpen = true;
   sidenavOpened = true;
+
+  ngOnInit(): void {
+    this.isDarkMode = localStorage.getItem('darkMode') === 'true';
+    this.applyBodyClass();
+  }
 
   toggleDrawer(): void {
     this.sidenavOpened = !this.sidenavOpened;
@@ -37,5 +42,11 @@ export class CustomerLayoutComponent {
 
   toggleDarkMode(): void {
     this.isDarkMode = !this.isDarkMode;
+    localStorage.setItem('darkMode', String(this.isDarkMode));
+    this.applyBodyClass();
+  }
+
+  private applyBodyClass(): void {
+    document.body.classList.toggle('dark-mode', this.isDarkMode);
   }
 }

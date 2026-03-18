@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MatToolbarModule } from '@angular/material/toolbar';
@@ -28,10 +28,15 @@ import { MatTooltipModule } from '@angular/material/tooltip';
   templateUrl: './agent-layout.component.html',
   styleUrls: ['./agent-layout.component.scss']
 })
-export class AgentLayoutComponent {
+export class AgentLayoutComponent implements OnInit {
   isDarkMode = false;
   drawerOpen = true;
   sidenavOpened = true;
+
+  ngOnInit(): void {
+    this.isDarkMode = localStorage.getItem('darkMode') === 'true';
+    this.applyBodyClass();
+  }
 
   toggleDrawer(): void {
     this.sidenavOpened = !this.sidenavOpened;
@@ -39,5 +44,11 @@ export class AgentLayoutComponent {
 
   toggleDarkMode(): void {
     this.isDarkMode = !this.isDarkMode;
+    localStorage.setItem('darkMode', String(this.isDarkMode));
+    this.applyBodyClass();
+  }
+
+  private applyBodyClass(): void {
+    document.body.classList.toggle('dark-mode', this.isDarkMode);
   }
 }
