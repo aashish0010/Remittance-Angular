@@ -383,6 +383,88 @@
 }
 
 // ---------------------------------------------------------------------------
+// Dark Mode
+// ---------------------------------------------------------------------------
+:host-context(.dark-mode) {
+  .page-title {
+    color: #e2e8f0;
+  }
+
+  .error-alert {
+    background: rgba(220, 38, 38, 0.15);
+    border-color: rgba(220, 38, 38, 0.3);
+    color: #fca5a5;
+  }
+
+  .stat-card {
+    background: #1e293b;
+    &:hover {
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4) !important;
+    }
+  }
+
+  .stat-label {
+    color: #94a3b8;
+  }
+
+  .stat-value {
+    color: #e2e8f0;
+  }
+
+  .secondary-card {
+    background: #1e293b;
+    &:hover {
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3) !important;
+    }
+  }
+
+  .status-breakdown-card {
+    background: #1e293b;
+  }
+
+  .section-title {
+    color: #e2e8f0;
+  }
+
+  .status-chip-label {
+    color: #94a3b8;
+  }
+
+  .bottom-left-card,
+  .exchange-rates-card,
+  .quick-actions-card {
+    background: #1e293b;
+  }
+
+  .empty-text {
+    color: #64748b;
+  }
+
+  .transactions-table {
+    .mat-mdc-header-cell {
+      color: #94a3b8;
+      background: #334155;
+    }
+
+    .mat-mdc-row:hover {
+      background: rgba(255, 255, 255, 0.03);
+    }
+  }
+
+  .rate-item {
+    border-bottom-color: rgba(255, 255, 255, 0.06);
+  }
+
+  .rate-pair {
+    color: #e2e8f0;
+  }
+
+  .rate-value {
+    color: #4ade80;
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Responsive
 // ---------------------------------------------------------------------------
 

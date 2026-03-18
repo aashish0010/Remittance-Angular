@@ -170,6 +170,70 @@
 }
 
 // ---------------------------------------------------------------------------
+// Dark Mode
+// ---------------------------------------------------------------------------
+:host-context(.dark-mode) {
+  .page-title {
+    color: #e2e8f0;
+  }
+
+  .alert-message {
+    &.alert-success { background: rgba(46, 125, 50, 0.15); color: #4ade80; border-color: rgba(46, 125, 50, 0.3); }
+    &.alert-error { background: rgba(198, 40, 40, 0.15); color: #fca5a5; border-color: rgba(198, 40, 40, 0.3); }
+    &.alert-warning { background: rgba(230, 81, 0, 0.15); color: #fb923c; border-color: rgba(230, 81, 0, 0.3); }
+    &.alert-info { background: rgba(21, 101, 192, 0.15); color: #60a5fa; border-color: rgba(21, 101, 192, 0.3); }
+  }
+
+  .table-card {
+    background: #1e293b;
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+
+  .transactions-table {
+    .mat-mdc-header-cell {
+      color: #94a3b8;
+      background: #334155;
+    }
+    .mat-column-actions {
+      color: #94a3b8;
+    }
+  }
+
+  .no-data-row td {
+    color: #64748b;
+  }
+
+  .status-pending { background: rgba(230, 81, 0, 0.2); color: #fb923c; }
+  .status-processing { background: rgba(21, 101, 192, 0.2); color: #60a5fa; }
+  .status-completed { background: rgba(46, 125, 50, 0.2); color: #4ade80; }
+  .status-cancelled { background: rgba(198, 40, 40, 0.2); color: #fca5a5; }
+  .status-failed { background: rgba(136, 14, 79, 0.2); color: #f472b6; }
+  .status-onhold { background: rgba(106, 27, 154, 0.2); color: #c084fc; }
+  .status-default { background: rgba(97, 97, 97, 0.2); color: #94a3b8; }
+
+  .detail-popup {
+    background: #1e293b;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  }
+
+  .detail-header h3 {
+    color: #e2e8f0;
+  }
+
+  .detail-label {
+    color: #64748b;
+  }
+
+  .detail-value {
+    color: #e2e8f0;
+  }
+
+  .detail-divider {
+    border-top-color: rgba(255, 255, 255, 0.08);
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Detail Overlay / Popup
 // ---------------------------------------------------------------------------
 .detail-overlay {

@@ -162,6 +162,44 @@
 }
 
 // ---------------------------------------------------------------------------
+// Dark Mode
+// ---------------------------------------------------------------------------
+:host-context(.dark-mode) {
+  .page-title {
+    color: #e2e8f0;
+  }
+
+  .error-alert {
+    background: rgba(220, 38, 38, 0.15);
+    border-color: rgba(220, 38, 38, 0.3);
+    color: #fca5a5;
+  }
+
+  .transactions-card {
+    background: #1e293b;
+  }
+
+  .transactions-table {
+    .mat-mdc-header-cell {
+      color: #94a3b8;
+      background: #334155;
+    }
+
+    .mat-mdc-row:hover {
+      background: rgba(255, 255, 255, 0.03);
+    }
+  }
+
+  .commission-text {
+    color: #4ade80;
+  }
+
+  .empty-text {
+    color: #64748b;
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Responsive
 // ---------------------------------------------------------------------------
 

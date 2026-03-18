@@ -245,6 +245,60 @@
 }
 
 // ---------------------------------------------------------------------------
+// Dark Mode
+// ---------------------------------------------------------------------------
+:host-context(.dark-mode) {
+  .page-title {
+    color: #e2e8f0;
+  }
+
+  .error-alert {
+    background: rgba(220, 38, 38, 0.15);
+    border-color: rgba(220, 38, 38, 0.3);
+    color: #fca5a5;
+  }
+
+  .stat-card {
+    background: #1e293b;
+    &:hover {
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4) !important;
+    }
+  }
+
+  .stat-label {
+    color: #94a3b8;
+  }
+
+  .stat-value {
+    color: #e2e8f0;
+  }
+
+  .quick-actions-card,
+  .recent-transactions-card {
+    background: #1e293b;
+  }
+
+  .section-title {
+    color: #e2e8f0;
+  }
+
+  .empty-text {
+    color: #64748b;
+  }
+
+  .transactions-table {
+    .mat-mdc-header-cell {
+      color: #94a3b8;
+      background: #334155;
+    }
+
+    .mat-mdc-row:hover {
+      background: rgba(255, 255, 255, 0.03);
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Responsive
 // ---------------------------------------------------------------------------
 

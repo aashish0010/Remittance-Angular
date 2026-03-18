@@ -316,6 +316,96 @@
   }
 }
 
+// ---------------------------------------------------------------------------
+// Dark Mode
+// ---------------------------------------------------------------------------
+:host-context(.dark-mode) {
+  .page-header h2 {
+    color: #e2e8f0;
+  }
+
+  .alert-banner {
+    &.alert-success { background: rgba(46, 125, 50, 0.15); color: #4ade80; }
+    &.alert-error { background: rgba(198, 40, 40, 0.15); color: #fca5a5; }
+    &.alert-warning { background: rgba(230, 81, 0, 0.15); color: #fb923c; }
+    &.alert-info { background: rgba(21, 101, 192, 0.15); color: #60a5fa; }
+  }
+
+  .table-card {
+    background: #1e293b;
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+
+  .agent-table,
+  .inner-table {
+    th.mat-mdc-header-cell {
+      color: #94a3b8;
+      background: #334155;
+    }
+    td.mat-mdc-cell {
+      color: #cbd5e1;
+    }
+  }
+
+  .inner-table {
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+
+  .empty-state {
+    color: #64748b;
+  }
+
+  .empty-state-info {
+    color: #94a3b8;
+    background: rgba(21, 101, 192, 0.1);
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+
+  .chip {
+    &.chip-success { background: rgba(46, 125, 50, 0.2); color: #4ade80; }
+    &.chip-error { background: rgba(198, 40, 40, 0.2); color: #fca5a5; }
+    &.chip-warning { background: rgba(230, 81, 0, 0.2); color: #fb923c; }
+    &.chip-info { background: rgba(21, 101, 192, 0.2); color: #60a5fa; }
+    &.chip-tertiary { background: rgba(123, 31, 162, 0.2); color: #c084fc; }
+    &.chip-default { background: rgba(255, 255, 255, 0.08); color: #94a3b8; }
+  }
+
+  .popup {
+    background: #1e293b;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  }
+
+  .popup-header {
+    border-bottom-color: rgba(255, 255, 255, 0.08);
+    h3 { color: #e2e8f0; }
+  }
+
+  .popup-actions {
+    border-top-color: rgba(255, 255, 255, 0.08);
+  }
+
+  .detail-label {
+    color: #64748b;
+  }
+
+  .detail-grid .detail-item {
+    color: #e2e8f0;
+  }
+
+  .section-title {
+    color: #94a3b8;
+  }
+
+  .form-section {
+    background: #334155;
+    border-color: rgba(255, 255, 255, 0.08);
+  }
+
+  .header-icon {
+    color: #60a5fa;
+  }
+}
+
 // ==========================================================================
 // Responsive
 // ==========================================================================
