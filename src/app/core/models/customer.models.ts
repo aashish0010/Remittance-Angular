@@ -38,7 +38,12 @@ export interface ReceiverModel {
   country: string;
   city?: string;
   bankName?: string;
+  bankCode?: string;
   accountNumber?: string;
+  branchName?: string;
+  branchCode?: string;
+  bankId?: number;
+  branchId?: number;
   relationship?: string;
   isActive: boolean;
   createdAt: string;

@@ -482,6 +482,17 @@ export class SendMoneyComponent implements OnInit {
     if (!this.newReceiver.phone?.trim()) { this.receiverFormError = 'Phone is required.'; return; }
 
     this.savingReceiver = true;
+    // Populate bank/branch IDs from selected payout bank/branch
+    const selBank = this.selectedBankId ? this.payoutBanks.find(b => b.id === this.selectedBankId) : null;
+    if (selBank) {
+      this.newReceiver.bankCode = selBank.bankCode || '';
+      this.newReceiver.bankId = selBank.id;
+    }
+    if (this.selectedBranch) {
+      this.newReceiver.branchName = this.selectedBranch.branchName;
+      this.newReceiver.branchCode = this.selectedBranch.branchCode || '';
+      this.newReceiver.branchId = this.selectedBranch.id;
+    }
     const dto = { ...this.newReceiver, customerId: this.selectedCustomerId };
     this.api.createAgentReceiver(dto).subscribe({
       next: res => {
@@ -506,7 +517,10 @@ export class SendMoneyComponent implements OnInit {
   emptyReceiverForm() {
     return {
       fullName: '', phone: '', email: '', country: '', city: '',
-      bankName: '', accountNumber: '', relationship: '',
+      bankName: '', bankCode: '', accountNumber: '',
+      branchName: '', branchCode: '',
+      bankId: null as number | null, branchId: null as number | null,
+      relationship: '',
     };
   }
 
@@ -630,27 +644,34 @@ export class SendMoneyComponent implements OnInit {
     let receiverBankCode = '';
     let receiverBranchName = '';
     let receiverBranchCode = '';
+    let receiverBankId: number | undefined = undefined;
+    let receiverBranchId: number | undefined = undefined;
 
     if (this.isBankTransfer() && selectedBank) {
       // Bank transfer: use bank details
       receiverBankName = receiverBankName || selectedBank.bankName;
       receiverBankCode = selectedBank.bankCode || '';
+      receiverBankId = selectedBank.id;
       if (this.selectedBranch) {
         receiverBranchName = this.selectedBranch.branchName;
         receiverBranchCode = this.selectedBranch.branchCode || '';
+        receiverBranchId = this.selectedBranch.id;
       }
     } else if (this.isCashTransfer() && selectedLocation) {
       // Cash pickup: location name → bankName, location code → bankCode
       receiverBankName = receiverBankName || selectedLocation.locationName;
       receiverBankCode = selectedLocation.locationCode || '';
+      receiverBankId = selectedLocation.id;
     } else if (this.isWalletTransfer() && selectedLocation) {
       // Wallet/Mobile money: location name → bankName, location code → bankCode
       receiverBankName = receiverBankName || selectedLocation.locationName;
       receiverBankCode = selectedLocation.locationCode || '';
+      receiverBankId = selectedLocation.id;
     } else if (selectedBank) {
       // Fallback to bank if available
       receiverBankName = receiverBankName || selectedBank.bankName;
       receiverBankCode = selectedBank.bankCode || '';
+      receiverBankId = selectedBank.id;
     }
 
     const paymentMethodName = this.paymentMethods.find(pm => pm.id === this.selectedPaymentMethodId)?.name || '';
@@ -672,6 +693,8 @@ export class SendMoneyComponent implements OnInit {
       receiverAccountNumber: this.selectedReceiver.accountNumber || '',
       receiverBranchName: receiverBranchName,
       receiverBranchCode: receiverBranchCode,
+      receiverBankId: receiverBankId,
+      receiverBranchId: receiverBranchId,
       sendAmount: this.sendAmount,
       sendCurrency: this.senderCurrency,
       receiveCurrency: this.receiverCurrency,
@@ -681,6 +704,7 @@ export class SendMoneyComponent implements OnInit {
       payoutMethodName: payoutMethodName,
       payoutPartnerId: this.selectedPartner?.payoutAgentId,
       customerId: this.selectedCustomerId || undefined,
+      receiverId: this.selectedReceiverId || undefined,
       purpose: '',
     };
 

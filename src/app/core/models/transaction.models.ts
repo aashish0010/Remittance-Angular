@@ -10,6 +10,8 @@ export interface TransactionResult {
   receiverAccountNumber?: string;
   receiverBranchName?: string;
   receiverBranchCode?: string;
+  receiverBankId?: number;
+  receiverBranchId?: number;
   sendAmount: number;
   sendCurrency: string;
   receiveAmount: number;
@@ -78,6 +80,8 @@ export interface SendTransactionModel {
   receiverAccountNumber?: string;
   receiverBranchName?: string;
   receiverBranchCode?: string;
+  receiverBankId?: number;
+  receiverBranchId?: number;
   sendAmount: number;
   sendCurrency: string;
   receiveCurrency: string;
@@ -87,5 +91,6 @@ export interface SendTransactionModel {
   payoutMethodName?: string;
   payoutPartnerId?: number;
   customerId?: number;
+  receiverId?: number;
   purpose?: string;
 }
