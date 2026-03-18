@@ -1,0 +1,718 @@
+<!-- Page Header -->
+<div class="page-header">
+  <h2>Agent Management</h2>
+  <button mat-raised-button color="primary" (click)="openCreatePopup()">
+    <mat-icon>person_add</mat-icon> New Agent
+  </button>
+</div>
+
+<!-- Loading -->
+<div *ngIf="loading" class="loading-container">
+  <mat-spinner diameter="40"></mat-spinner>
+</div>
+
+<!-- Search + Table -->
+<mat-card *ngIf="!loading" class="table-card">
+  <mat-form-field appearance="outline" class="search-field">
+    <mat-icon matPrefix>search</mat-icon>
+    <input matInput placeholder="Search agents..." [(ngModel)]="searchString" (ngModelChange)="applyFilter()" />
+  </mat-form-field>
+
+  <table mat-table [dataSource]="filteredAgents" class="agent-table">
+    <!-- Business Name -->
+    <ng-container matColumnDef="businessName">
+      <th mat-header-cell *matHeaderCellDef>Business Name</th>
+      <td mat-cell *matCellDef="let agent">{{ agent.businessName }}</td>
+    </ng-container>
+
+    <!-- Country -->
+    <ng-container matColumnDef="country">
+      <th mat-header-cell *matHeaderCellDef>Country</th>
+      <td mat-cell *matCellDef="let agent">{{ agent.country }}</td>
+    </ng-container>
+
+    <!-- Type -->
+    <ng-container matColumnDef="type">
+      <th mat-header-cell *matHeaderCellDef>Type</th>
+      <td mat-cell *matCellDef="let agent">
+        <span class="chip" [ngClass]="agent.agentType === 'SendingAgent' ? 'chip-info' : 'chip-tertiary'">
+          {{ agent.agentType === 'SendingAgent' ? 'Sending' : 'Payout' }}
+        </span>
+      </td>
+    </ng-container>
+
+    <!-- Status -->
+    <ng-container matColumnDef="status">
+      <th mat-header-cell *matHeaderCellDef>Status</th>
+      <td mat-cell *matCellDef="let agent">
+        <div class="status-cell">
+          <span class="chip" [ngClass]="{
+            'chip-success': agent.status === 'Approved',
+            'chip-error': agent.status === 'Blocked' || agent.status === 'Rejected',
+            'chip-warning': agent.status !== 'Approved' && agent.status !== 'Blocked' && agent.status !== 'Rejected'
+          }">{{ agent.status }}</span>
+
+          <ng-container *ngIf="agent.status === 'Blocked'">
+            <button mat-icon-button matTooltip="Unblock" class="action-btn" (click)="unblockAgent(agent)">
+              <mat-icon class="text-success">lock_open</mat-icon>
+            </button>
+          </ng-container>
+
+          <ng-container *ngIf="agent.status !== 'Approved' && agent.status !== 'Blocked' && agent.status !== 'Rejected'">
+            <button mat-icon-button matTooltip="Approve" class="action-btn" (click)="approveAgent(agent)">
+              <mat-icon class="text-success">check_circle</mat-icon>
+            </button>
+            <button mat-icon-button matTooltip="Reject" class="action-btn" (click)="rejectAgent(agent)">
+              <mat-icon class="text-error">cancel</mat-icon>
+            </button>
+          </ng-container>
+        </div>
+      </td>
+    </ng-container>
+
+    <!-- Actions -->
+    <ng-container matColumnDef="actions">
+      <th mat-header-cell *matHeaderCellDef>Actions</th>
+      <td mat-cell *matCellDef="let agent">
+        <button mat-icon-button matTooltip="View Details" (click)="viewDetail(agent)">
+          <mat-icon color="primary">visibility</mat-icon>
+        </button>
+        <button *ngIf="agent.agentType === 'SendingAgent'" mat-icon-button matTooltip="Locations" (click)="openLocationManagement(agent)">
+          <mat-icon class="text-tertiary">location_on</mat-icon>
+        </button>
+        <button *ngIf="agent.agentType === 'PayoutAgent'" mat-icon-button matTooltip="Banks" (click)="openBankManagement(agent)">
+          <mat-icon color="primary">account_balance</mat-icon>
+        </button>
+        <button *ngIf="agent.status === 'Approved'" mat-icon-button matTooltip="Block" (click)="blockAgent(agent)">
+          <mat-icon color="warn">block</mat-icon>
+        </button>
+        <button mat-icon-button matTooltip="Edit" (click)="startEdit(agent)">
+          <mat-icon color="primary">edit</mat-icon>
+        </button>
+        <button mat-icon-button matTooltip="Delete" (click)="deleteAgent(agent)">
+          <mat-icon color="warn">delete</mat-icon>
+        </button>
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+  </table>
+
+  <div *ngIf="!filteredAgents.length && !loading" class="empty-state">
+    No agents found.
+  </div>
+</mat-card>
+
+<!-- ============================================================ -->
+<!-- Agent Detail Popup                                           -->
+<!-- ============================================================ -->
+<div *ngIf="showDetail && detailAgent" class="overlay" (click)="closeDetail()"></div>
+<div *ngIf="showDetail && detailAgent" class="popup popup-md">
+  <div class="popup-header">
+    <h3><mat-icon class="header-icon">badge</mat-icon> Agent Details</h3>
+    <button mat-icon-button (click)="closeDetail()"><mat-icon>close</mat-icon></button>
+  </div>
+  <div class="detail-grid">
+    <div class="detail-item"><span class="detail-label">Business Name</span><span>{{ detailAgent.businessName }}</span></div>
+    <div class="detail-item"><span class="detail-label">Contact Person</span><span>{{ detailAgent.fullName }}</span></div>
+    <div class="detail-item"><span class="detail-label">Email</span><span>{{ detailAgent.email }}</span></div>
+    <div class="detail-item"><span class="detail-label">Phone</span><span>{{ detailAgent.phoneNumber }}</span></div>
+    <div class="detail-item"><span class="detail-label">Agent Type</span><span>{{ detailAgent.agentType === 'SendingAgent' ? 'Sending Agent' : 'Payout Agent' }}</span></div>
+    <div class="detail-item"><span class="detail-label">Country</span><span>{{ detailAgent.country }} - {{ detailAgent.city }}</span></div>
+    <div class="detail-item"><span class="detail-label">Currency</span><span>{{ detailAgent.currency || getCurrencyForCountry(detailAgent.country) }}</span></div>
+    <ng-container *ngIf="detailAgent.agentType === 'SendingAgent'">
+      <div class="detail-item"><span class="detail-label">Funding Type</span><span>{{ detailAgent.fundingType }}</span></div>
+      <div class="detail-item"><span class="detail-label">Credit Limit</span><span class="text-bold">{{ detailAgent.creditLimit | number:'1.2-2' }}</span></div>
+      <div class="detail-item"><span class="detail-label">Current Balance</span><span class="text-bold">{{ detailAgent.currentBalance | number:'1.2-2' }}</span></div>
+    </ng-container>
+    <div class="detail-item"><span class="detail-label">License Number</span><span>{{ detailAgent.licenseNumber || '-' }}</span></div>
+    <div class="detail-item">
+      <span class="detail-label">Status</span>
+      <span class="chip" [ngClass]="{
+        'chip-success': detailAgent.status === 'Approved',
+        'chip-error': detailAgent.status === 'Blocked',
+        'chip-warning': detailAgent.status !== 'Approved' && detailAgent.status !== 'Blocked'
+      }">{{ detailAgent.status }}</span>
+    </div>
+    <div class="detail-item full-width"><span class="detail-label">Address</span><span>{{ detailAgent.address || '-' }}</span></div>
+    <div class="detail-item"><span class="detail-label">Created</span><span>{{ detailAgent.createdAt | date:'yyyy-MM-dd' }}</span></div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- Create Agent Popup                                           -->
+<!-- ============================================================ -->
+<div *ngIf="showCreatePopup" class="overlay" (click)="closeCreatePopup()"></div>
+<div *ngIf="showCreatePopup" class="popup popup-lg">
+  <div class="popup-header">
+    <h3><mat-icon class="header-icon">person_add</mat-icon> Create New Agent</h3>
+    <button mat-icon-button (click)="closeCreatePopup()"><mat-icon>close</mat-icon></button>
+  </div>
+
+  <div *ngIf="createError" class="alert-banner alert-error inline-alert">{{ createError }}</div>
+
+  <!-- Agent Type -->
+  <div class="form-section">
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Agent Type</mat-label>
+      <mat-select [(ngModel)]="newAgent.agentType">
+        <mat-option value="SendingAgent">Sending Agent</mat-option>
+        <mat-option value="PayoutAgent">Payout Agent</mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+
+  <!-- Company Info -->
+  <div class="form-section">
+    <h4 class="section-title">Company Information</h4>
+    <div class="form-grid">
+      <mat-form-field appearance="outline">
+        <mat-label>Business Name</mat-label>
+        <input matInput [(ngModel)]="newAgent.businessName" required />
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>License Number</mat-label>
+        <input matInput [(ngModel)]="newAgent.licenseNumber" />
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Address</mat-label>
+        <input matInput [(ngModel)]="newAgent.address" />
+      </mat-form-field>
+    </div>
+  </div>
+
+  <!-- Authorized Person -->
+  <div class="form-section">
+    <h4 class="section-title">Authorized Person</h4>
+    <div class="form-grid">
+      <mat-form-field appearance="outline">
+        <mat-label>Full Name</mat-label>
+        <input matInput [(ngModel)]="newAgent.fullName" required />
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Email</mat-label>
+        <input matInput type="email" [(ngModel)]="newAgent.email" required />
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Phone</mat-label>
+        <input matInput [(ngModel)]="newAgent.phone" required />
+      </mat-form-field>
+    </div>
+  </div>
+
+  <!-- Accounting Details -->
+  <div class="form-section">
+    <h4 class="section-title">Accounting Details</h4>
+    <div class="form-grid">
+      <mat-form-field appearance="outline">
+        <mat-label>Country</mat-label>
+        <mat-select searchable [(ngModel)]="newAgent.country" required>
+          <mat-option *ngFor="let c of countries" [value]="c.name">{{ c.name }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>City</mat-label>
+        <input matInput [(ngModel)]="newAgent.city" required />
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Currency</mat-label>
+        <mat-select searchable [(ngModel)]="newAgent.currency" required>
+          <mat-option *ngFor="let c of currencies" [value]="c">{{ c }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+      <ng-container *ngIf="newAgent.agentType === 'SendingAgent'">
+        <mat-form-field appearance="outline">
+          <mat-label>Credit Limit</mat-label>
+          <input matInput type="number" [(ngModel)]="newAgent.creditLimit" required />
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Funding Type</mat-label>
+          <mat-select [(ngModel)]="newAgent.fundingType" required>
+            <mat-option value="PreFunding">PreFunding</mat-option>
+            <mat-option value="PostFunding">PostFunding</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </ng-container>
+    </div>
+  </div>
+
+  <div class="popup-actions">
+    <button mat-button (click)="closeCreatePopup()"><mat-icon>close</mat-icon> Cancel</button>
+    <button mat-raised-button color="primary" (click)="createAgent()" [disabled]="creating">
+      <mat-spinner *ngIf="creating" diameter="18" class="inline-spinner"></mat-spinner>
+      <mat-icon *ngIf="!creating">person_add</mat-icon> Create Agent
+    </button>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- Edit Agent Popup                                             -->
+<!-- ============================================================ -->
+<div *ngIf="showEditPopup" class="overlay" (click)="closeEditPopup()"></div>
+<div *ngIf="showEditPopup" class="popup popup-lg">
+  <div class="popup-header">
+    <h3><mat-icon class="header-icon">edit</mat-icon> Edit Agent</h3>
+    <button mat-icon-button (click)="closeEditPopup()"><mat-icon>close</mat-icon></button>
+  </div>
+
+  <div *ngIf="editError" class="alert-banner alert-error inline-alert">{{ editError }}</div>
+
+  <!-- Company Info -->
+  <div class="form-section">
+    <h4 class="section-title">Company Information</h4>
+    <div class="form-grid">
+      <mat-form-field appearance="outline">
+        <mat-label>Business Name</mat-label>
+        <input matInput [(ngModel)]="editAgent.businessName" required />
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>License Number</mat-label>
+        <input matInput [(ngModel)]="editAgent.licenseNumber" />
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Address</mat-label>
+        <input matInput [(ngModel)]="editAgent.address" />
+      </mat-form-field>
+    </div>
+  </div>
+
+  <!-- Authorized Person (read-only) -->
+  <div class="form-section">
+    <h4 class="section-title">Authorized Person</h4>
+    <div class="form-grid">
+      <div class="readonly-field">
+        <span class="detail-label">Full Name</span>
+        <span>{{ editAgentFullName }}</span>
+      </div>
+      <div class="readonly-field">
+        <span class="detail-label">Email</span>
+        <span>{{ editAgentEmail }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Accounting Details -->
+  <div class="form-section">
+    <h4 class="section-title">Accounting Details</h4>
+    <div class="form-grid">
+      <mat-form-field appearance="outline">
+        <mat-label>Country</mat-label>
+        <mat-select [(ngModel)]="editAgent.country" required>
+          <mat-option *ngFor="let c of countries" [value]="c.name">{{ c.name }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>City</mat-label>
+        <input matInput [(ngModel)]="editAgent.city" required />
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Currency</mat-label>
+        <mat-select [(ngModel)]="editAgent.currency" required>
+          <mat-option *ngFor="let c of currencies" [value]="c">{{ c }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+      <ng-container *ngIf="editAgent.agentType === 'SendingAgent'">
+        <mat-form-field appearance="outline">
+          <mat-label>Credit Limit</mat-label>
+          <input matInput type="number" [(ngModel)]="editAgent.creditLimit" required />
+        </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Funding Type</mat-label>
+          <mat-select [(ngModel)]="editAgent.fundingType" required>
+            <mat-option value="PreFunding">PreFunding</mat-option>
+            <mat-option value="PostFunding">PostFunding</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </ng-container>
+      <mat-form-field appearance="outline">
+        <mat-label>Agent Type</mat-label>
+        <mat-select [(ngModel)]="editAgent.agentType" required>
+          <mat-option value="SendingAgent">Sending Agent</mat-option>
+          <mat-option value="PayoutAgent">Payout Agent</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+  </div>
+
+  <div class="popup-actions">
+    <button mat-button (click)="closeEditPopup()"><mat-icon>close</mat-icon> Cancel</button>
+    <button mat-raised-button color="primary" (click)="updateAgent()" [disabled]="updating">
+      <mat-spinner *ngIf="updating" diameter="18" class="inline-spinner"></mat-spinner>
+      <mat-icon *ngIf="!updating">save</mat-icon> Save Changes
+    </button>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- Location Management Popup                                    -->
+<!-- ============================================================ -->
+<div *ngIf="showLocationPopup" class="overlay" (click)="closeLocationPopup()"></div>
+<div *ngIf="showLocationPopup" class="popup popup-xl">
+  <div class="popup-header">
+    <h3><mat-icon class="header-icon">location_on</mat-icon> Locations &mdash; {{ locationAgent?.businessName }}</h3>
+    <button mat-icon-button (click)="closeLocationPopup()"><mat-icon>close</mat-icon></button>
+  </div>
+
+  <div class="popup-toolbar">
+    <button mat-raised-button color="primary" (click)="openLocationForm(null)">
+      <mat-icon>add</mat-icon> Add Location
+    </button>
+  </div>
+
+  <table *ngIf="agentLocations.length" mat-table [dataSource]="agentLocations" class="inner-table">
+    <ng-container matColumnDef="locationName">
+      <th mat-header-cell *matHeaderCellDef>Location</th>
+      <td mat-cell *matCellDef="let loc">{{ loc.locationName }}</td>
+    </ng-container>
+    <ng-container matColumnDef="locationCode">
+      <th mat-header-cell *matHeaderCellDef>Code</th>
+      <td mat-cell *matCellDef="let loc">{{ loc.locationCode || '-' }}</td>
+    </ng-container>
+    <ng-container matColumnDef="countryCity">
+      <th mat-header-cell *matHeaderCellDef>Country / City</th>
+      <td mat-cell *matCellDef="let loc">{{ loc.country || '-' }} / {{ loc.city || '-' }}</td>
+    </ng-container>
+    <ng-container matColumnDef="users">
+      <th mat-header-cell *matHeaderCellDef>Users</th>
+      <td mat-cell *matCellDef="let loc"><span class="chip chip-info">{{ loc.users.length }}</span></td>
+    </ng-container>
+    <ng-container matColumnDef="status">
+      <th mat-header-cell *matHeaderCellDef>Status</th>
+      <td mat-cell *matCellDef="let loc">
+        <span class="chip" [ngClass]="loc.isActive ? 'chip-success' : 'chip-default'">{{ loc.isActive ? 'Active' : 'Inactive' }}</span>
+      </td>
+    </ng-container>
+    <ng-container matColumnDef="actions">
+      <th mat-header-cell *matHeaderCellDef>Actions</th>
+      <td mat-cell *matCellDef="let loc">
+        <button mat-icon-button matTooltip="Manage Users" (click)="openUserManagement(loc)"><mat-icon color="primary">people</mat-icon></button>
+        <button mat-icon-button matTooltip="Edit" (click)="openLocationForm(loc)"><mat-icon class="text-warning">edit</mat-icon></button>
+        <button mat-icon-button [matTooltip]="loc.isActive ? 'Deactivate' : 'Activate'" (click)="toggleLocation(loc.id)">
+          <mat-icon [ngClass]="loc.isActive ? 'text-success' : ''">{{ loc.isActive ? 'toggle_on' : 'toggle_off' }}</mat-icon>
+        </button>
+        <button mat-icon-button matTooltip="Delete" (click)="deleteLocation(loc.id)"><mat-icon color="warn">delete</mat-icon></button>
+      </td>
+    </ng-container>
+    <tr mat-header-row *matHeaderRowDef="['locationName','locationCode','countryCity','users','status','actions']"></tr>
+    <tr mat-row *matRowDef="let row; columns: ['locationName','locationCode','countryCity','users','status','actions'];"></tr>
+  </table>
+
+  <div *ngIf="!agentLocations.length" class="empty-state-info">No locations configured yet.</div>
+</div>
+
+<!-- ============================================================ -->
+<!-- Location Add/Edit Form                                       -->
+<!-- ============================================================ -->
+<div *ngIf="showLocationForm" class="overlay overlay-upper" (click)="closeLocationForm()"></div>
+<div *ngIf="showLocationForm" class="popup popup-md popup-upper">
+  <div class="popup-header">
+    <h3><mat-icon class="header-icon">location_on</mat-icon> {{ editingLocationId != null ? 'Edit Location' : 'Add New Location' }}</h3>
+    <button mat-icon-button (click)="closeLocationForm()"><mat-icon>close</mat-icon></button>
+  </div>
+  <div *ngIf="locationFormError" class="alert-banner alert-error inline-alert">{{ locationFormError }}</div>
+  <div class="form-grid">
+    <mat-form-field appearance="outline">
+      <mat-label>Location Name *</mat-label>
+      <input matInput [(ngModel)]="locName" />
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>Location Code</mat-label>
+      <input matInput [(ngModel)]="locCode" />
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>Country</mat-label>
+      <input matInput [(ngModel)]="locCountry" />
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>City</mat-label>
+      <input matInput [(ngModel)]="locCity" />
+    </mat-form-field>
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Address</mat-label>
+      <input matInput [(ngModel)]="locAddress" />
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>Contact Phone</mat-label>
+      <input matInput [(ngModel)]="locPhone" />
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>Contact Email</mat-label>
+      <input matInput [(ngModel)]="locEmail" />
+    </mat-form-field>
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Operating Hours</mat-label>
+      <input matInput placeholder="e.g. Mon-Fri 9AM-5PM" [(ngModel)]="locHours" />
+    </mat-form-field>
+  </div>
+  <div class="popup-actions">
+    <button mat-button (click)="closeLocationForm()"><mat-icon>close</mat-icon> Cancel</button>
+    <button mat-raised-button color="primary" (click)="saveLocation()"><mat-icon>save</mat-icon> Save</button>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- User Management Popup                                        -->
+<!-- ============================================================ -->
+<div *ngIf="showUserPopup && userLocation" class="overlay overlay-upper" (click)="closeUserPopup()"></div>
+<div *ngIf="showUserPopup && userLocation" class="popup popup-xl popup-upper">
+  <div class="popup-header">
+    <h3><mat-icon class="header-icon">people</mat-icon> Users &mdash; {{ userLocation.locationName }}</h3>
+    <button mat-icon-button (click)="closeUserPopup()"><mat-icon>close</mat-icon></button>
+  </div>
+
+  <div class="popup-toolbar">
+    <button mat-raised-button color="primary" (click)="openUserForm(null)"><mat-icon>person_add</mat-icon> Add User</button>
+  </div>
+
+  <table *ngIf="userLocation.users.length" mat-table [dataSource]="userLocation.users" class="inner-table">
+    <ng-container matColumnDef="fullName"><th mat-header-cell *matHeaderCellDef>Full Name</th><td mat-cell *matCellDef="let u">{{ u.fullName }}</td></ng-container>
+    <ng-container matColumnDef="email"><th mat-header-cell *matHeaderCellDef>Email</th><td mat-cell *matCellDef="let u">{{ u.email }}</td></ng-container>
+    <ng-container matColumnDef="userName"><th mat-header-cell *matHeaderCellDef>Username</th><td mat-cell *matCellDef="let u">{{ u.userName || '-' }}</td></ng-container>
+    <ng-container matColumnDef="phone"><th mat-header-cell *matHeaderCellDef>Phone</th><td mat-cell *matCellDef="let u">{{ u.phone || '-' }}</td></ng-container>
+    <ng-container matColumnDef="role"><th mat-header-cell *matHeaderCellDef>Role</th><td mat-cell *matCellDef="let u">{{ u.role || '-' }}</td></ng-container>
+    <ng-container matColumnDef="isDefault">
+      <th mat-header-cell *matHeaderCellDef>Default</th>
+      <td mat-cell *matCellDef="let u"><span *ngIf="u.isDefault" class="chip chip-success">Default</span></td>
+    </ng-container>
+    <ng-container matColumnDef="actions">
+      <th mat-header-cell *matHeaderCellDef>Actions</th>
+      <td mat-cell *matCellDef="let u">
+        <button mat-icon-button matTooltip="Edit" (click)="openUserForm(u)"><mat-icon color="primary">edit</mat-icon></button>
+        <button mat-icon-button matTooltip="Delete" (click)="deleteUser(u.id)"><mat-icon color="warn">delete</mat-icon></button>
+      </td>
+    </ng-container>
+    <tr mat-header-row *matHeaderRowDef="['fullName','email','userName','phone','role','isDefault','actions']"></tr>
+    <tr mat-row *matRowDef="let row; columns: ['fullName','email','userName','phone','role','isDefault','actions'];"></tr>
+  </table>
+
+  <div *ngIf="!userLocation.users.length" class="empty-state-info">No users yet. Click "Add User" to add one.</div>
+</div>
+
+<!-- ============================================================ -->
+<!-- User Add/Edit Form                                           -->
+<!-- ============================================================ -->
+<div *ngIf="showUserForm" class="overlay overlay-top" (click)="closeUserForm()"></div>
+<div *ngIf="showUserForm" class="popup popup-md popup-top">
+  <div class="popup-header">
+    <h3><mat-icon class="header-icon">person</mat-icon> {{ editingUserId != null ? 'Edit User' : 'Add User' }}</h3>
+    <button mat-icon-button (click)="closeUserForm()"><mat-icon>close</mat-icon></button>
+  </div>
+  <div *ngIf="userFormError" class="alert-banner alert-error inline-alert">{{ userFormError }}</div>
+  <div class="form-grid">
+    <mat-form-field appearance="outline">
+      <mat-label>Full Name *</mat-label>
+      <input matInput [(ngModel)]="userFullName" />
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>Email *</mat-label>
+      <input matInput [(ngModel)]="userEmail" />
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>Username</mat-label>
+      <input matInput [(ngModel)]="userUserName" />
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>{{ editingUserId != null ? 'New Password (leave blank to keep)' : 'Password *' }}</mat-label>
+      <input matInput type="password" [(ngModel)]="userPassword" />
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>Phone</mat-label>
+      <input matInput [(ngModel)]="userPhone" />
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>Role</mat-label>
+      <mat-select [(ngModel)]="userRole">
+        <mat-option value="Operator">Operator</mat-option>
+        <mat-option value="Manager">Manager</mat-option>
+        <mat-option value="Cashier">Cashier</mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+  <mat-checkbox [(ngModel)]="userIsDefault" color="primary" class="mb-16">Default User</mat-checkbox>
+  <div class="popup-actions">
+    <button mat-button (click)="closeUserForm()"><mat-icon>close</mat-icon> Cancel</button>
+    <button mat-raised-button color="primary" (click)="saveUser()"><mat-icon>save</mat-icon> Save</button>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- Bank Management Popup                                        -->
+<!-- ============================================================ -->
+<div *ngIf="showBankPopup" class="overlay" (click)="closeBankPopup()"></div>
+<div *ngIf="showBankPopup" class="popup popup-xl">
+  <div class="popup-header">
+    <h3><mat-icon class="header-icon">account_balance</mat-icon> Banks &mdash; {{ bankAgent?.businessName }}</h3>
+    <button mat-icon-button (click)="closeBankPopup()"><mat-icon>close</mat-icon></button>
+  </div>
+
+  <div class="popup-toolbar">
+    <button mat-raised-button color="primary" (click)="openBankForm(null)"><mat-icon>add</mat-icon> Add Bank</button>
+  </div>
+
+  <table *ngIf="agentBanks.length" mat-table [dataSource]="agentBanks" class="inner-table">
+    <ng-container matColumnDef="bankName"><th mat-header-cell *matHeaderCellDef>Bank Name</th><td mat-cell *matCellDef="let b">{{ b.bankName }}</td></ng-container>
+    <ng-container matColumnDef="paymentMode"><th mat-header-cell *matHeaderCellDef>Payment Mode</th><td mat-cell *matCellDef="let b"><span class="chip chip-info">{{ b.paymentMethodName || '-' }}</span></td></ng-container>
+    <ng-container matColumnDef="bankCode"><th mat-header-cell *matHeaderCellDef>Code</th><td mat-cell *matCellDef="let b">{{ b.bankCode || '-' }}</td></ng-container>
+    <ng-container matColumnDef="swiftCode"><th mat-header-cell *matHeaderCellDef>SWIFT</th><td mat-cell *matCellDef="let b">{{ b.swiftCode || '-' }}</td></ng-container>
+    <ng-container matColumnDef="branches">
+      <th mat-header-cell *matHeaderCellDef>Branches</th>
+      <td mat-cell *matCellDef="let b"><span class="chip chip-info">{{ b.branches.length }}</span></td>
+    </ng-container>
+    <ng-container matColumnDef="status">
+      <th mat-header-cell *matHeaderCellDef>Status</th>
+      <td mat-cell *matCellDef="let b"><span class="chip" [ngClass]="b.isActive ? 'chip-success' : 'chip-default'">{{ b.isActive ? 'Active' : 'Inactive' }}</span></td>
+    </ng-container>
+    <ng-container matColumnDef="actions">
+      <th mat-header-cell *matHeaderCellDef>Actions</th>
+      <td mat-cell *matCellDef="let b">
+        <button mat-icon-button matTooltip="Manage Branches" (click)="openBankBranchManagement(b)"><mat-icon color="primary">account_tree</mat-icon></button>
+        <button mat-icon-button matTooltip="Edit" (click)="openBankForm(b)"><mat-icon class="text-warning">edit</mat-icon></button>
+        <button mat-icon-button [matTooltip]="b.isActive ? 'Deactivate' : 'Activate'" (click)="toggleBank(b.id)">
+          <mat-icon [ngClass]="b.isActive ? 'text-success' : ''">{{ b.isActive ? 'toggle_on' : 'toggle_off' }}</mat-icon>
+        </button>
+        <button mat-icon-button matTooltip="Delete" (click)="deleteBank(b.id)"><mat-icon color="warn">delete</mat-icon></button>
+      </td>
+    </ng-container>
+    <tr mat-header-row *matHeaderRowDef="['bankName','paymentMode','bankCode','swiftCode','branches','status','actions']"></tr>
+    <tr mat-row *matRowDef="let row; columns: ['bankName','paymentMode','bankCode','swiftCode','branches','status','actions'];"></tr>
+  </table>
+
+  <div *ngIf="!agentBanks.length" class="empty-state-info">No banks configured yet.</div>
+</div>
+
+<!-- ============================================================ -->
+<!-- Bank Add/Edit Form                                           -->
+<!-- ============================================================ -->
+<div *ngIf="showBankForm" class="overlay overlay-upper" (click)="closeBankForm()"></div>
+<div *ngIf="showBankForm" class="popup popup-md popup-upper">
+  <div class="popup-header">
+    <h3><mat-icon class="header-icon">account_balance</mat-icon> {{ editingBankId != null ? 'Edit Bank' : 'Add New Bank' }}</h3>
+    <button mat-icon-button (click)="closeBankForm()"><mat-icon>close</mat-icon></button>
+  </div>
+  <div *ngIf="bankFormError" class="alert-banner alert-error inline-alert">{{ bankFormError }}</div>
+  <div class="form-grid">
+    <mat-form-field appearance="outline">
+      <mat-label>Bank Name *</mat-label>
+      <input matInput [(ngModel)]="bankName" />
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>Payment Mode *</mat-label>
+      <mat-select searchable [(ngModel)]="bankPaymentMethodId" required>
+        <mat-option *ngFor="let pm of paymentMethods" [value]="pm.id">{{ pm.name }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>Bank Code</mat-label>
+      <input matInput [(ngModel)]="bankCode" />
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>SWIFT Code</mat-label>
+      <input matInput [(ngModel)]="bankSwift" />
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>Routing Number</mat-label>
+      <input matInput [(ngModel)]="bankRouting" />
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>Country</mat-label>
+      <input matInput [(ngModel)]="bankCountry" />
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>City</mat-label>
+      <input matInput [(ngModel)]="bankCity" />
+    </mat-form-field>
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Address</mat-label>
+      <input matInput [(ngModel)]="bankAddress" />
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>Contact Phone</mat-label>
+      <input matInput [(ngModel)]="bankPhone" />
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>Contact Email</mat-label>
+      <input matInput [(ngModel)]="bankEmail" />
+    </mat-form-field>
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Additional Info</mat-label>
+      <textarea matInput rows="2" [(ngModel)]="bankAdditionalInfo"></textarea>
+    </mat-form-field>
+  </div>
+  <div class="popup-actions">
+    <button mat-button (click)="closeBankForm()"><mat-icon>close</mat-icon> Cancel</button>
+    <button mat-raised-button color="primary" (click)="saveBank()"><mat-icon>save</mat-icon> Save</button>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- Bank Branch Management Popup                                 -->
+<!-- ============================================================ -->
+<div *ngIf="showBankBranchPopup && bankBranchBank" class="overlay overlay-upper" (click)="closeBankBranchPopup()"></div>
+<div *ngIf="showBankBranchPopup && bankBranchBank" class="popup popup-lg popup-upper">
+  <div class="popup-header">
+    <h3><mat-icon class="header-icon">account_tree</mat-icon> Branches &mdash; {{ bankBranchBank.bankName }}</h3>
+    <button mat-icon-button (click)="closeBankBranchPopup()"><mat-icon>close</mat-icon></button>
+  </div>
+
+  <div class="popup-toolbar">
+    <button mat-raised-button color="primary" (click)="openBankBranchForm(null)"><mat-icon>add</mat-icon> Add Branch</button>
+  </div>
+
+  <table *ngIf="bankBranchBank.branches.length" mat-table [dataSource]="bankBranchBank.branches" class="inner-table">
+    <ng-container matColumnDef="branchName"><th mat-header-cell *matHeaderCellDef>Branch Name</th><td mat-cell *matCellDef="let br">{{ br.branchName }}</td></ng-container>
+    <ng-container matColumnDef="branchCode"><th mat-header-cell *matHeaderCellDef>Code</th><td mat-cell *matCellDef="let br">{{ br.branchCode || '-' }}</td></ng-container>
+    <ng-container matColumnDef="swiftCode"><th mat-header-cell *matHeaderCellDef>SWIFT</th><td mat-cell *matCellDef="let br">{{ br.swiftCode || '-' }}</td></ng-container>
+    <ng-container matColumnDef="address"><th mat-header-cell *matHeaderCellDef>Address</th><td mat-cell *matCellDef="let br">{{ br.address || '-' }}</td></ng-container>
+    <ng-container matColumnDef="phone"><th mat-header-cell *matHeaderCellDef>Phone</th><td mat-cell *matCellDef="let br">{{ br.contactPhone || '-' }}</td></ng-container>
+    <ng-container matColumnDef="actions">
+      <th mat-header-cell *matHeaderCellDef>Actions</th>
+      <td mat-cell *matCellDef="let br">
+        <button mat-icon-button matTooltip="Edit" (click)="openBankBranchForm(br)"><mat-icon color="primary">edit</mat-icon></button>
+        <button mat-icon-button matTooltip="Delete" (click)="deleteBankBranch(br.id)"><mat-icon color="warn">delete</mat-icon></button>
+      </td>
+    </ng-container>
+    <tr mat-header-row *matHeaderRowDef="['branchName','branchCode','swiftCode','address','phone','actions']"></tr>
+    <tr mat-row *matRowDef="let row; columns: ['branchName','branchCode','swiftCode','address','phone','actions'];"></tr>
+  </table>
+
+  <div *ngIf="!bankBranchBank.branches.length" class="empty-state-info">No branches yet.</div>
+</div>
+
+<!-- ============================================================ -->
+<!-- Bank Branch Add/Edit Form                                    -->
+<!-- ============================================================ -->
+<div *ngIf="showBankBranchForm" class="overlay overlay-top" (click)="closeBankBranchForm()"></div>
+<div *ngIf="showBankBranchForm" class="popup popup-md popup-top">
+  <div class="popup-header">
+    <h3><mat-icon class="header-icon">account_tree</mat-icon> {{ editingBankBranchId != null ? 'Edit Branch' : 'Add Branch' }}</h3>
+    <button mat-icon-button (click)="closeBankBranchForm()"><mat-icon>close</mat-icon></button>
+  </div>
+  <div *ngIf="bankBranchFormError" class="alert-banner alert-error inline-alert">{{ bankBranchFormError }}</div>
+  <div class="form-grid">
+    <mat-form-field appearance="outline">
+      <mat-label>Branch Name *</mat-label>
+      <input matInput [(ngModel)]="bbName" />
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>Branch Code</mat-label>
+      <input matInput [(ngModel)]="bbCode" />
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>SWIFT Code</mat-label>
+      <input matInput [(ngModel)]="bbSwift" />
+    </mat-form-field>
+    <mat-form-field appearance="outline">
+      <mat-label>Contact Phone</mat-label>
+      <input matInput [(ngModel)]="bbPhone" />
+    </mat-form-field>
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Address</mat-label>
+      <input matInput [(ngModel)]="bbAddress" />
+    </mat-form-field>
+  </div>
+  <div class="popup-actions">
+    <button mat-button (click)="closeBankBranchForm()"><mat-icon>close</mat-icon> Cancel</button>
+    <button mat-raised-button color="primary" (click)="saveBankBranch()"><mat-icon>save</mat-icon> Save</button>
+  </div>
+</div>

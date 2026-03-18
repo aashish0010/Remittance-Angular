@@ -1,0 +1,119 @@
+<!-- Page Header -->
+<div class="page-header">
+  <h2>Compliance Alerts</h2>
+</div>
+
+<!-- Filter Toggle -->
+<div class="filter-bar">
+  <mat-button-toggle-group [(ngModel)]="filterMode" (ngModelChange)="onFilterChange()">
+    <mat-button-toggle value="all">All</mat-button-toggle>
+    <mat-button-toggle value="open">Open</mat-button-toggle>
+    <mat-button-toggle value="resolved">Resolved</mat-button-toggle>
+  </mat-button-toggle-group>
+</div>
+
+<!-- Loading -->
+<div *ngIf="loading" class="loading-container">
+  <mat-spinner diameter="40"></mat-spinner>
+</div>
+
+<!-- Table -->
+<mat-card *ngIf="!loading" class="table-card">
+  <table mat-table [dataSource]="alerts" class="data-table">
+    <!-- Reference -->
+    <ng-container matColumnDef="reference">
+      <th mat-header-cell *matHeaderCellDef>Reference</th>
+      <td mat-cell *matCellDef="let a">{{ a.referenceNumber }}</td>
+    </ng-container>
+
+    <!-- Sender -->
+    <ng-container matColumnDef="sender">
+      <th mat-header-cell *matHeaderCellDef>Sender</th>
+      <td mat-cell *matCellDef="let a">{{ a.senderName }}</td>
+    </ng-container>
+
+    <!-- Amount -->
+    <ng-container matColumnDef="amount">
+      <th mat-header-cell *matHeaderCellDef>Amount</th>
+      <td mat-cell *matCellDef="let a">{{ a.sendAmount | number:'1.2-2' }} {{ a.sendCurrency }}</td>
+    </ng-container>
+
+    <!-- Alert Type -->
+    <ng-container matColumnDef="alertType">
+      <th mat-header-cell *matHeaderCellDef>Alert Type</th>
+      <td mat-cell *matCellDef="let a">
+        <span class="chip chip-warning">{{ a.alertType }}</span>
+      </td>
+    </ng-container>
+
+    <!-- Description -->
+    <ng-container matColumnDef="description">
+      <th mat-header-cell *matHeaderCellDef>Description</th>
+      <td mat-cell *matCellDef="let a">{{ a.description }}</td>
+    </ng-container>
+
+    <!-- Status -->
+    <ng-container matColumnDef="status">
+      <th mat-header-cell *matHeaderCellDef>Status</th>
+      <td mat-cell *matCellDef="let a">
+        <span class="chip" [ngClass]="a.isResolved ? 'chip-success' : 'chip-error'">
+          {{ a.isResolved ? 'Resolved' : 'Open' }}
+        </span>
+      </td>
+    </ng-container>
+
+    <!-- Created -->
+    <ng-container matColumnDef="created">
+      <th mat-header-cell *matHeaderCellDef>Created</th>
+      <td mat-cell *matCellDef="let a">{{ a.createdAt | date:'yyyy-MM-dd HH:mm' }}</td>
+    </ng-container>
+
+    <!-- Actions -->
+    <ng-container matColumnDef="actions">
+      <th mat-header-cell *matHeaderCellDef>Actions</th>
+      <td mat-cell *matCellDef="let a">
+        <ng-container *ngIf="!a.isResolved">
+          <button mat-icon-button matTooltip="Resolve" (click)="openResolvePopup(a)">
+            <mat-icon class="text-success">check_circle</mat-icon>
+          </button>
+          <button mat-icon-button matTooltip="Release Transaction" (click)="releaseAlert(a)">
+            <mat-icon color="primary">lock_open</mat-icon>
+          </button>
+        </ng-container>
+        <ng-container *ngIf="a.isResolved">
+          <span class="resolution-text">{{ a.resolution }}</span>
+        </ng-container>
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+  </table>
+
+  <div *ngIf="!alerts.length && !loading" class="empty-state">
+    No compliance alerts found.
+  </div>
+</mat-card>
+
+<!-- Resolve Popup Overlay -->
+<div *ngIf="showResolvePopup" class="overlay" (click)="closeResolvePopup()"></div>
+<div *ngIf="showResolvePopup" class="popup popup-sm">
+  <div class="popup-header">
+    <h3>Resolve Alert</h3>
+    <button mat-icon-button (click)="closeResolvePopup()"><mat-icon>close</mat-icon></button>
+  </div>
+  <div *ngIf="resolveAlertTarget" class="resolve-info">
+    <div class="detail-item"><span class="detail-label">Reference</span><span>{{ resolveAlertTarget.referenceNumber }}</span></div>
+    <div class="detail-item"><span class="detail-label">Alert Type</span><span>{{ resolveAlertTarget.alertType }}</span></div>
+  </div>
+  <mat-form-field appearance="outline" class="full-width">
+    <mat-label>Resolution Notes *</mat-label>
+    <textarea matInput [(ngModel)]="resolutionText" rows="3"></textarea>
+  </mat-form-field>
+  <div class="popup-actions">
+    <button mat-button (click)="closeResolvePopup()"><mat-icon>close</mat-icon> Cancel</button>
+    <button mat-raised-button color="primary" (click)="resolveAlert()">
+      <mat-icon>check_circle</mat-icon> Resolve
+    </button>
+  </div>
+</div>

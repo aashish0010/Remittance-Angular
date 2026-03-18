@@ -1,0 +1,211 @@
+<!-- Page Header -->
+<div class="page-header">
+  <h2>Receiver Management</h2>
+  <div class="header-actions">
+    <button mat-raised-button (click)="openSearchPopup()">
+      <mat-icon>search</mat-icon> Search Receiver
+    </button>
+    <button mat-raised-button color="primary" (click)="openCreatePopup()">
+      <mat-icon>person_add</mat-icon> Add Receiver
+    </button>
+  </div>
+</div>
+
+<!-- Loading -->
+<div *ngIf="loading" class="loading-container">
+  <mat-spinner diameter="40"></mat-spinner>
+</div>
+
+<!-- Search + Filter + Table -->
+<mat-card *ngIf="!loading" class="table-card">
+  <div class="filter-row">
+    <mat-form-field appearance="outline" class="filter-field">
+      <mat-label>Filter by Customer</mat-label>
+      <mat-select searchable [(ngModel)]="filterCustomerId" (ngModelChange)="filterByCustomer()">
+        <mat-option [value]="null">All Customers</mat-option>
+        <mat-option *ngFor="let c of customers" [value]="c.id">{{ c.fullName }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="search-field">
+      <mat-icon matPrefix>search</mat-icon>
+      <input matInput placeholder="Search receivers..." [(ngModel)]="searchString" (ngModelChange)="applyFilter()" />
+    </mat-form-field>
+  </div>
+
+  <table mat-table [dataSource]="filteredReceivers" class="data-table">
+    <!-- Customer Name -->
+    <ng-container matColumnDef="customerName">
+      <th mat-header-cell *matHeaderCellDef>Customer Name</th>
+      <td mat-cell *matCellDef="let r">{{ r.customerName }}</td>
+    </ng-container>
+
+    <!-- Receiver Name -->
+    <ng-container matColumnDef="fullName">
+      <th mat-header-cell *matHeaderCellDef>Receiver Name</th>
+      <td mat-cell *matCellDef="let r">{{ r.fullName }}</td>
+    </ng-container>
+
+    <!-- Phone -->
+    <ng-container matColumnDef="phone">
+      <th mat-header-cell *matHeaderCellDef>Phone</th>
+      <td mat-cell *matCellDef="let r">{{ r.phone }}</td>
+    </ng-container>
+
+    <!-- Country -->
+    <ng-container matColumnDef="country">
+      <th mat-header-cell *matHeaderCellDef>Country</th>
+      <td mat-cell *matCellDef="let r">{{ r.country }}</td>
+    </ng-container>
+
+    <!-- Bank Name -->
+    <ng-container matColumnDef="bankName">
+      <th mat-header-cell *matHeaderCellDef>Bank Name</th>
+      <td mat-cell *matCellDef="let r">{{ r.bankName || '-' }}</td>
+    </ng-container>
+
+    <!-- Account Number -->
+    <ng-container matColumnDef="accountNumber">
+      <th mat-header-cell *matHeaderCellDef>Account</th>
+      <td mat-cell *matCellDef="let r">{{ r.accountNumber || '-' }}</td>
+    </ng-container>
+
+    <!-- Status -->
+    <ng-container matColumnDef="status">
+      <th mat-header-cell *matHeaderCellDef>Status</th>
+      <td mat-cell *matCellDef="let r">
+        <span class="chip" [ngClass]="r.isActive ? 'chip-success' : 'chip-default'">
+          {{ r.isActive ? 'Active' : 'Inactive' }}
+        </span>
+      </td>
+    </ng-container>
+
+    <!-- Actions -->
+    <ng-container matColumnDef="actions">
+      <th mat-header-cell *matHeaderCellDef>Actions</th>
+      <td mat-cell *matCellDef="let r">
+        <button mat-icon-button matTooltip="Edit" (click)="openEditPopup(r)">
+          <mat-icon color="primary">edit</mat-icon>
+        </button>
+        <button mat-icon-button matTooltip="Delete" (click)="deleteReceiver(r)">
+          <mat-icon color="warn">delete</mat-icon>
+        </button>
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+  </table>
+
+  <div *ngIf="!filteredReceivers.length && !loading" class="empty-state">
+    No receivers found.
+  </div>
+</mat-card>
+
+<!-- ============================================================ -->
+<!-- Search Receiver Popup                                         -->
+<!-- ============================================================ -->
+<div *ngIf="showSearchPopup" class="overlay" (click)="closeSearchPopup()"></div>
+<div *ngIf="showSearchPopup" class="popup popup-md">
+  <div class="popup-header">
+    <h3><mat-icon class="header-icon">person_search</mat-icon> Search Receiver</h3>
+    <button mat-icon-button (click)="closeSearchPopup()"><mat-icon>close</mat-icon></button>
+  </div>
+
+  <mat-form-field appearance="outline" class="full-width">
+    <mat-icon matPrefix>search</mat-icon>
+    <mat-label>Search by name or mobile number</mat-label>
+    <input matInput [(ngModel)]="searchQuery" (ngModelChange)="performSearch()" placeholder="Enter name or phone..." />
+  </mat-form-field>
+
+  <div *ngIf="searchQuery && !searchResults.length" class="empty-state">
+    No receivers match your search.
+  </div>
+
+  <div *ngIf="searchResults.length" class="search-results">
+    <div class="search-result-item" *ngFor="let r of searchResults" (click)="selectSearchResult(r)">
+      <div class="result-main">
+        <span class="result-name">{{ r.fullName }}</span>
+        <span class="result-phone">{{ r.phone }}</span>
+      </div>
+      <div class="result-sub">
+        <span>{{ r.customerName }}</span>
+        <span class="result-dot"></span>
+        <span>{{ r.country }}</span>
+        <span *ngIf="r.bankName" class="result-dot"></span>
+        <span *ngIf="r.bankName">{{ r.bankName }}</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- Create / Edit Receiver Popup                                  -->
+<!-- ============================================================ -->
+<div *ngIf="showFormPopup" class="overlay" (click)="closeFormPopup()"></div>
+<div *ngIf="showFormPopup" class="popup popup-lg">
+  <div class="popup-header">
+    <h3>{{ isEditing ? 'Edit Receiver' : 'Add New Receiver' }}</h3>
+    <button mat-icon-button (click)="closeFormPopup()"><mat-icon>close</mat-icon></button>
+  </div>
+
+  <div *ngIf="formError" class="alert-banner alert-error inline-alert">{{ formError }}</div>
+
+  <div class="form-grid">
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Customer *</mat-label>
+      <mat-select searchable [(ngModel)]="form.customerId">
+        <mat-option *ngFor="let c of customers" [value]="c.id">{{ c.fullName }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Full Name *</mat-label>
+      <input matInput [(ngModel)]="form.fullName" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Phone *</mat-label>
+      <input matInput [(ngModel)]="form.phone" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Email</mat-label>
+      <input matInput type="email" [(ngModel)]="form.email" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Country *</mat-label>
+      <input matInput [(ngModel)]="form.country" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>City</mat-label>
+      <input matInput [(ngModel)]="form.city" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Bank Name</mat-label>
+      <input matInput [(ngModel)]="form.bankName" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Account Number</mat-label>
+      <input matInput [(ngModel)]="form.accountNumber" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Relationship</mat-label>
+      <input matInput [(ngModel)]="form.relationship" />
+    </mat-form-field>
+  </div>
+
+  <div class="popup-actions">
+    <button mat-button (click)="closeFormPopup()"><mat-icon>close</mat-icon> Cancel</button>
+    <button mat-raised-button color="primary" (click)="saveReceiver()" [disabled]="saving">
+      <mat-spinner *ngIf="saving" diameter="18" class="inline-spinner"></mat-spinner>
+      <mat-icon *ngIf="!saving">save</mat-icon>
+      {{ isEditing ? 'Save Changes' : 'Add Receiver' }}
+    </button>
+  </div>
+</div>

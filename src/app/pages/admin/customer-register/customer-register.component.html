@@ -1,0 +1,255 @@
+<!-- Page Header -->
+<div class="page-header">
+  <h2>Customer Registration</h2>
+  <button mat-raised-button color="primary" (click)="openCreatePopup()">
+    <mat-icon>person_add</mat-icon> Register Customer
+  </button>
+</div>
+
+<!-- Loading -->
+<div *ngIf="loading" class="loading-container">
+  <mat-spinner diameter="40"></mat-spinner>
+</div>
+
+<!-- Search + Table -->
+<mat-card *ngIf="!loading" class="table-card">
+  <mat-form-field appearance="outline" class="search-field">
+    <mat-icon matPrefix>search</mat-icon>
+    <input matInput placeholder="Search customers..." [(ngModel)]="searchString" (ngModelChange)="applyFilter()" />
+  </mat-form-field>
+
+  <table mat-table [dataSource]="filteredCustomers" class="data-table">
+    <!-- Full Name -->
+    <ng-container matColumnDef="fullName">
+      <th mat-header-cell *matHeaderCellDef>Full Name</th>
+      <td mat-cell *matCellDef="let c">{{ c.fullName }}</td>
+    </ng-container>
+
+    <!-- Email -->
+    <ng-container matColumnDef="email">
+      <th mat-header-cell *matHeaderCellDef>Email</th>
+      <td mat-cell *matCellDef="let c">{{ c.email || '-' }}</td>
+    </ng-container>
+
+    <!-- Phone -->
+    <ng-container matColumnDef="phone">
+      <th mat-header-cell *matHeaderCellDef>Phone</th>
+      <td mat-cell *matCellDef="let c">{{ c.phone || '-' }}</td>
+    </ng-container>
+
+    <!-- Country -->
+    <ng-container matColumnDef="country">
+      <th mat-header-cell *matHeaderCellDef>Country</th>
+      <td mat-cell *matCellDef="let c">{{ c.country }}</td>
+    </ng-container>
+
+    <!-- KYC Status -->
+    <ng-container matColumnDef="kyc">
+      <th mat-header-cell *matHeaderCellDef>KYC Status</th>
+      <td mat-cell *matCellDef="let c">
+        <span class="chip" [ngClass]="c.isKycVerified ? 'chip-success' : 'chip-warning'">
+          {{ c.isKycVerified ? 'Verified' : 'Pending' }}
+        </span>
+      </td>
+    </ng-container>
+
+    <!-- Created -->
+    <ng-container matColumnDef="createdAt">
+      <th mat-header-cell *matHeaderCellDef>Created</th>
+      <td mat-cell *matCellDef="let c">{{ c.createdAt | date:'yyyy-MM-dd' }}</td>
+    </ng-container>
+
+    <!-- Actions -->
+    <ng-container matColumnDef="actions">
+      <th mat-header-cell *matHeaderCellDef>Actions</th>
+      <td mat-cell *matCellDef="let c">
+        <button mat-icon-button matTooltip="View Details" (click)="viewDetail(c)">
+          <mat-icon color="primary">visibility</mat-icon>
+        </button>
+        <button mat-icon-button matTooltip="Edit" (click)="openEditPopup(c)">
+          <mat-icon color="primary">edit</mat-icon>
+        </button>
+        <button *ngIf="!c.isKycVerified" mat-icon-button matTooltip="Approve KYC" (click)="approveKyc(c)">
+          <mat-icon class="text-success">check_circle</mat-icon>
+        </button>
+        <button *ngIf="c.isKycVerified" mat-icon-button matTooltip="Reject KYC" (click)="rejectKyc(c)">
+          <mat-icon class="text-error">cancel</mat-icon>
+        </button>
+        <button mat-icon-button matTooltip="Delete" (click)="deleteCustomer(c)">
+          <mat-icon color="warn">delete</mat-icon>
+        </button>
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+  </table>
+
+  <div *ngIf="!filteredCustomers.length && !loading" class="empty-state">
+    No customers found.
+  </div>
+</mat-card>
+
+<!-- ============================================================ -->
+<!-- Detail Popup                                                  -->
+<!-- ============================================================ -->
+<div *ngIf="showDetail && detailCustomer" class="overlay" (click)="closeDetail()"></div>
+<div *ngIf="showDetail && detailCustomer" class="popup popup-md">
+  <div class="popup-header">
+    <h3>Customer Details</h3>
+    <button mat-icon-button (click)="closeDetail()"><mat-icon>close</mat-icon></button>
+  </div>
+  <div class="detail-grid">
+    <div class="detail-item"><span class="detail-label">Full Name</span><span>{{ detailCustomer.fullName }}</span></div>
+    <div class="detail-item"><span class="detail-label">Email</span><span>{{ detailCustomer.email || '-' }}</span></div>
+    <div class="detail-item"><span class="detail-label">Phone</span><span>{{ detailCustomer.phone || '-' }}</span></div>
+    <div class="detail-item"><span class="detail-label">Date of Birth</span><span>{{ detailCustomer.dateOfBirth || '-' }}</span></div>
+    <div class="detail-item"><span class="detail-label">Gender</span><span>{{ detailCustomer.gender || '-' }}</span></div>
+    <div class="detail-item"><span class="detail-label">Nationality</span><span>{{ detailCustomer.nationality || '-' }}</span></div>
+    <div class="detail-item"><span class="detail-label">Country</span><span>{{ detailCustomer.country }}</span></div>
+    <div class="detail-item"><span class="detail-label">City</span><span>{{ detailCustomer.city || '-' }}</span></div>
+    <div class="detail-item"><span class="detail-label">State</span><span>{{ detailCustomer.state || '-' }}</span></div>
+    <div class="detail-item"><span class="detail-label">Postal Code</span><span>{{ detailCustomer.postalCode || '-' }}</span></div>
+    <div class="detail-item full-width"><span class="detail-label">Address</span><span>{{ detailCustomer.address || '-' }}</span></div>
+    <div class="detail-item"><span class="detail-label">Document Type</span><span>{{ detailCustomer.idDocumentType || '-' }}</span></div>
+    <div class="detail-item"><span class="detail-label">Document Number</span><span>{{ detailCustomer.idDocumentNumber || '-' }}</span></div>
+    <div class="detail-item">
+      <span class="detail-label">KYC Status</span>
+      <span class="chip" [ngClass]="detailCustomer.isKycVerified ? 'chip-success' : 'chip-warning'">
+        {{ detailCustomer.isKycVerified ? 'Verified' : 'Pending' }}
+      </span>
+    </div>
+    <div class="detail-item"><span class="detail-label">Created</span><span>{{ detailCustomer.createdAt | date:'yyyy-MM-dd' }}</span></div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- Create / Edit Customer Popup                                  -->
+<!-- ============================================================ -->
+<div *ngIf="showFormPopup" class="overlay" (click)="closeFormPopup()"></div>
+<div *ngIf="showFormPopup" class="popup popup-lg">
+  <div class="popup-header">
+    <h3>{{ isEditing ? 'Edit Customer' : 'Register New Customer' }}</h3>
+    <button mat-icon-button (click)="closeFormPopup()"><mat-icon>close</mat-icon></button>
+  </div>
+
+  <div *ngIf="formError" class="form-error">{{ formError }}</div>
+
+  <mat-tab-group animationDuration="200ms">
+    <!-- Tab 1: Personal -->
+    <mat-tab label="Personal">
+      <div class="tab-content">
+        <div class="form-grid">
+          <mat-form-field appearance="outline">
+            <mat-label>Full Name *</mat-label>
+            <input matInput [(ngModel)]="form.fullName" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Date of Birth</mat-label>
+            <input matInput [matDatepicker]="dobPicker" [(ngModel)]="form.dateOfBirth" readonly placeholder="Select date" />
+            <mat-datepicker-toggle matSuffix [for]="dobPicker"></mat-datepicker-toggle>
+            <mat-datepicker #dobPicker></mat-datepicker>
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Gender</mat-label>
+            <mat-select [(ngModel)]="form.gender">
+              <mat-option value="Male">Male</mat-option>
+              <mat-option value="Female">Female</mat-option>
+              <mat-option value="Other">Other</mat-option>
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Nationality</mat-label>
+            <input matInput [(ngModel)]="form.nationality" />
+          </mat-form-field>
+        </div>
+      </div>
+    </mat-tab>
+
+    <!-- Tab 2: Contact -->
+    <mat-tab label="Contact">
+      <div class="tab-content">
+        <div class="form-grid">
+          <mat-form-field appearance="outline">
+            <mat-label>Email</mat-label>
+            <input matInput type="email" [(ngModel)]="form.email" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Phone</mat-label>
+            <input matInput [(ngModel)]="form.phone" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Country *</mat-label>
+            <mat-select searchable [(ngModel)]="form.country">
+              <mat-option *ngFor="let c of countries" [value]="c.name">{{ c.name }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Contact Country</mat-label>
+            <mat-select [(ngModel)]="form.contactCountry">
+              <mat-option value="">-- None --</mat-option>
+              <mat-option *ngFor="let c of countries" [value]="c.name">{{ c.name }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>City</mat-label>
+            <input matInput [(ngModel)]="form.city" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>State</mat-label>
+            <input matInput [(ngModel)]="form.state" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Postal Code</mat-label>
+            <input matInput [(ngModel)]="form.postalCode" />
+          </mat-form-field>
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Address</mat-label>
+            <input matInput [(ngModel)]="form.address" />
+          </mat-form-field>
+        </div>
+      </div>
+    </mat-tab>
+
+    <!-- Tab 3: ID Document -->
+    <mat-tab label="ID Document">
+      <div class="tab-content">
+        <div class="form-grid">
+          <mat-form-field appearance="outline">
+            <mat-label>Document Type</mat-label>
+            <mat-select [(ngModel)]="form.idDocumentType">
+              <mat-option value="Passport">Passport</mat-option>
+              <mat-option value="NationalID">National ID</mat-option>
+              <mat-option value="DriverLicense">Driver License</mat-option>
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Document Number</mat-label>
+            <input matInput [(ngModel)]="form.idDocumentNumber" />
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Issue Date</mat-label>
+            <input matInput [matDatepicker]="issuePicker" [(ngModel)]="form.issueDate" readonly placeholder="Select date" />
+            <mat-datepicker-toggle matSuffix [for]="issuePicker"></mat-datepicker-toggle>
+            <mat-datepicker #issuePicker></mat-datepicker>
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Expiry Date</mat-label>
+            <input matInput [matDatepicker]="expiryPicker" [(ngModel)]="form.expiryDate" readonly placeholder="Select date" />
+            <mat-datepicker-toggle matSuffix [for]="expiryPicker"></mat-datepicker-toggle>
+            <mat-datepicker #expiryPicker></mat-datepicker>
+          </mat-form-field>
+        </div>
+      </div>
+    </mat-tab>
+  </mat-tab-group>
+
+  <div class="popup-actions">
+    <button mat-button (click)="closeFormPopup()"><mat-icon>close</mat-icon> Cancel</button>
+    <button mat-raised-button color="primary" (click)="saveCustomer()" [disabled]="saving">
+      <mat-spinner *ngIf="saving" diameter="18" class="inline-spinner"></mat-spinner>
+      <mat-icon *ngIf="!saving">save</mat-icon>
+      {{ isEditing ? 'Save Changes' : 'Register Customer' }}
+    </button>
+  </div>
+</div>

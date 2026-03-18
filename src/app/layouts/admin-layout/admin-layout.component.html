@@ -1,0 +1,170 @@
+<div class="layout-wrapper" [class.dark-mode]="isDarkMode">
+
+  <!-- ── Top Bar (outside sidenav-container) ── -->
+  <mat-toolbar class="app-toolbar">
+    <button mat-icon-button class="menu-btn" (click)="toggleDrawer()" aria-label="Toggle menu">
+      <mat-icon>menu</mat-icon>
+    </button>
+
+    <!-- Brand -->
+    <div class="brand">
+      <div class="brand-logo">
+        <mat-icon>currency_exchange</mat-icon>
+      </div>
+      <div class="brand-text">
+        <span class="brand-name">RemitAdmin</span>
+        <span class="brand-sub">Management Portal</span>
+      </div>
+    </div>
+
+    <span class="spacer"></span>
+
+    <!-- Right actions -->
+    <div class="toolbar-actions">
+      <button mat-icon-button class="toolbar-btn" (click)="toggleDarkMode()"
+        [matTooltip]="isDarkMode ? 'Light mode' : 'Dark mode'">
+        <mat-icon>{{ isDarkMode ? 'light_mode' : 'dark_mode' }}</mat-icon>
+      </button>
+
+      <button mat-icon-button class="toolbar-btn" matTooltip="Notifications">
+        <mat-icon>notifications_none</mat-icon>
+      </button>
+
+      <div class="toolbar-divider"></div>
+
+      <button mat-button class="user-btn" [matMenuTriggerFor]="accountMenu">
+        <div class="user-avatar">A</div>
+        <span class="user-name">Admin</span>
+        <mat-icon class="user-chevron">expand_more</mat-icon>
+      </button>
+    </div>
+
+    <mat-menu #accountMenu="matMenu" class="user-menu">
+      <div class="menu-user-info">
+        <div class="menu-avatar">A</div>
+        <div>
+          <div class="menu-user-name">Administrator</div>
+          <div class="menu-user-role">Super Admin</div>
+        </div>
+      </div>
+      <mat-divider></mat-divider>
+      <button mat-menu-item>
+        <mat-icon>person_outline</mat-icon>
+        <span>My Profile</span>
+      </button>
+      <button mat-menu-item>
+        <mat-icon>settings</mat-icon>
+        <span>Settings</span>
+      </button>
+      <mat-divider></mat-divider>
+      <button mat-menu-item class="logout-item" routerLink="/">
+        <mat-icon>logout</mat-icon>
+        <span>Sign Out</span>
+      </button>
+    </mat-menu>
+  </mat-toolbar>
+
+  <!-- ── Sidenav Container ── -->
+  <mat-sidenav-container class="layout-container">
+
+    <!-- ── Sidenav ── -->
+    <mat-sidenav #sidenav mode="side" [opened]="sidenavOpened" class="app-sidenav">
+
+      <nav class="nav-list">
+
+        <!-- Dashboard -->
+        <a class="nav-item" routerLink="/admin/dashboard" routerLinkActive="nav-item--active">
+          <span class="nav-icon"><mat-icon>dashboard</mat-icon></span>
+          <span class="nav-label">Dashboard</span>
+        </a>
+
+        <!-- Agent Management -->
+        <div class="nav-section">
+          <span class="nav-section-label">Agent Management</span>
+        </div>
+        <a class="nav-item nav-item--sub" routerLink="/admin/agents" routerLinkActive="nav-item--active">
+          <span class="nav-icon"><mat-icon>people_outline</mat-icon></span>
+          <span class="nav-label">Agents</span>
+        </a>
+        <a class="nav-item nav-item--sub" routerLink="/admin/setup" routerLinkActive="nav-item--active">
+          <span class="nav-icon"><mat-icon>tune</mat-icon></span>
+          <span class="nav-label">Setup</span>
+        </a>
+
+        <!-- Customers -->
+        <div class="nav-section">
+          <span class="nav-section-label">Customers</span>
+        </div>
+        <a class="nav-item nav-item--sub" routerLink="/admin/customer-register" routerLinkActive="nav-item--active">
+          <span class="nav-icon"><mat-icon>person_add_alt</mat-icon></span>
+          <span class="nav-label">Register</span>
+        </a>
+        <a class="nav-item nav-item--sub" routerLink="/admin/customer-report" routerLinkActive="nav-item--active">
+          <span class="nav-icon"><mat-icon>assessment</mat-icon></span>
+          <span class="nav-label">Report</span>
+        </a>
+
+        <!-- Operations -->
+        <div class="nav-section">
+          <span class="nav-section-label">Operations</span>
+        </div>
+        <a class="nav-item nav-item--sub" routerLink="/admin/receivers" routerLinkActive="nav-item--active">
+          <span class="nav-icon"><mat-icon>contact_phone</mat-icon></span>
+          <span class="nav-label">Receivers</span>
+        </a>
+        <a class="nav-item nav-item--sub" routerLink="/admin/rates" routerLinkActive="nav-item--active">
+          <span class="nav-icon"><mat-icon>currency_exchange</mat-icon></span>
+          <span class="nav-label">Exchange Rates</span>
+        </a>
+        <a class="nav-item nav-item--sub" routerLink="/admin/commissions" routerLinkActive="nav-item--active">
+          <span class="nav-icon"><mat-icon>payments</mat-icon></span>
+          <span class="nav-label">Commissions</span>
+        </a>
+        <a class="nav-item nav-item--sub" routerLink="/admin/routing" routerLinkActive="nav-item--active">
+          <span class="nav-icon"><mat-icon>alt_route</mat-icon></span>
+          <span class="nav-label">Routing</span>
+        </a>
+        <a class="nav-item nav-item--sub" routerLink="/admin/transactions" routerLinkActive="nav-item--active">
+          <span class="nav-icon"><mat-icon>receipt_long</mat-icon></span>
+          <span class="nav-label">Transactions</span>
+        </a>
+        <!-- <a class="nav-item nav-item--sub" routerLink="/admin/accounting" routerLinkActive="nav-item--active">
+          <span class="nav-icon"><mat-icon>account_balance</mat-icon></span>
+          <span class="nav-label">Accounting</span>
+        </a> -->
+
+        <!-- Compliance -->
+        <div class="nav-section">
+          <span class="nav-section-label">Compliance</span>
+        </div>
+        <a class="nav-item nav-item--sub" routerLink="/admin/compliance-setup" routerLinkActive="nav-item--active">
+          <span class="nav-icon"><mat-icon>tune</mat-icon></span>
+          <span class="nav-label">Setup</span>
+        </a>
+        <a class="nav-item nav-item--sub" routerLink="/admin/compliance" routerLinkActive="nav-item--active">
+          <span class="nav-icon"><mat-icon>security</mat-icon></span>
+          <span class="nav-label">Alerts</span>
+        </a>
+
+        <div class="nav-spacer"></div>
+
+        <div class="nav-bottom">
+          <a class="nav-item nav-item--danger" routerLink="/">
+            <span class="nav-icon"><mat-icon>logout</mat-icon></span>
+            <span class="nav-label">Sign Out</span>
+          </a>
+        </div>
+
+      </nav>
+    </mat-sidenav>
+
+    <!-- ── Main Content ── -->
+    <mat-sidenav-content class="main-content">
+      <div class="content-wrapper">
+        <router-outlet></router-outlet>
+      </div>
+    </mat-sidenav-content>
+
+  </mat-sidenav-container>
+
+</div>

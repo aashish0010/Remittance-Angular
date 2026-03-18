@@ -1,0 +1,172 @@
+<!-- Page Header -->
+<div class="page-header">
+  <h2>Exchange Rate Management</h2>
+  <button mat-raised-button color="primary" (click)="openCreatePopup()">
+    <mat-icon>add</mat-icon> Add Rate
+  </button>
+</div>
+
+<!-- Loading -->
+<div *ngIf="loading" class="loading-container">
+  <mat-spinner diameter="40"></mat-spinner>
+</div>
+
+<!-- Search + Table -->
+<mat-card *ngIf="!loading" class="table-card">
+  <mat-form-field appearance="outline" class="search-field">
+    <mat-icon matPrefix>search</mat-icon>
+    <input matInput placeholder="Search rates..." [(ngModel)]="searchString" (ngModelChange)="applyFilter()" />
+  </mat-form-field>
+
+  <table mat-table [dataSource]="filteredRates" class="data-table">
+    <!-- Payout Agent -->
+    <ng-container matColumnDef="agentName">
+      <th mat-header-cell *matHeaderCellDef>Payout Agent</th>
+      <td mat-cell *matCellDef="let r">{{ r.agentName }}</td>
+    </ng-container>
+
+    <!-- Source Currency -->
+    <ng-container matColumnDef="sourceCurrency">
+      <th mat-header-cell *matHeaderCellDef>Source Currency</th>
+      <td mat-cell *matCellDef="let r">{{ r.sourceCurrency }}</td>
+    </ng-container>
+
+    <!-- Destination Currency -->
+    <ng-container matColumnDef="destinationCurrency">
+      <th mat-header-cell *matHeaderCellDef>Dest. Currency</th>
+      <td mat-cell *matCellDef="let r">{{ r.destinationCurrency }}</td>
+    </ng-container>
+
+    <!-- Rate -->
+    <ng-container matColumnDef="rate">
+      <th mat-header-cell *matHeaderCellDef>Rate</th>
+      <td mat-cell *matCellDef="let r" class="text-bold">{{ r.rate | number:'1.4-4' }}</td>
+    </ng-container>
+
+    <!-- Margin -->
+    <ng-container matColumnDef="margin">
+      <th mat-header-cell *matHeaderCellDef>Margin</th>
+      <td mat-cell *matCellDef="let r">{{ r.margin | number:'1.2-2' }}</td>
+    </ng-container>
+
+    <!-- Active -->
+    <ng-container matColumnDef="isActive">
+      <th mat-header-cell *matHeaderCellDef>Active</th>
+      <td mat-cell *matCellDef="let r">
+        <span class="chip" [ngClass]="r.isActive ? 'chip-success' : 'chip-default'">
+          {{ r.isActive ? 'Active' : 'Inactive' }}
+        </span>
+      </td>
+    </ng-container>
+
+    <!-- Actions -->
+    <ng-container matColumnDef="actions">
+      <th mat-header-cell *matHeaderCellDef>Actions</th>
+      <td mat-cell *matCellDef="let r">
+        <button mat-icon-button matTooltip="View Details" (click)="viewDetail(r)">
+          <mat-icon color="primary">visibility</mat-icon>
+        </button>
+        <button mat-icon-button matTooltip="Edit" (click)="openEditPopup(r)">
+          <mat-icon color="primary">edit</mat-icon>
+        </button>
+        <button mat-icon-button matTooltip="Delete" (click)="deleteRate(r)">
+          <mat-icon color="warn">delete</mat-icon>
+        </button>
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+  </table>
+
+  <div *ngIf="!filteredRates.length && !loading" class="empty-state">
+    No exchange rates found.
+  </div>
+</mat-card>
+
+<!-- Detail Popup -->
+<div *ngIf="showDetail && detailRate" class="overlay" (click)="closeDetail()"></div>
+<div *ngIf="showDetail && detailRate" class="popup popup-md">
+  <div class="popup-header">
+    <h3>Exchange Rate Details</h3>
+    <button mat-icon-button (click)="closeDetail()"><mat-icon>close</mat-icon></button>
+  </div>
+  <div class="detail-grid">
+    <div class="detail-item"><span class="detail-label">Payout Agent</span><span>{{ detailRate.agentName }}</span></div>
+    <div class="detail-item"><span class="detail-label">Country</span><span>{{ detailRate.country || '-' }}</span></div>
+    <div class="detail-item"><span class="detail-label">Source Currency</span><span>{{ detailRate.sourceCurrency
+        }}</span></div>
+    <div class="detail-item"><span class="detail-label">Destination Currency</span><span>{{
+        detailRate.destinationCurrency }}</span></div>
+    <div class="detail-item"><span class="detail-label">Rate</span><span class="text-bold">{{ detailRate.rate |
+        number:'1.4-4' }}</span></div>
+    <div class="detail-item"><span class="detail-label">Margin</span><span>{{ detailRate.margin | number:'1.2-2'
+        }}</span></div>
+    <div class="detail-item">
+      <span class="detail-label">Status</span>
+      <span class="chip" [ngClass]="detailRate.isActive ? 'chip-success' : 'chip-default'">
+        {{ detailRate.isActive ? 'Active' : 'Inactive' }}
+      </span>
+    </div>
+  </div>
+</div>
+
+<!-- Create / Edit Rate Popup -->
+<div *ngIf="showFormPopup" class="overlay" (click)="closeFormPopup()"></div>
+<div *ngIf="showFormPopup" class="popup popup-lg">
+  <div class="popup-header">
+    <h3>{{ isEditing ? 'Edit Exchange Rate' : 'Add New Exchange Rate' }}</h3>
+    <button mat-icon-button (click)="closeFormPopup()"><mat-icon>close</mat-icon></button>
+  </div>
+
+  <div *ngIf="formError" class="alert-banner alert-error inline-alert">{{ formError }}</div>
+
+  <div class="form-grid">
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Payout Agent *</mat-label>
+      <mat-select [(ngModel)]="form.agentId">
+        <mat-option *ngFor="let a of agents" [value]="a.id">{{ a.businessName }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Payout Country</mat-label>
+      <mat-select [(ngModel)]="form.country">
+        <mat-option *ngFor="let c of countries" [value]="c.name">{{ c.name }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Source Currency *</mat-label>
+      <mat-select [(ngModel)]="form.sourceCurrency">
+        <mat-option *ngFor="let c of currencies" [value]="c">{{ c }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Destination Currency *</mat-label>
+      <mat-select [(ngModel)]="form.destinationCurrency">
+        <mat-option *ngFor="let c of currencies" [value]="c">{{ c }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Rate *</mat-label>
+      <input matInput type="number" [(ngModel)]="form.rate" />
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Margin</mat-label>
+      <input matInput type="number" [(ngModel)]="form.margin" />
+    </mat-form-field>
+  </div>
+
+  <div class="popup-actions">
+    <button mat-button (click)="closeFormPopup()"><mat-icon>close</mat-icon> Cancel</button>
+    <button mat-raised-button color="primary" (click)="saveRate()" [disabled]="saving">
+      <mat-spinner *ngIf="saving" diameter="18" class="inline-spinner"></mat-spinner>
+      <mat-icon *ngIf="!saving">save</mat-icon>
+      {{ isEditing ? 'Save Changes' : 'Add Rate' }}
+    </button>
+  </div>
+</div>

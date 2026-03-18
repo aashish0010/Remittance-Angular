@@ -1,0 +1,187 @@
+<!-- Page Header -->
+<div class="page-header">
+  <h2>Compliance Rule Setup</h2>
+  <button mat-raised-button color="primary" (click)="openCreate()">
+    <mat-icon>add</mat-icon> Add Rule
+  </button>
+</div>
+
+<!-- Alert Message -->
+<div *ngIf="message" class="alert-banner" [ngClass]="'alert-' + messageSeverity">
+  <span>{{ message }}</span>
+  <button mat-icon-button (click)="clearMessage()"><mat-icon>close</mat-icon></button>
+</div>
+
+<!-- Loading -->
+<div *ngIf="loading" class="loading-container">
+  <mat-spinner diameter="40"></mat-spinner>
+</div>
+
+<!-- Search + Table -->
+<mat-card *ngIf="!loading" class="table-card">
+  <mat-form-field appearance="outline" class="search-field">
+    <mat-icon matPrefix>search</mat-icon>
+    <input matInput placeholder="Search rules..." [(ngModel)]="searchString" (ngModelChange)="applyFilter()" />
+  </mat-form-field>
+
+  <table mat-table [dataSource]="filteredRules" class="data-table">
+    <!-- Rule Name -->
+    <ng-container matColumnDef="ruleName">
+      <th mat-header-cell *matHeaderCellDef>Rule Name</th>
+      <td mat-cell *matCellDef="let r">{{ r.ruleName }}</td>
+    </ng-container>
+
+    <!-- Type -->
+    <ng-container matColumnDef="ruleType">
+      <th mat-header-cell *matHeaderCellDef>Type</th>
+      <td mat-cell *matCellDef="let r">
+        <span class="chip chip-info">{{ r.ruleType }}</span>
+      </td>
+    </ng-container>
+
+    <!-- Threshold / Params -->
+    <ng-container matColumnDef="threshold">
+      <th mat-header-cell *matHeaderCellDef>Threshold / Params</th>
+      <td mat-cell *matCellDef="let r">{{ getThresholdDisplay(r) }}</td>
+    </ng-container>
+
+    <!-- Countries -->
+    <ng-container matColumnDef="countries">
+      <th mat-header-cell *matHeaderCellDef>Countries</th>
+      <td mat-cell *matCellDef="let r">{{ getCountriesDisplay(r) }}</td>
+    </ng-container>
+
+    <!-- Action -->
+    <ng-container matColumnDef="action">
+      <th mat-header-cell *matHeaderCellDef>Action</th>
+      <td mat-cell *matCellDef="let r">
+        <span class="chip" [ngClass]="{
+          'chip-error': r.action === 'Block',
+          'chip-tertiary': r.action === 'Review'
+        }">{{ r.action }}</span>
+      </td>
+    </ng-container>
+
+    <!-- Status -->
+    <ng-container matColumnDef="status">
+      <th mat-header-cell *matHeaderCellDef>Status</th>
+      <td mat-cell *matCellDef="let r">
+        <span class="chip" [ngClass]="r.isActive ? 'chip-success' : 'chip-default'">
+          {{ r.isActive ? 'Active' : 'Inactive' }}
+        </span>
+      </td>
+    </ng-container>
+
+    <!-- Actions -->
+    <ng-container matColumnDef="actions">
+      <th mat-header-cell *matHeaderCellDef>Actions</th>
+      <td mat-cell *matCellDef="let r">
+        <button mat-icon-button matTooltip="Edit" (click)="openEdit(r)">
+          <mat-icon color="primary">edit</mat-icon>
+        </button>
+        <button mat-icon-button [matTooltip]="r.isActive ? 'Deactivate' : 'Activate'" (click)="toggleRule(r)">
+          <mat-icon [ngClass]="r.isActive ? 'text-success' : ''">{{ r.isActive ? 'toggle_on' : 'toggle_off'
+            }}</mat-icon>
+        </button>
+        <button mat-icon-button matTooltip="Delete" (click)="deleteRule(r)">
+          <mat-icon color="warn">delete</mat-icon>
+        </button>
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+  </table>
+
+  <div *ngIf="!filteredRules.length && !loading" class="empty-state">
+    No compliance rules found.
+  </div>
+</mat-card>
+
+<!-- ============================================================ -->
+<!-- Create / Edit Rule Popup                                      -->
+<!-- ============================================================ -->
+<div *ngIf="showPopup" class="overlay" (click)="closePopup()"></div>
+<div *ngIf="showPopup" class="popup popup-lg">
+  <div class="popup-header">
+    <h3>{{ isEditing ? 'Edit Rule' : 'Create Rule' }}</h3>
+    <button mat-icon-button (click)="closePopup()"><mat-icon>close</mat-icon></button>
+  </div>
+
+  <div *ngIf="formError" class="alert-banner alert-error inline-alert">{{ formError }}</div>
+
+  <div class="form-grid">
+    <!-- Rule Name -->
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Rule Name *</mat-label>
+      <input matInput [(ngModel)]="form.ruleName" required />
+    </mat-form-field>
+
+    <!-- Rule Type -->
+    <mat-form-field appearance="outline">
+      <mat-label>Rule Type</mat-label>
+      <mat-select [(ngModel)]="form.ruleType">
+        <mat-option value="AmountThreshold">Amount Threshold</mat-option>
+        <mat-option value="FrequencyLimit">Frequency Limit</mat-option>
+        <mat-option value="CountryRestriction">Country Restriction</mat-option>
+        <mat-option value="NameScreening">Name Screening</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <!-- Action -->
+    <mat-form-field appearance="outline">
+      <mat-label>Action</mat-label>
+      <mat-select [(ngModel)]="form.action">
+        <mat-option value="Review">Review</mat-option>
+        <mat-option value="Block">Block</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <!-- Threshold Amount (conditional) -->
+    <mat-form-field *ngIf="showThresholdAmount" appearance="outline">
+      <mat-label>Threshold Amount</mat-label>
+      <input matInput type="number" [(ngModel)]="form.thresholdAmount" />
+    </mat-form-field>
+
+    <!-- Time Period Days (conditional) -->
+    <mat-form-field *ngIf="showTimePeriod" appearance="outline">
+      <mat-label>Time Period (Days)</mat-label>
+      <input matInput type="number" [(ngModel)]="form.timePeriodDays" />
+    </mat-form-field>
+
+    <!-- Max Transaction Count (conditional) -->
+    <mat-form-field *ngIf="showMaxTransactionCount" appearance="outline">
+      <mat-label>Max Transaction Count</mat-label>
+      <input matInput type="number" [(ngModel)]="form.maxTransactionCount" />
+    </mat-form-field>
+
+    <!-- Source Country -->
+    <mat-form-field appearance="outline">
+      <mat-label>Source Country</mat-label>
+      <mat-select [(ngModel)]="form.sourceCountry">
+        <mat-option *ngFor="let c of countries" [value]="c.name">{{ c.name }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <!-- Destination Country -->
+    <mat-form-field appearance="outline">
+      <mat-label>Destination Country</mat-label>
+      <mat-select [(ngModel)]="form.destinationCountry">
+        <mat-option *ngFor="let c of countries" [value]="c.name">{{ c.name }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <!-- IsActive -->
+    <div class="toggle-container">
+      <mat-slide-toggle [(ngModel)]="form.isActive" color="primary">Active</mat-slide-toggle>
+    </div>
+  </div>
+
+  <div class="popup-actions">
+    <button mat-button (click)="closePopup()"><mat-icon>close</mat-icon> Cancel</button>
+    <button mat-raised-button color="primary" (click)="saveRule()" [disabled]="saving">
+      <mat-spinner *ngIf="saving" diameter="18" class="inline-spinner"></mat-spinner>
+      <mat-icon *ngIf="!saving">save</mat-icon> {{ isEditing ? 'Update' : 'Create' }}
+    </button>
+  </div>
+</div>

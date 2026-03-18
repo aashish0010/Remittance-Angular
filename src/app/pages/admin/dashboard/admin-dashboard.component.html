@@ -1,0 +1,286 @@
+<div class="admin-dashboard">
+  <h2 class="page-title">Admin Dashboard</h2>
+
+  <!-- Loading Spinner -->
+  <div *ngIf="loading" class="loading-container">
+    <mat-spinner diameter="48"></mat-spinner>
+  </div>
+
+  <!-- Error Alert -->
+  <div *ngIf="error" class="error-alert">
+    <mat-icon>error_outline</mat-icon>
+    <span>{{ error }}</span>
+  </div>
+
+  <ng-container *ngIf="dashboard">
+    <!-- ---- Summary Cards ---- -->
+    <div class="stat-cards-grid">
+      <!-- Total Transactions -->
+      <mat-card class="stat-card stat-card-blue" appearance="outlined">
+        <mat-card-content>
+          <div class="stat-card-inner">
+            <div class="stat-card-text">
+              <span class="stat-label">Total Transactions</span>
+              <span class="stat-value">{{ dashboard.totalTransactions | number }}</span>
+              <span class="stat-subtitle" [ngClass]="monthChangeClass(dashboard.transactionsThisMonth, dashboard.transactionsLastMonth)">
+                {{ monthChangeText(dashboard.transactionsThisMonth, dashboard.transactionsLastMonth) }} this month
+              </span>
+            </div>
+            <mat-icon class="stat-icon stat-icon-blue">receipt_long</mat-icon>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Commission Revenue -->
+      <mat-card class="stat-card stat-card-green" appearance="outlined">
+        <mat-card-content>
+          <div class="stat-card-inner">
+            <div class="stat-card-text">
+              <span class="stat-label">Commission Revenue</span>
+              <span class="stat-value">{{ formatCurrency(dashboard.totalCommissionRevenue) }}</span>
+              <span class="stat-subtitle" [ngClass]="monthChangeClass(dashboard.commissionThisMonth, dashboard.commissionLastMonth)">
+                {{ monthChangeText(dashboard.commissionThisMonth, dashboard.commissionLastMonth) }} this month
+              </span>
+            </div>
+            <mat-icon class="stat-icon stat-icon-green">trending_up</mat-icon>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Active Agents -->
+      <mat-card class="stat-card stat-card-orange" appearance="outlined">
+        <mat-card-content>
+          <div class="stat-card-inner">
+            <div class="stat-card-text">
+              <span class="stat-label">Active Agents</span>
+              <span class="stat-value">{{ dashboard.activeAgents }}</span>
+              <span class="stat-subtitle" *ngIf="dashboard.pendingAgents > 0" style="color: #1976d2;">
+                {{ dashboard.pendingAgents }} pending approval
+              </span>
+              <span class="stat-subtitle change-positive" *ngIf="dashboard.pendingAgents === 0">
+                No pending approvals
+              </span>
+            </div>
+            <mat-icon class="stat-icon stat-icon-orange">people</mat-icon>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Compliance Alerts -->
+      <mat-card class="stat-card stat-card-purple" appearance="outlined">
+        <mat-card-content>
+          <div class="stat-card-inner">
+            <div class="stat-card-text">
+              <span class="stat-label">Compliance Alerts</span>
+              <span class="stat-value">{{ dashboard.unresolvedAlerts }}</span>
+              <span class="stat-subtitle" *ngIf="dashboard.unresolvedAlerts > 0" style="color: #ed6c02;">
+                Requires attention
+              </span>
+              <span class="stat-subtitle change-positive" *ngIf="dashboard.unresolvedAlerts === 0">
+                All clear
+              </span>
+            </div>
+            <mat-icon class="stat-icon stat-icon-warning">warning</mat-icon>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- ---- Secondary Stats Row ---- -->
+    <div class="stat-cards-grid secondary-stats">
+      <mat-card class="secondary-card" appearance="outlined">
+        <mat-card-content>
+          <div class="stat-card-inner">
+            <div class="stat-card-text">
+              <span class="stat-label">Total Volume</span>
+              <span class="stat-value secondary-value">{{ formatCurrency(dashboard.totalVolume) }}</span>
+            </div>
+            <mat-icon class="stat-icon-sm stat-icon-blue">account_balance</mat-icon>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="secondary-card" appearance="outlined">
+        <mat-card-content>
+          <div class="stat-card-inner">
+            <div class="stat-card-text">
+              <span class="stat-label">Customers</span>
+              <span class="stat-value secondary-value">{{ dashboard.totalCustomers | number }}</span>
+            </div>
+            <mat-icon class="stat-icon-sm" style="color: #757575;">person_add</mat-icon>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="secondary-card" appearance="outlined">
+        <mat-card-content>
+          <div class="stat-card-inner">
+            <div class="stat-card-text">
+              <span class="stat-label">Active Corridors</span>
+              <span class="stat-value secondary-value">{{ dashboard.activeCorridors }}</span>
+            </div>
+            <mat-icon class="stat-icon-sm" style="color: #9c27b0;">alt_route</mat-icon>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="secondary-card" appearance="outlined">
+        <mat-card-content>
+          <div class="stat-card-inner">
+            <div class="stat-card-text">
+              <span class="stat-label">This Month Volume</span>
+              <span class="stat-value secondary-value">{{ formatCurrency(dashboard.volumeThisMonth) }}</span>
+            </div>
+            <mat-icon class="stat-icon-sm stat-icon-blue">calendar_month</mat-icon>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- ---- Transaction Status Breakdown ---- -->
+    <mat-card class="status-breakdown-card" appearance="outlined">
+      <mat-card-content>
+        <h3 class="section-title">Transaction Status Overview</h3>
+        <div class="status-chips-row">
+          <div class="status-chip-item">
+            <span class="status-chip status-pending">{{ dashboard.pendingTransactions }}</span>
+            <span class="status-chip-label">Pending</span>
+          </div>
+          <div class="status-chip-item">
+            <span class="status-chip status-processing">{{ dashboard.processingTransactions }}</span>
+            <span class="status-chip-label">Processing</span>
+          </div>
+          <div class="status-chip-item">
+            <span class="status-chip status-completed">{{ dashboard.completedTransactions }}</span>
+            <span class="status-chip-label">Completed</span>
+          </div>
+          <div class="status-chip-item">
+            <span class="status-chip status-onhold">{{ dashboard.onHoldTransactions }}</span>
+            <span class="status-chip-label">On Hold</span>
+          </div>
+          <div class="status-chip-item">
+            <span class="status-chip status-cancelled">{{ dashboard.cancelledTransactions }}</span>
+            <span class="status-chip-label">Cancelled</span>
+          </div>
+          <div class="status-chip-item">
+            <span class="status-chip status-failed">{{ dashboard.failedTransactions }}</span>
+            <span class="status-chip-label">Failed</span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- ---- Recent Transactions + Exchange Rates / Quick Actions ---- -->
+    <div class="bottom-grid">
+      <!-- Recent Transactions -->
+      <mat-card class="bottom-left-card" appearance="outlined">
+        <mat-card-content>
+          <h3 class="section-title">Recent Transactions</h3>
+
+          <div *ngIf="dashboard.recentTransactions.length === 0" class="empty-text">
+            No transactions yet.
+          </div>
+
+          <div class="table-responsive" *ngIf="dashboard.recentTransactions.length > 0">
+            <table mat-table [dataSource]="dashboard.recentTransactions" class="transactions-table">
+              <!-- Reference -->
+              <ng-container matColumnDef="referenceNumber">
+                <th mat-header-cell *matHeaderCellDef>Reference</th>
+                <td mat-cell *matCellDef="let txn">
+                  <span class="mono-text">{{ txn.referenceNumber }}</span>
+                </td>
+              </ng-container>
+
+              <!-- Sender -->
+              <ng-container matColumnDef="senderName">
+                <th mat-header-cell *matHeaderCellDef>Sender</th>
+                <td mat-cell *matCellDef="let txn">{{ txn.senderName }}</td>
+              </ng-container>
+
+              <!-- Receiver -->
+              <ng-container matColumnDef="receiverName">
+                <th mat-header-cell *matHeaderCellDef>Receiver</th>
+                <td mat-cell *matCellDef="let txn">{{ txn.receiverName }}</td>
+              </ng-container>
+
+              <!-- Amount -->
+              <ng-container matColumnDef="amount">
+                <th mat-header-cell *matHeaderCellDef>Amount</th>
+                <td mat-cell *matCellDef="let txn">
+                  {{ txn.sendAmount | number:'1.2-2' }} {{ txn.sendCurrency }}
+                </td>
+              </ng-container>
+
+              <!-- Status -->
+              <ng-container matColumnDef="status">
+                <th mat-header-cell *matHeaderCellDef>Status</th>
+                <td mat-cell *matCellDef="let txn">
+                  <span class="status-chip" [ngClass]="getStatusClass(txn.status)">
+                    {{ txn.status }}
+                  </span>
+                </td>
+              </ng-container>
+
+              <!-- Date -->
+              <ng-container matColumnDef="createdAt">
+                <th mat-header-cell *matHeaderCellDef>Date</th>
+                <td mat-cell *matCellDef="let txn">
+                  {{ txn.createdAt | date:'MMM dd, HH:mm' }}
+                </td>
+              </ng-container>
+
+              <tr mat-header-row *matHeaderRowDef="transactionColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: transactionColumns;"></tr>
+            </table>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Right column -->
+      <div class="bottom-right-column">
+        <!-- Active Exchange Rates -->
+        <mat-card class="exchange-rates-card" appearance="outlined">
+          <mat-card-content>
+            <h3 class="section-title">Active Exchange Rates</h3>
+
+            <div *ngIf="dashboard.activeExchangeRates.length === 0" class="empty-text">
+              No active rates configured.
+            </div>
+
+            <div class="rates-list" *ngIf="dashboard.activeExchangeRates.length > 0">
+              <div class="rate-item" *ngFor="let rate of dashboard.activeExchangeRates">
+                <span class="rate-pair"><strong>{{ rate.sourceCurrency }} &rarr; {{ rate.destinationCurrency }}</strong></span>
+                <span class="rate-value">{{ rate.rate | number:'1.2-2' }}</span>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <!-- Quick Actions -->
+        <mat-card class="quick-actions-card" appearance="outlined">
+          <mat-card-content>
+            <h3 class="section-title">Quick Actions</h3>
+            <div class="quick-actions-list">
+              <a mat-stroked-button color="primary" routerLink="/admin/rates" class="quick-action-btn">
+                <mat-icon>currency_exchange</mat-icon>
+                Update Rates
+              </a>
+              <a mat-stroked-button routerLink="/admin/agents" class="quick-action-btn">
+                <mat-icon>person_add</mat-icon>
+                Add New Agent
+              </a>
+              <a mat-stroked-button color="warn" routerLink="/admin/compliance" class="quick-action-btn">
+                <mat-icon>security</mat-icon>
+                View Alerts
+              </a>
+              <a mat-stroked-button routerLink="/admin/routing" class="quick-action-btn">
+                <mat-icon>alt_route</mat-icon>
+                Manage Routing
+              </a>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </div>
+  </ng-container>
+</div>

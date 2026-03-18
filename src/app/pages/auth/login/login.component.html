@@ -1,0 +1,81 @@
+<div class="auth-container">
+  <mat-card class="auth-card">
+    <mat-card-content class="auth-content">
+
+      <!-- Header Section -->
+      <div class="auth-header">
+        <div class="brand-logo">
+          <mat-icon>account_balance_wallet</mat-icon>
+        </div>
+        <h1 class="app-name">{{ appName }}</h1>
+        <p class="subtitle" *ngIf="!showPortalSelection">Sign in to continue</p>
+        <p class="subtitle" *ngIf="showPortalSelection">Welcome back, {{ welcomeName }}</p>
+      </div>
+
+      <!-- SECTION 1: LOGIN FORM -->
+      <ng-container *ngIf="!showPortalSelection">
+
+        <div class="error-banner" *ngIf="errorMessage">
+          <mat-icon>error</mat-icon> {{ errorMessage }}
+        </div>
+
+        <form (ngSubmit)="login()" class="auth-form">
+          <mat-form-field appearance="outline" subscriptSizing="dynamic" class="compact-input">
+            <mat-label>Email</mat-label>
+            <input matInput type="email" [(ngModel)]="email" name="email" required placeholder="example@domain.com">
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" subscriptSizing="dynamic" class="compact-input">
+            <mat-label>Password</mat-label>
+            <input matInput [type]="hidePassword ? 'password' : 'text'" [(ngModel)]="password" name="password" required>
+            <button mat-icon-button matSuffix (click)="hidePassword = !hidePassword" type="button" tabindex="-1">
+              <mat-icon>{{hidePassword ? 'visibility_off' : 'visibility'}}</mat-icon>
+            </button>
+          </mat-form-field>
+
+          <div class="form-options">
+            <mat-checkbox [(ngModel)]="rememberMe" name="rememberMe" color="primary">Remember me</mat-checkbox>
+            <a href="javascript:void(0)" class="link-btn">Forgot password?</a>
+          </div>
+
+          <button mat-flat-button color="primary" class="action-btn" [disabled]="loading" type="submit">
+            <ng-container *ngIf="!loading; else loader">Sign In</ng-container>
+            <ng-template #loader><mat-spinner diameter="20" class="white-spinner"></mat-spinner></ng-template>
+          </button>
+        </form>
+      </ng-container>
+
+      <!-- SECTION 2: PORTAL SELECTION -->
+      <ng-container *ngIf="showPortalSelection">
+        <p class="portal-instruction">Select your dashboard to continue:</p>
+
+        <div class="portal-list">
+          <button class="portal-item" *ngFor="let portal of availablePortals" (click)="selectPortal(portal)">
+            <div class="portal-icon-box" [style.color]="portal.color" [style.background-color]="portal.color + '15'">
+              <mat-icon>{{ portal.icon }}</mat-icon>
+            </div>
+            <div class="portal-text">
+              <span class="portal-title">{{ portal.label }}</span>
+              <span class="portal-desc">{{ portal.description }}</span>
+            </div>
+            <mat-icon class="arrow-icon">chevron_right</mat-icon>
+          </button>
+        </div>
+
+        <button mat-stroked-button class="back-btn" (click)="backToLogin()">
+          Switch Account
+        </button>
+      </ng-container>
+
+    </mat-card-content>
+
+    <!-- Simple Footer -->
+    <div class="auth-footer">
+      <span>&copy; {{ currentYear }} {{ appName }}</span>
+      <span class="dot">•</span>
+      <a href="#">Privacy</a>
+      <span class="dot">•</span>
+      <a href="#">Terms</a>
+    </div>
+  </mat-card>
+</div>

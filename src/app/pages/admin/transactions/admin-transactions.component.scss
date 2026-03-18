@@ -1,0 +1,241 @@
+// ---------------------------------------------------------------------------
+// Page Title
+// ---------------------------------------------------------------------------
+.page-title {
+  font-weight: 700;
+  margin-bottom: 16px;
+  font-size: 1.5rem;
+}
+
+// ---------------------------------------------------------------------------
+// Alert Messages
+// ---------------------------------------------------------------------------
+.alert-message {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  font-size: 0.875rem;
+
+  &.alert-success {
+    background: #e8f5e9;
+    color: #2e7d32;
+    border: 1px solid #a5d6a7;
+  }
+
+  &.alert-error {
+    background: #ffebee;
+    color: #c62828;
+    border: 1px solid #ef9a9a;
+  }
+
+  &.alert-warning {
+    background: #fff3e0;
+    color: #e65100;
+    border: 1px solid #ffcc80;
+  }
+
+  &.alert-info {
+    background: #e3f2fd;
+    color: #1565c0;
+    border: 1px solid #90caf9;
+  }
+
+  .alert-close {
+    flex-shrink: 0;
+    margin-left: 8px;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Loading
+// ---------------------------------------------------------------------------
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 64px 0;
+}
+
+// ---------------------------------------------------------------------------
+// Table Card & Toolbar
+// ---------------------------------------------------------------------------
+.table-card {
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.table-toolbar {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  padding: 16px 16px 0;
+  flex-wrap: wrap;
+
+  .search-field {
+    flex: 1;
+    min-width: 260px;
+  }
+
+  .status-filter {
+    width: 160px;
+    flex-shrink: 0;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Table
+// ---------------------------------------------------------------------------
+.table-container {
+  overflow-x: auto;
+}
+
+.transactions-table {
+  width: 100%;
+
+  .ref-cell {
+    font-family: 'Roboto Mono', monospace;
+    font-size: 0.85rem;
+  }
+
+  .mat-column-actions {
+    white-space: nowrap;
+    text-align: center;
+    width: 130px;
+  }
+}
+
+.no-data-row td {
+  text-align: center;
+  padding: 32px 16px;
+  color: rgba(0, 0, 0, 0.54);
+  font-style: italic;
+}
+
+// ---------------------------------------------------------------------------
+// Action Buttons
+// ---------------------------------------------------------------------------
+.action-approve {
+  color: #2e7d32 !important;
+}
+
+// ---------------------------------------------------------------------------
+// Status Chips
+// ---------------------------------------------------------------------------
+.status-chip {
+  display: inline-block;
+  padding: 2px 12px;
+  border-radius: 16px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: capitalize;
+  white-space: nowrap;
+}
+
+.status-pending {
+  background: #fff3e0;
+  color: #e65100;
+}
+
+.status-processing {
+  background: #e3f2fd;
+  color: #1565c0;
+}
+
+.status-completed {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.status-cancelled {
+  background: #ffebee;
+  color: #c62828;
+}
+
+.status-failed {
+  background: #fce4ec;
+  color: #880e4f;
+}
+
+.status-onhold {
+  background: #f3e5f5;
+  color: #6a1b9a;
+}
+
+.status-default {
+  background: #f5f5f5;
+  color: #616161;
+}
+
+// ---------------------------------------------------------------------------
+// Detail Overlay / Popup
+// ---------------------------------------------------------------------------
+.detail-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.detail-popup {
+  background: #fff;
+  border-radius: 12px;
+  padding: 24px;
+  width: 550px;
+  max-width: 95vw;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  z-index: 10001;
+}
+
+.detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+
+  h3 {
+    margin: 0;
+    font-weight: 600;
+    font-size: 1.25rem;
+  }
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.detail-label {
+  font-size: 0.75rem;
+  color: rgba(0, 0, 0, 0.54);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.detail-value {
+  font-size: 0.938rem;
+}
+
+.detail-bold {
+  font-weight: 700;
+}
+
+.detail-divider {
+  border: none;
+  border-top: 1px solid rgba(0, 0, 0, 0.12);
+  margin: 16px 0;
+}

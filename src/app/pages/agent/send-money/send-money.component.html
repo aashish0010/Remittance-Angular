@@ -1,0 +1,723 @@
+<div class="send-money">
+
+  <!-- Progress Steps Header -->
+  <div class="steps-header">
+    <div class="step-indicator" [class.active]="step === 0" [class.done]="step > 0"
+      (click)="step > 0 ? step = 0 : null">
+      <div class="step-circle">
+        <mat-icon *ngIf="step > 0">check</mat-icon>
+        <span *ngIf="step <= 0">1</span>
+      </div>
+      <span class="step-text">Customer</span>
+    </div>
+    <div class="step-line" [class.done]="step > 0"></div>
+    <div class="step-indicator" [class.active]="step === 1" [class.done]="step > 1"
+      (click)="step > 1 ? step = 1 : null">
+      <div class="step-circle">
+        <mat-icon *ngIf="step > 1">check</mat-icon>
+        <span *ngIf="step <= 1">2</span>
+      </div>
+      <span class="step-text">Calculate</span>
+    </div>
+    <div class="step-line" [class.done]="step > 1"></div>
+    <div class="step-indicator" [class.active]="step === 2" [class.done]="step > 2">
+      <div class="step-circle">
+        <mat-icon *ngIf="step > 2">check</mat-icon>
+        <span *ngIf="step <= 2">3</span>
+      </div>
+      <span class="step-text">Receiver</span>
+    </div>
+    <div class="step-line" [class.done]="step > 2"></div>
+    <div class="step-indicator" [class.active]="step === 3">
+      <div class="step-circle">
+        <mat-icon *ngIf="step > 2">check</mat-icon>
+        <span *ngIf="step <= 2">4</span>
+      </div>
+      <span class="step-text">Done</span>
+    </div>
+  </div>
+
+  <!-- Error Alert -->
+  <div *ngIf="error" class="error-alert">
+    <mat-icon>error_outline</mat-icon>
+    <span>{{ error }}</span>
+    <button mat-icon-button (click)="dismissError()" class="close-btn">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <!-- ======================================================================= -->
+  <!-- STEP 0: Customer Selection / Creation                                   -->
+  <!-- ======================================================================= -->
+  <div *ngIf="step === 0" class="step-panel">
+    <mat-card class="panel-card" appearance="outlined">
+      <mat-card-content>
+        <div class="panel-header">
+          <h3><mat-icon>person_search</mat-icon> Select or Create Customer</h3>
+          <button mat-stroked-button color="primary" (click)="toggleCreateCustomer()">
+            <mat-icon>{{ showCreateCustomer ? 'close' : 'person_add' }}</mat-icon>
+            {{ showCreateCustomer ? 'Cancel' : 'New Customer' }}
+          </button>
+        </div>
+
+        <!-- Selected Customer Banner -->
+        <div *ngIf="selectedCustomer && !showCreateCustomer" class="selected-banner">
+          <div class="selected-info">
+            <div class="selected-avatar">{{ selectedCustomer.fullName.charAt(0) }}</div>
+            <div>
+              <div class="selected-name">{{ selectedCustomer.fullName }}</div>
+              <div class="selected-detail">
+                <span *ngIf="selectedCustomer.phone">{{ selectedCustomer.phone }}</span>
+                <span *ngIf="selectedCustomer.email"> &middot; {{ selectedCustomer.email }}</span>
+                <span *ngIf="selectedCustomer.country"> &middot; {{ selectedCustomer.country }}</span>
+              </div>
+            </div>
+          </div>
+          <button mat-icon-button color="warn" (click)="clearSelectedCustomer()" matTooltip="Remove selection">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+
+        <!-- Create Customer Form -->
+        <div *ngIf="showCreateCustomer" class="create-form">
+          <div *ngIf="customerFormError" class="form-error">
+            <mat-icon>error</mat-icon> {{ customerFormError }}
+          </div>
+
+          <div class="form-section-label">Personal Information</div>
+          <div class="form-grid cols-3">
+            <mat-form-field appearance="outline">
+              <mat-label>Full Name *</mat-label>
+              <input matInput [(ngModel)]="newCustomer.fullName" placeholder="Enter full name" />
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Phone *</mat-label>
+              <input matInput [(ngModel)]="newCustomer.phone" placeholder="+1 234 567 890" />
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Email</mat-label>
+              <input matInput [(ngModel)]="newCustomer.email" type="email" placeholder="email@example.com" />
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Date of Birth</mat-label>
+              <input matInput [matDatepicker]="dobPicker" [(ngModel)]="newCustomer.dateOfBirth" readonly
+                placeholder="Select date" />
+              <mat-datepicker-toggle matSuffix [for]="dobPicker"></mat-datepicker-toggle>
+              <mat-datepicker #dobPicker></mat-datepicker>
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Gender</mat-label>
+              <mat-select [(ngModel)]="newCustomer.gender" placeholder="Select gender">
+                <mat-option value="Male">Male</mat-option>
+                <mat-option value="Female">Female</mat-option>
+                <mat-option value="Other">Other</mat-option>
+              </mat-select>
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Nationality</mat-label>
+              <input matInput [(ngModel)]="newCustomer.nationality" placeholder="Nationality" />
+            </mat-form-field>
+          </div>
+
+          <div class="form-section-label">Address</div>
+          <div class="form-grid cols-3">
+            <mat-form-field appearance="outline">
+              <mat-label>Country *</mat-label>
+              <mat-select [(ngModel)]="newCustomer.country" searchable placeholder="Select country">
+                <mat-option *ngFor="let c of countries" [value]="c.name">{{ c.name }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>City</mat-label>
+              <input matInput [(ngModel)]="newCustomer.city" placeholder="City" />
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Address</mat-label>
+              <input matInput [(ngModel)]="newCustomer.address" placeholder="Street address" />
+            </mat-form-field>
+          </div>
+
+          <div class="form-section-label">Identification</div>
+          <div class="form-grid cols-3">
+            <mat-form-field appearance="outline">
+              <mat-label>ID Document Type</mat-label>
+              <mat-select [(ngModel)]="newCustomer.idDocumentType" placeholder="Select type">
+                <mat-option *ngFor="let t of idTypes" [value]="t">{{ t }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>ID Document Number</mat-label>
+              <input matInput [(ngModel)]="newCustomer.idDocumentNumber" placeholder="Document number" />
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Issuing Country</mat-label>
+              <mat-select [(ngModel)]="newCustomer.docIssuingCountry" searchable placeholder="Select country">
+                <mat-option *ngFor="let c of countries" [value]="c.name">{{ c.name }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Issue Date</mat-label>
+              <input matInput [matDatepicker]="issuePicker" [(ngModel)]="newCustomer.docIssueDate" readonly
+                placeholder="Select date" />
+              <mat-datepicker-toggle matSuffix [for]="issuePicker"></mat-datepicker-toggle>
+              <mat-datepicker #issuePicker></mat-datepicker>
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Expiry Date</mat-label>
+              <input matInput [matDatepicker]="expiryPicker" [(ngModel)]="newCustomer.docExpiryDate" readonly
+                placeholder="Select date" />
+              <mat-datepicker-toggle matSuffix [for]="expiryPicker"></mat-datepicker-toggle>
+              <mat-datepicker #expiryPicker></mat-datepicker>
+            </mat-form-field>
+          </div>
+
+          <div class="form-actions">
+            <button mat-stroked-button (click)="toggleCreateCustomer()">Cancel</button>
+            <button mat-flat-button color="primary" (click)="saveNewCustomer()" [disabled]="savingCustomer">
+              <mat-spinner *ngIf="savingCustomer" diameter="18" class="btn-spinner"></mat-spinner>
+              <mat-icon *ngIf="!savingCustomer">save</mat-icon>
+              Save Customer
+            </button>
+          </div>
+        </div>
+
+        <!-- Customer Search & List -->
+        <div *ngIf="!showCreateCustomer && !selectedCustomer">
+          <mat-form-field appearance="outline" class="search-field">
+            <mat-label>Search customers by name, email, or phone</mat-label>
+            <mat-icon matPrefix>search</mat-icon>
+            <input matInput [(ngModel)]="customerSearch" (ngModelChange)="filterCustomers()"
+              placeholder="Type to search..." />
+            <button *ngIf="customerSearch" mat-icon-button matSuffix (click)="customerSearch = ''; filterCustomers()">
+              <mat-icon>close</mat-icon>
+            </button>
+          </mat-form-field>
+
+          <div class="customer-list">
+            <div *ngIf="filteredCustomers.length === 0" class="empty-state">
+              <mat-icon>person_off</mat-icon>
+              <span>No customers found. Create a new one above.</span>
+            </div>
+            <div *ngFor="let c of filteredCustomers" class="list-item" (click)="selectCustomer(c)"
+              [class.selected]="selectedCustomerId === c.id">
+              <div class="list-avatar">{{ c.fullName.charAt(0) }}</div>
+              <div class="list-info">
+                <div class="list-name">{{ c.fullName }}</div>
+                <div class="list-detail">
+                  {{ c.phone }}
+                  <span *ngIf="c.email"> &middot; {{ c.email }}</span>
+                </div>
+              </div>
+              <div class="list-badge">{{ c.country }}</div>
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Step Actions -->
+    <div class="step-actions">
+      <span class="spacer"></span>
+      <button mat-flat-button color="primary" (click)="nextStep()" [disabled]="!canProceedStep1()">
+        Next: Calculate Amount
+        <mat-icon>arrow_forward</mat-icon>
+      </button>
+    </div>
+  </div>
+
+  <!-- ======================================================================= -->
+  <!-- STEP 1: Amount & Calculation                                            -->
+  <!-- ======================================================================= -->
+  <div *ngIf="step === 1" class="step-panel">
+    <div class="calc-layout">
+
+      <!-- Left: Form Fields -->
+      <mat-card class="panel-card" appearance="outlined">
+        <mat-card-content>
+          <h3 class="panel-title"><mat-icon>swap_horiz</mat-icon> Transfer Details</h3>
+
+          <!-- Sending Side (read-only from agent profile) -->
+          <div class="form-section-label">Sending From</div>
+          <div class="agent-info-bar">
+            <mat-icon>store</mat-icon>
+            <div class="agent-info-text">
+              <span class="agent-info-name">{{ agentProfile?.businessName || 'Agent' }}</span>
+              <span class="agent-info-detail">{{ senderCountry }} &middot; {{ senderCurrency }}</span>
+            </div>
+          </div>
+
+          <!-- Destination Country -->
+          <div class="form-section-label">Sending To</div>
+          <div class="form-grid cols-2">
+            <mat-form-field appearance="outline">
+              <mat-label>Destination Country</mat-label>
+              <mat-select [(ngModel)]="receiverCountry" (selectionChange)="onReceiverCountryChange()" searchable
+                placeholder="Select destination country">
+                <mat-option *ngFor="let c of countries" [value]="c.name">{{ c.name }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Receiver Currency</mat-label>
+              <input matInput [value]="receiverCurrency || '—'" readonly />
+            </mat-form-field>
+          </div>
+
+          <!-- Payment Method -->
+          <div class="form-section-label">Payment Method</div>
+          <div class="form-grid cols-1">
+            <mat-form-field appearance="outline">
+              <mat-label>Payment Method</mat-label>
+              <mat-select [(ngModel)]="selectedPaymentMethodId" (selectionChange)="onPaymentMethodChange()"
+                placeholder="Select payment method">
+                <mat-option *ngFor="let m of paymentMethods" [value]="m.id">{{ m.name }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+
+          <!-- Route status messages -->
+          <div *ngIf="routeError" class="warn-alert">
+            <mat-icon>warning</mat-icon>
+            <span>{{ routeError }}</span>
+          </div>
+
+          <!-- <div *ngIf="selectedPartner && !routeError" class="route-matched-bar">
+            <mat-icon>check_circle</mat-icon>
+            <span>Route found via <strong>{{ selectedPartner.payoutAgentName }}</strong></span>
+          </div> -->
+
+          <!-- Amount -->
+          <div class="form-section-label">Amount</div>
+          <div class="form-grid cols-1">
+            <mat-form-field appearance="outline" class="amount-field">
+              <mat-label>Send Amount</mat-label>
+              <input matInput type="number" [(ngModel)]="sendAmount" (ngModelChange)="onAmountChange()" min="0"
+                placeholder="0.00" />
+              <span matSuffix class="currency-suffix">{{ senderCurrency || '---' }}</span>
+            </mat-form-field>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <!-- Right: Live Calculation Sidebar -->
+      <mat-card class="calc-card" appearance="outlined">
+        <mat-card-content>
+          <h3 class="calc-title">
+            <mat-icon>calculate</mat-icon>
+            Calculation
+          </h3>
+
+          <div *ngIf="loadingCalc" class="calc-loading">
+            <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+            <span class="calc-loading-text">Calculating...</span>
+          </div>
+
+          <div *ngIf="calcError" class="calc-error">
+            <mat-icon>error_outline</mat-icon>
+            <span>{{ calcError }}</span>
+          </div>
+
+          <div *ngIf="!loadingCalc && !calcError">
+            <div class="calc-row">
+              <span class="calc-label">Send Amount</span>
+              <span class="calc-value-lg">{{ sendAmount | number:'1.2-2' }} {{ senderCurrency }}</span>
+            </div>
+
+            <mat-divider></mat-divider>
+
+            <div class="calc-row">
+              <span class="calc-label">Exchange Rate</span>
+              <span *ngIf="exchangeRate > 0" class="calc-value-rate">
+                1 {{ senderCurrency }} = {{ exchangeRate | number:'1.4-4' }} {{ receiverCurrency }}
+              </span>
+              <span *ngIf="exchangeRate === 0 && !calculationDone" class="calc-no-rate">—</span>
+            </div>
+
+            <div class="calc-row">
+              <span class="calc-label">Receive Amount</span>
+              <span class="calc-value-receive">{{ receiveAmount | number:'1.2-2' }} {{ receiverCurrency }}</span>
+            </div>
+
+            <mat-divider></mat-divider>
+
+            <div class="calc-detail-row">
+              <span>Service Charge</span>
+              <span class="calc-detail-value">{{ serviceCharge | number:'1.2-2' }} {{ senderCurrency }}</span>
+            </div>
+
+            <mat-divider></mat-divider>
+
+            <div class="calc-total-row">
+              <span>Customer Pays</span>
+              <span>{{ totalPayable | number:'1.2-2' }} {{ senderCurrency }}</span>
+            </div>
+
+            <div *ngIf="calculationDone" class="calc-ready">
+              <mat-icon>check_circle</mat-icon> Ready to proceed
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Step Actions -->
+    <div class="step-actions">
+      <button mat-stroked-button (click)="prevStep()">
+        <mat-icon>arrow_back</mat-icon> Back
+      </button>
+      <span class="spacer"></span>
+      <button mat-flat-button color="primary" (click)="nextStep()" [disabled]="!canProceedStep2()">
+        Next: Select Receiver
+        <mat-icon>arrow_forward</mat-icon>
+      </button>
+    </div>
+  </div>
+
+  <!-- ======================================================================= -->
+  <!-- STEP 2: Receiver Selection / Creation                                   -->
+  <!-- ======================================================================= -->
+  <div *ngIf="step === 2" class="step-panel">
+    <mat-card class="panel-card" appearance="outlined">
+      <mat-card-content>
+        <div class="panel-header">
+          <h3><mat-icon>person_pin</mat-icon> Select or Create Receiver</h3>
+          <button mat-stroked-button color="primary" (click)="toggleCreateReceiver()">
+            <mat-icon>{{ showCreateReceiver ? 'close' : 'person_add' }}</mat-icon>
+            {{ showCreateReceiver ? 'Cancel' : 'New Receiver' }}
+          </button>
+        </div>
+
+        <!-- Selected Receiver Banner -->
+        <div *ngIf="selectedReceiver && !showCreateReceiver" class="selected-banner receiver-banner">
+          <div class="selected-info">
+            <div class="selected-avatar receiver-avatar">{{ selectedReceiver.fullName.charAt(0) }}</div>
+            <div>
+              <div class="selected-name">{{ selectedReceiver.fullName }}</div>
+              <div class="selected-detail">
+                <span *ngIf="selectedReceiver.phone">{{ selectedReceiver.phone }}</span>
+                <span *ngIf="selectedReceiver.country"> &middot; {{ selectedReceiver.country }}</span>
+                <span *ngIf="selectedReceiver.bankName"> &middot; {{ selectedReceiver.bankName }}</span>
+              </div>
+            </div>
+          </div>
+          <button mat-icon-button color="warn" (click)="clearSelectedReceiver()" matTooltip="Remove selection">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+
+        <!-- Create Receiver Form -->
+        <div *ngIf="showCreateReceiver" class="create-form">
+          <div *ngIf="receiverFormError" class="form-error">
+            <mat-icon>error</mat-icon> {{ receiverFormError }}
+          </div>
+
+          <div class="form-section-label">Receiver Information</div>
+          <div class="form-grid cols-3">
+            <mat-form-field appearance="outline">
+              <mat-label>Full Name *</mat-label>
+              <input matInput [(ngModel)]="newReceiver.fullName" placeholder="Enter full name" />
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Phone *</mat-label>
+              <input matInput [(ngModel)]="newReceiver.phone" placeholder="+1 234 567 890" />
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Email</mat-label>
+              <input matInput [(ngModel)]="newReceiver.email" type="email" placeholder="email@example.com" />
+            </mat-form-field>
+          </div>
+
+          <div class="form-section-label">Location</div>
+          <div class="form-grid cols-3">
+            <mat-form-field appearance="outline">
+              <mat-label>Country</mat-label>
+              <mat-select [(ngModel)]="newReceiver.country" searchable placeholder="Select country">
+                <mat-option *ngFor="let c of countries" [value]="c.name">{{ c.name }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>City</mat-label>
+              <input matInput [(ngModel)]="newReceiver.city" placeholder="City" />
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Relationship</mat-label>
+              <mat-select [(ngModel)]="newReceiver.relationship" placeholder="Select relationship">
+                <mat-option value="Family">Family</mat-option>
+                <mat-option value="Friend">Friend</mat-option>
+                <mat-option value="Business">Business</mat-option>
+                <mat-option value="Other">Other</mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+
+          <!-- Bank Transfer Details -->
+          <div *ngIf="isBankTransfer()" class="form-section-label">Bank Details</div>
+          <div *ngIf="isBankTransfer()" class="form-grid cols-2">
+            <div class="field-with-action">
+              <mat-form-field appearance="outline">
+                <mat-label>Bank Name</mat-label>
+                <mat-select [(ngModel)]="newReceiver.bankName" (selectionChange)="selectedBranch = null" searchable placeholder="Select bank">
+                  <mat-option *ngFor="let b of payoutBanks" [value]="b.bankName">{{ b.bankName }}</mat-option>
+                </mat-select>
+              </mat-form-field>
+              <button mat-icon-button color="primary" matTooltip="Select Branch" (click)="openBranchPopup()"
+                [disabled]="!newReceiver.bankName">
+                <mat-icon>account_tree</mat-icon>
+              </button>
+            </div>
+            <mat-form-field appearance="outline">
+              <mat-label>Account Number</mat-label>
+              <input matInput [(ngModel)]="newReceiver.accountNumber" placeholder="Account number" />
+            </mat-form-field>
+          </div>
+          <div *ngIf="isBankTransfer() && selectedBranch" class="branch-selected-bar">
+            <mat-icon>account_tree</mat-icon>
+            <span>Branch: <strong>{{ selectedBranch.branchName }}</strong>
+              <span *ngIf="selectedBranch.branchCode"> ({{ selectedBranch.branchCode }})</span>
+            </span>
+            <button mat-icon-button (click)="selectedBranch = null" matTooltip="Remove branch">
+              <mat-icon>close</mat-icon>
+            </button>
+          </div>
+
+          <!-- Cash Transfer Details -->
+          <div *ngIf="isCashTransfer()" class="form-section-label">Locations</div>
+          <div *ngIf="isCashTransfer()" class="form-grid cols-1">
+            <mat-form-field appearance="outline">
+              <mat-label>Location</mat-label>
+              <mat-select [(ngModel)]="newReceiver.bankName" searchable placeholder="Select location">
+                <mat-option *ngFor="let b of payoutBanks" [value]="b.bankName">{{ b.bankName }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+
+          <!-- Wallet Transfer Details -->
+          <div *ngIf="isWalletTransfer()" class="form-section-label">Wallet Details</div>
+          <div *ngIf="isWalletTransfer()" class="form-grid cols-2">
+            <mat-form-field appearance="outline">
+              <mat-label>Wallet Name</mat-label>
+              <mat-select [(ngModel)]="newReceiver.bankName" searchable placeholder="Select wallet">
+                <mat-option *ngFor="let b of payoutBanks" [value]="b.bankName">{{ b.bankName }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Wallet Number</mat-label>
+              <input matInput [(ngModel)]="newReceiver.accountNumber" placeholder="Wallet number" />
+            </mat-form-field>
+          </div>
+
+          <div class="form-actions">
+            <button mat-stroked-button (click)="toggleCreateReceiver()">Cancel</button>
+            <button mat-flat-button color="primary" (click)="saveNewReceiver()" [disabled]="savingReceiver">
+              <mat-spinner *ngIf="savingReceiver" diameter="18" class="btn-spinner"></mat-spinner>
+              <mat-icon *ngIf="!savingReceiver">save</mat-icon>
+              Save Receiver
+            </button>
+          </div>
+        </div>
+
+        <!-- Receiver Search & List -->
+        <div *ngIf="!showCreateReceiver && !selectedReceiver">
+          <mat-form-field appearance="outline" class="search-field">
+            <mat-label>Search receivers by name or phone</mat-label>
+            <mat-icon matPrefix>search</mat-icon>
+            <input matInput [(ngModel)]="receiverSearch" (ngModelChange)="filterReceivers()"
+              placeholder="Type to search..." />
+            <button *ngIf="receiverSearch" mat-icon-button matSuffix (click)="receiverSearch = ''; filterReceivers()">
+              <mat-icon>close</mat-icon>
+            </button>
+          </mat-form-field>
+
+          <div class="customer-list">
+            <div *ngIf="filteredReceivers.length === 0" class="empty-state">
+              <mat-icon>person_off</mat-icon>
+              <span>No receivers found for {{ receiverCountry }}. Create a new one above.</span>
+            </div>
+            <div *ngFor="let r of filteredReceivers" class="list-item" (click)="selectReceiver(r)"
+              [class.selected]="selectedReceiverId === r.id">
+              <div class="list-avatar receiver-avatar">{{ r.fullName.charAt(0) }}</div>
+              <div class="list-info">
+                <div class="list-name">{{ r.fullName }}</div>
+                <div class="list-detail">
+                  {{ r.phone }}
+                  <span *ngIf="r.bankName"> &middot; {{ r.bankName }}</span>
+                </div>
+              </div>
+              <div class="list-badge">{{ r.country }}</div>
+            </div>
+          </div>
+        </div>
+
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Transaction Summary Before Submit -->
+    <mat-card *ngIf="selectedReceiver" class="summary-card" appearance="outlined">
+      <mat-card-content>
+        <h3 class="panel-title"><mat-icon>summarize</mat-icon> Transaction Summary</h3>
+        <div class="summary-grid">
+          <div class="summary-item">
+            <span class="summary-label">Sender</span>
+            <span class="summary-value">{{ selectedCustomer?.fullName }}</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">Receiver</span>
+            <span class="summary-value">{{ selectedReceiver.fullName }}</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">From</span>
+            <span class="summary-value">{{ senderCountry }} ({{ senderCurrency }})</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">To</span>
+            <span class="summary-value">{{ receiverCountry }} ({{ receiverCurrency }})</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">Send Amount</span>
+            <span class="summary-value">{{ sendAmount | number:'1.2-2' }} {{ senderCurrency }}</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">Receive Amount</span>
+            <span class="summary-value highlight">{{ receiveAmount | number:'1.2-2' }} {{ receiverCurrency }}</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">Exchange Rate</span>
+            <span class="summary-value">{{ exchangeRate | number:'1.4-4' }}</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">Service Charge</span>
+            <span class="summary-value">{{ serviceCharge | number:'1.2-2' }} {{ senderCurrency }}</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">Payout Mode</span>
+            <span class="summary-value">{{ getPayoutModeName() }}</span>
+          </div>
+          <div class="summary-item">
+            <span class="summary-label">Total Payable</span>
+            <span class="summary-value total">{{ totalPayable | number:'1.2-2' }} {{ senderCurrency }}</span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Step Actions -->
+    <div class="step-actions">
+      <button mat-stroked-button (click)="prevStep()">
+        <mat-icon>arrow_back</mat-icon> Back
+      </button>
+      <span class="spacer"></span>
+      <button mat-flat-button color="primary" (click)="submitTransaction()"
+        [disabled]="!canProceedStep3() || submitting">
+        <mat-spinner *ngIf="submitting" diameter="18" class="btn-spinner"></mat-spinner>
+        <mat-icon *ngIf="!submitting">send</mat-icon>
+        Submit Transaction
+      </button>
+    </div>
+  </div>
+
+  <!-- ======================================================================= -->
+  <!-- STEP 3: Success                                                         -->
+  <!-- ======================================================================= -->
+  <div *ngIf="step === 3 && successResult" class="step-panel">
+    <mat-card class="success-card" appearance="outlined">
+      <mat-card-content>
+        <div class="success-icon">
+          <mat-icon>check_circle</mat-icon>
+        </div>
+        <h2 class="success-title">Transaction Submitted!</h2>
+        <p class="success-ref">Reference: <strong>{{ successResult.referenceNumber }}</strong></p>
+
+        <div class="success-details">
+          <div class="success-row">
+            <span>Status</span>
+            <span class="status-badge">{{ successResult.status }}</span>
+          </div>
+          <mat-divider></mat-divider>
+          <div class="success-row">
+            <span>Send Amount</span>
+            <span>{{ successResult.sendAmount | number:'1.2-2' }} {{ successResult.sendCurrency }}</span>
+          </div>
+          <div class="success-row">
+            <span>Exchange Rate</span>
+            <span>1 {{ successResult.sendCurrency }} = {{ successResult.exchangeRateApplied | number:'1.4-4' }} {{
+              successResult.receiveCurrency }}</span>
+          </div>
+          <div class="success-row">
+            <span>Receive Amount</span>
+            <span class="success-amount">{{ successResult.receiveAmount | number:'1.2-2' }} {{
+              successResult.receiveCurrency }}</span>
+          </div>
+          <div class="success-row">
+            <span>Commission</span>
+            <span>{{ successResult.totalCommission | number:'1.2-2' }} {{ successResult.sendCurrency }}</span>
+          </div>
+          <mat-divider></mat-divider>
+          <div class="success-row">
+            <span>Sender</span>
+            <span>{{ successResult.senderName }}</span>
+          </div>
+          <div class="success-row">
+            <span>Receiver</span>
+            <span>{{ successResult.receiverName }}</span>
+          </div>
+          <div class="success-row">
+            <span>Date</span>
+            <span>{{ successResult.createdAt | date:'medium' }}</span>
+          </div>
+        </div>
+
+        <div class="success-actions">
+          <button mat-stroked-button (click)="downloadReceipt()">
+            <mat-icon>download</mat-icon>
+            Download Receipt
+          </button>
+          <button mat-flat-button color="primary" (click)="startNewTransaction()">
+            <mat-icon>add</mat-icon>
+            New Transaction
+          </button>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+</div>
+
+<!-- ======================================================================= -->
+<!-- Branch Search Popup                                                     -->
+<!-- ======================================================================= -->
+<div *ngIf="showBranchPopup" class="branch-overlay" (click)="closeBranchPopup()"></div>
+<div *ngIf="showBranchPopup" class="branch-popup">
+  <div class="branch-popup-header">
+    <h3><mat-icon>account_tree</mat-icon> Select Branch &mdash; {{ branchBank?.bankName }}</h3>
+    <button mat-icon-button (click)="closeBranchPopup()"><mat-icon>close</mat-icon></button>
+  </div>
+
+  <mat-form-field appearance="outline" class="branch-search-field">
+    <mat-label>Search branches</mat-label>
+    <mat-icon matPrefix>search</mat-icon>
+    <input matInput [(ngModel)]="branchSearch" (ngModelChange)="filterBranches()" placeholder="Search by name, code, or address..." />
+    <button *ngIf="branchSearch" mat-icon-button matSuffix (click)="branchSearch = ''; filterBranches()">
+      <mat-icon>close</mat-icon>
+    </button>
+  </mat-form-field>
+
+  <div class="branch-list">
+    <div *ngIf="filteredBranches.length === 0" class="empty-state">
+      <mat-icon>search_off</mat-icon>
+      <span>No branches found.</span>
+    </div>
+    <div *ngFor="let br of filteredBranches" class="branch-list-item"
+      [class.selected]="selectedBranch?.id === br.id" (click)="selectBranch(br)">
+      <div class="branch-list-icon">
+        <mat-icon>location_city</mat-icon>
+      </div>
+      <div class="branch-list-info">
+        <div class="branch-list-name">{{ br.branchName }}</div>
+        <div class="branch-list-detail">
+          <span *ngIf="br.branchCode">Code: {{ br.branchCode }}</span>
+          <span *ngIf="br.address"> &middot; {{ br.address }}</span>
+          <span *ngIf="br.contactPhone"> &middot; {{ br.contactPhone }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

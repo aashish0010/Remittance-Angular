@@ -1,0 +1,105 @@
+<div class="layout-wrapper" [class.dark-mode]="isDarkMode">
+
+  <!-- Top Bar -->
+  <mat-toolbar class="app-toolbar">
+    <button mat-icon-button class="menu-btn" (click)="toggleDrawer()" aria-label="Toggle menu">
+      <mat-icon>menu</mat-icon>
+    </button>
+
+    <div class="brand">
+      <div class="brand-logo">
+        <mat-icon>store</mat-icon>
+      </div>
+      <div class="brand-text">
+        <span class="brand-name">RemitAgent</span>
+        <span class="brand-sub">Agent Portal</span>
+      </div>
+    </div>
+
+    <span class="spacer"></span>
+
+    <div class="toolbar-actions">
+      <button mat-icon-button class="toolbar-btn" (click)="toggleDarkMode()"
+        [matTooltip]="isDarkMode ? 'Light mode' : 'Dark mode'">
+        <mat-icon>{{ isDarkMode ? 'light_mode' : 'dark_mode' }}</mat-icon>
+      </button>
+
+      <button mat-icon-button class="toolbar-btn" matTooltip="Notifications">
+        <mat-icon>notifications_none</mat-icon>
+      </button>
+
+      <div class="toolbar-divider"></div>
+
+      <button mat-button class="user-btn" [matMenuTriggerFor]="accountMenu">
+        <div class="user-avatar">A</div>
+        <span class="user-name">Agent</span>
+        <mat-icon class="user-chevron">expand_more</mat-icon>
+      </button>
+    </div>
+
+    <mat-menu #accountMenu="matMenu" class="user-menu">
+      <div class="menu-user-info">
+        <div class="menu-avatar">A</div>
+        <div>
+          <div class="menu-user-name">Agent User</div>
+          <div class="menu-user-role">Sending Agent</div>
+        </div>
+      </div>
+      <mat-divider></mat-divider>
+      <button mat-menu-item>
+        <mat-icon>person_outline</mat-icon>
+        <span>My Profile</span>
+      </button>
+      <mat-divider></mat-divider>
+      <button mat-menu-item class="logout-item" routerLink="/">
+        <mat-icon>logout</mat-icon>
+        <span>Sign Out</span>
+      </button>
+    </mat-menu>
+  </mat-toolbar>
+
+  <!-- Sidenav Container -->
+  <mat-sidenav-container class="layout-container">
+
+    <mat-sidenav #sidenav mode="side" [opened]="sidenavOpened" class="app-sidenav">
+      <nav class="nav-list">
+
+        <a class="nav-item" routerLink="/agent/dashboard" routerLinkActive="nav-item--active">
+          <span class="nav-icon"><mat-icon>dashboard</mat-icon></span>
+          <span class="nav-label">Dashboard</span>
+        </a>
+
+        <div class="nav-section">
+          <span class="nav-section-label">Operations</span>
+        </div>
+        <a class="nav-item nav-item--sub" routerLink="/agent/send" routerLinkActive="nav-item--active">
+          <span class="nav-icon"><mat-icon>send</mat-icon></span>
+          <span class="nav-label">Send Money</span>
+        </a>
+        <a class="nav-item nav-item--sub" routerLink="/agent/transactions" routerLinkActive="nav-item--active">
+          <span class="nav-icon"><mat-icon>receipt_long</mat-icon></span>
+          <span class="nav-label">My Transactions</span>
+        </a>
+
+        <div class="nav-spacer"></div>
+
+        <div class="nav-bottom">
+          <a class="nav-item nav-item--danger" routerLink="/">
+            <span class="nav-icon"><mat-icon>logout</mat-icon></span>
+            <span class="nav-label">Sign Out</span>
+          </a>
+        </div>
+
+      </nav>
+    </mat-sidenav>
+
+    <!-- Main Content -->
+    <mat-sidenav-content class="main-content">
+      <div class="content-wrapper">
+        <router-outlet></router-outlet>
+      </div>
+    </mat-sidenav-content>
+
+  </mat-sidenav-container>
+
+</div>

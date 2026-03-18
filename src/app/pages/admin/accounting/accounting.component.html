@@ -1,0 +1,322 @@
+<!-- Page Header -->
+<div class="page-header">
+  <h2>Setup</h2>
+</div>
+
+<!-- Loading -->
+<div *ngIf="loading" class="loading-container">
+  <mat-spinner diameter="40"></mat-spinner>
+</div>
+
+<!-- Search + Table -->
+<mat-card *ngIf="!loading" class="table-card">
+  <mat-form-field appearance="outline" class="search-field">
+    <mat-icon matPrefix>search</mat-icon>
+    <input matInput placeholder="Search agents..." [(ngModel)]="searchString" (ngModelChange)="applyFilter()" />
+  </mat-form-field>
+
+  <table mat-table [dataSource]="filteredSummaries" class="data-table">
+    <!-- Agent -->
+    <ng-container matColumnDef="businessName">
+      <th mat-header-cell *matHeaderCellDef>Agent</th>
+      <td mat-cell *matCellDef="let a">{{ a.businessName }}</td>
+    </ng-container>
+
+    <!-- Type -->
+    <ng-container matColumnDef="agentType">
+      <th mat-header-cell *matHeaderCellDef>Type</th>
+      <td mat-cell *matCellDef="let a">
+        <span class="chip" [ngClass]="a.agentType === 'PayoutAgent' ? 'chip-tertiary' : 'chip-info'">
+          {{ a.agentType === 'PayoutAgent' ? 'Payout' : 'Sending' }}
+        </span>
+      </td>
+    </ng-container>
+
+    <!-- Commission -->
+    <ng-container matColumnDef="commission">
+      <th mat-header-cell *matHeaderCellDef>Commission</th>
+      <td mat-cell *matCellDef="let a">
+        <ng-container *ngIf="a.commissionMode">
+          <span class="chip" [ngClass]="a.commissionMode === 'Percentage' ? 'chip-info' : 'chip-warning'">
+            {{ a.commissionMode === 'Percentage' ? (a.commissionValue | number:'1.2-2') + '%' : 'Flat ' + (a.commissionValue | number:'1.2-2') }}
+          </span>
+        </ng-container>
+        <span *ngIf="!a.commissionMode" class="text-muted">Not set</span>
+      </td>
+    </ng-container>
+
+    <!-- Effective Limit -->
+    <ng-container matColumnDef="effectiveLimit">
+      <th mat-header-cell *matHeaderCellDef class="text-right">Effective Limit</th>
+      <td mat-cell *matCellDef="let a" class="text-right text-bold">{{ a.effectiveCreditLimit | number:'1.2-2' }}</td>
+    </ng-container>
+
+    <!-- Available -->
+    <ng-container matColumnDef="available">
+      <th mat-header-cell *matHeaderCellDef class="text-right">Available</th>
+      <td mat-cell *matCellDef="let a" class="text-right">
+        <span class="chip" [ngClass]="a.availableBalance >= 0 ? 'chip-success' : 'chip-error'">
+          {{ a.availableBalance | number:'1.2-2' }}
+        </span>
+      </td>
+    </ng-container>
+
+    <!-- Status -->
+    <ng-container matColumnDef="status">
+      <th mat-header-cell *matHeaderCellDef>Status</th>
+      <td mat-cell *matCellDef="let a">
+        <span class="chip" [ngClass]="{
+          'chip-success': a.status === 'Approved',
+          'chip-error': a.status === 'Blocked' || a.status === 'Rejected',
+          'chip-warning': a.status !== 'Approved' && a.status !== 'Blocked' && a.status !== 'Rejected'
+        }">{{ a.status }}</span>
+      </td>
+    </ng-container>
+
+    <!-- Actions -->
+    <ng-container matColumnDef="actions">
+      <th mat-header-cell *matHeaderCellDef>Actions</th>
+      <td mat-cell *matCellDef="let a">
+        <button mat-icon-button matTooltip="View Details" (click)="viewDetail(a)">
+          <mat-icon>visibility</mat-icon>
+        </button>
+        <button *ngIf="a.agentType === 'SendingAgent'" mat-icon-button matTooltip="Adjust Limit" (click)="openAdjustments(a)">
+          <mat-icon color="primary">tune</mat-icon>
+        </button>
+        <button mat-icon-button matTooltip="Commission" (click)="openCommissionSetup(a)">
+          <mat-icon class="text-tertiary">percent</mat-icon>
+        </button>
+        <button mat-icon-button matTooltip="History" (click)="openAdjustments(a)">
+          <mat-icon class="text-info">history</mat-icon>
+        </button>
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+  </table>
+
+  <div *ngIf="!filteredSummaries.length && !loading" class="empty-state">
+    No agents found.
+  </div>
+</mat-card>
+
+<!-- ============================================================ -->
+<!-- Agent Detail Popup                                            -->
+<!-- ============================================================ -->
+<div *ngIf="showDetailPopup && detailAgent" class="overlay" (click)="closeDetailPopup()"></div>
+<div *ngIf="showDetailPopup && detailAgent" class="popup popup-md">
+  <div class="popup-header">
+    <h3><mat-icon class="header-icon">settings</mat-icon> {{ detailAgent.businessName }} — Setup</h3>
+    <button mat-icon-button (click)="closeDetailPopup()"><mat-icon>close</mat-icon></button>
+  </div>
+
+  <div class="detail-grid">
+    <div class="detail-item">
+      <span class="detail-label">Country</span>
+      <span>{{ detailAgent.country }}</span>
+    </div>
+    <div class="detail-item">
+      <span class="detail-label">Currency</span>
+      <span>{{ detailAgent.currency || '-' }}</span>
+    </div>
+    <div class="detail-item">
+      <span class="detail-label">Funding Type</span>
+      <span>{{ detailAgent.fundingType || '-' }}</span>
+    </div>
+    <div class="detail-item">
+      <span class="detail-label">Agent Type</span>
+      <span class="chip" [ngClass]="detailAgent.agentType === 'PayoutAgent' ? 'chip-tertiary' : 'chip-info'">
+        {{ detailAgent.agentType === 'PayoutAgent' ? 'Payout Agent' : 'Sending Agent' }}
+      </span>
+    </div>
+    <div class="detail-item">
+      <span class="detail-label">Status</span>
+      <span class="chip" [ngClass]="{
+        'chip-success': detailAgent.status === 'Approved',
+        'chip-error': detailAgent.status === 'Blocked',
+        'chip-warning': detailAgent.status !== 'Approved' && detailAgent.status !== 'Blocked'
+      }">{{ detailAgent.status }}</span>
+    </div>
+  </div>
+
+  <hr class="divider" />
+
+  <div class="detail-grid">
+    <div class="detail-item">
+      <span class="detail-label">Base Credit Limit</span>
+      <span>{{ detailAgent.baseCreditLimit | number:'1.2-2' }}</span>
+    </div>
+    <div class="detail-item">
+      <span class="detail-label">Effective Credit Limit</span>
+      <span class="text-bold">{{ detailAgent.effectiveCreditLimit | number:'1.2-2' }}</span>
+    </div>
+    <div class="detail-item">
+      <span class="detail-label">Current Balance</span>
+      <span>{{ detailAgent.currentBalance | number:'1.2-2' }}</span>
+    </div>
+    <div class="detail-item">
+      <span class="detail-label">Available Balance</span>
+      <span class="chip" [ngClass]="detailAgent.availableBalance >= 0 ? 'chip-success' : 'chip-error'">
+        {{ detailAgent.availableBalance | number:'1.2-2' }}
+      </span>
+    </div>
+    <div class="detail-item">
+      <span class="detail-label">Active Adjustments</span>
+      <span>{{ detailAgent.activeAdjustments }}</span>
+    </div>
+    <div class="detail-item">
+      <span class="detail-label">Commission</span>
+      <ng-container *ngIf="detailAgent.commissionMode">
+        <span>{{ detailAgent.commissionMode === 'Percentage' ? (detailAgent.commissionValue | number:'1.2-2') + '%' : 'Flat ' + (detailAgent.commissionValue | number:'1.2-2') }}</span>
+      </ng-container>
+      <span *ngIf="!detailAgent.commissionMode" class="text-muted">Not set</span>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- Adjust Limit Popup                                            -->
+<!-- ============================================================ -->
+<div *ngIf="showAdjustmentForm" class="overlay overlay-upper" (click)="closeAdjustmentForm()"></div>
+<div *ngIf="showAdjustmentForm" class="popup popup-sm popup-upper">
+  <div class="popup-header">
+    <h3><mat-icon class="header-icon">tune</mat-icon> Adjust Limit — {{ adjustmentAgent?.businessName }}</h3>
+    <button mat-icon-button (click)="closeAdjustmentForm()"><mat-icon>close</mat-icon></button>
+  </div>
+
+  <div *ngIf="adjustmentFormError" class="form-error">{{ adjustmentFormError }}</div>
+
+  <mat-form-field appearance="outline" class="full-width">
+    <mat-label>Amount (+ increase / - decrease) *</mat-label>
+    <input matInput type="number" [(ngModel)]="adjustmentForm.amount" />
+  </mat-form-field>
+
+  <mat-form-field appearance="outline" class="full-width">
+    <mat-label>Duration</mat-label>
+    <mat-select [(ngModel)]="adjustmentForm.durationDays">
+      <mat-option [value]="null">Permanent</mat-option>
+      <mat-option [value]="2">2 Days</mat-option>
+      <mat-option [value]="3">3 Days</mat-option>
+      <mat-option [value]="7">7 Days</mat-option>
+      <mat-option [value]="30">30 Days</mat-option>
+      <mat-option [value]="90">90 Days</mat-option>
+    </mat-select>
+  </mat-form-field>
+
+  <mat-form-field appearance="outline" class="full-width">
+    <mat-label>Notes (optional)</mat-label>
+    <textarea matInput rows="2" [(ngModel)]="adjustmentForm.notes"></textarea>
+  </mat-form-field>
+
+  <div class="popup-actions">
+    <button mat-button (click)="closeAdjustmentForm()"><mat-icon>close</mat-icon> Cancel</button>
+    <button mat-raised-button color="primary" (click)="createAdjustment()">
+      <mat-icon>save</mat-icon> Save
+    </button>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- Adjustment History Popup                                       -->
+<!-- ============================================================ -->
+<div *ngIf="showAdjustmentPopup" class="overlay" (click)="closeAdjustmentPopup()"></div>
+<div *ngIf="showAdjustmentPopup" class="popup popup-lg">
+  <div class="popup-header">
+    <h3><mat-icon class="header-icon">history</mat-icon> Adjustment History — {{ adjustmentAgent?.businessName }}</h3>
+    <button mat-icon-button (click)="closeAdjustmentPopup()"><mat-icon>close</mat-icon></button>
+  </div>
+
+  <div class="popup-toolbar">
+    <button mat-raised-button color="primary" (click)="openAdjustmentForm()">
+      <mat-icon>add</mat-icon> Add Adjustment
+    </button>
+  </div>
+
+  <table *ngIf="adjustments.length" mat-table [dataSource]="adjustments" class="inner-table">
+    <ng-container matColumnDef="amount">
+      <th mat-header-cell *matHeaderCellDef>Amount</th>
+      <td mat-cell *matCellDef="let adj">
+        <span [ngClass]="adj.amount >= 0 ? 'text-success' : 'text-error'" class="text-bold">
+          {{ adj.amount >= 0 ? '+' : '' }}{{ adj.amount | number:'1.2-2' }}
+        </span>
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="from">
+      <th mat-header-cell *matHeaderCellDef>From</th>
+      <td mat-cell *matCellDef="let adj">{{ adj.effectiveFrom | date:'yyyy-MM-dd' }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="to">
+      <th mat-header-cell *matHeaderCellDef>To</th>
+      <td mat-cell *matCellDef="let adj">{{ adj.effectiveTo ? (adj.effectiveTo | date:'yyyy-MM-dd') : 'Permanent' }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="notes">
+      <th mat-header-cell *matHeaderCellDef>Notes</th>
+      <td mat-cell *matCellDef="let adj">{{ adj.notes || '-' }}</td>
+    </ng-container>
+
+    <ng-container matColumnDef="active">
+      <th mat-header-cell *matHeaderCellDef>Active</th>
+      <td mat-cell *matCellDef="let adj">
+        <span class="chip" [ngClass]="adj.isActive ? 'chip-success' : 'chip-default'">{{ adj.isActive ? 'Active' : 'Inactive' }}</span>
+      </td>
+    </ng-container>
+
+    <ng-container matColumnDef="adjActions">
+      <th mat-header-cell *matHeaderCellDef>Actions</th>
+      <td mat-cell *matCellDef="let adj">
+        <button *ngIf="adj.isActive" mat-icon-button matTooltip="Deactivate" (click)="deactivateAdjustment(adj)">
+          <mat-icon color="warn">block</mat-icon>
+        </button>
+      </td>
+    </ng-container>
+
+    <tr mat-header-row *matHeaderRowDef="['amount','from','to','notes','active','adjActions']"></tr>
+    <tr mat-row *matRowDef="let row; columns: ['amount','from','to','notes','active','adjActions'];"></tr>
+  </table>
+
+  <div *ngIf="!adjustments.length" class="empty-state-info">
+    No adjustments found.
+  </div>
+
+  <div class="popup-actions">
+    <button mat-button (click)="closeAdjustmentPopup()"><mat-icon>close</mat-icon> Close</button>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- Commission Setup Popup                                        -->
+<!-- ============================================================ -->
+<div *ngIf="showCommissionPopup" class="overlay" (click)="closeCommissionPopup()"></div>
+<div *ngIf="showCommissionPopup" class="popup popup-sm">
+  <div class="popup-header">
+    <h3><mat-icon class="header-icon">percent</mat-icon> Agent Commission — {{ commissionAgent?.businessName }}</h3>
+    <button mat-icon-button (click)="closeCommissionPopup()"><mat-icon>close</mat-icon></button>
+  </div>
+
+  <div *ngIf="commissionFormError" class="form-error">{{ commissionFormError }}</div>
+
+  <mat-form-field appearance="outline" class="full-width">
+    <mat-label>Commission Type *</mat-label>
+    <mat-select [(ngModel)]="commissionForm.commissionType">
+      <mat-option value="Percentage">Percentage</mat-option>
+      <mat-option value="Flat">Flat</mat-option>
+    </mat-select>
+  </mat-form-field>
+
+  <mat-form-field appearance="outline" class="full-width">
+    <mat-label>{{ commissionForm.commissionType === 'Percentage' ? 'Commission Percentage (%)' : 'Flat Fee Amount' }}</mat-label>
+    <input matInput type="number" [(ngModel)]="commissionForm.commissionValue" />
+  </mat-form-field>
+
+  <div class="popup-actions">
+    <button mat-button (click)="closeCommissionPopup()"><mat-icon>close</mat-icon> Cancel</button>
+    <button mat-raised-button color="primary" (click)="saveAgentCommission()" [disabled]="savingCommission">
+      <mat-spinner *ngIf="savingCommission" diameter="18" class="inline-spinner"></mat-spinner>
+      <mat-icon *ngIf="!savingCommission">save</mat-icon> Save
+    </button>
+  </div>
+</div>

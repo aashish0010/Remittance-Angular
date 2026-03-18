@@ -1,0 +1,339 @@
+<!-- Page Header -->
+<div class="page-header">
+  <h2>Payment Corridor Routing</h2>
+  <button mat-raised-button color="primary" (click)="openCreateCorridor()">
+    <mat-icon>add</mat-icon> Add Corridor
+  </button>
+</div>
+
+<!-- Alert Message -->
+<div *ngIf="message" class="alert-banner" [ngClass]="'alert-' + messageSeverity">
+  <span>{{ message }}</span>
+  <button mat-icon-button (click)="clearMessage()"><mat-icon>close</mat-icon></button>
+</div>
+
+<!-- Loading -->
+<div *ngIf="loading" class="loading-container">
+  <mat-spinner diameter="40"></mat-spinner>
+</div>
+
+<!-- Search + Table -->
+<mat-card *ngIf="!loading" class="table-card">
+  <mat-form-field appearance="outline" class="search-field">
+    <mat-icon matPrefix>search</mat-icon>
+    <input matInput placeholder="Search corridors..." [(ngModel)]="searchString" (ngModelChange)="applyFilter()" />
+  </mat-form-field>
+
+  <!-- Desktop / Tablet: scrollable table -->
+  <div class="table-scroll-wrapper">
+    <table mat-table [dataSource]="filteredCorridors" class="data-table">
+      <ng-container matColumnDef="sendingAgent">
+        <th mat-header-cell *matHeaderCellDef>Sending Agent</th>
+        <td mat-cell *matCellDef="let c">{{ c.sendingAgentName || 'All' }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="sourceCountry">
+        <th mat-header-cell *matHeaderCellDef>Source Country</th>
+        <td mat-cell *matCellDef="let c">{{ c.sourceCountry }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="sourceCurrency">
+        <th mat-header-cell *matHeaderCellDef>Source Currency</th>
+        <td mat-cell *matCellDef="let c">{{ c.sourceCurrency }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="destCountry">
+        <th mat-header-cell *matHeaderCellDef>Dest Country</th>
+        <td mat-cell *matCellDef="let c">{{ c.destinationCountry }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="destCurrency">
+        <th mat-header-cell *matHeaderCellDef>Dest Currency</th>
+        <td mat-cell *matCellDef="let c">{{ c.destinationCurrency }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="partners">
+        <th mat-header-cell *matHeaderCellDef>Partners</th>
+        <td mat-cell *matCellDef="let c">
+          <span class="chip chip-info">{{ c.payoutPartners?.length || 0 }}</span>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="status">
+        <th mat-header-cell *matHeaderCellDef>Status</th>
+        <td mat-cell *matCellDef="let c">
+          <span class="chip" [ngClass]="c.isActive ? 'chip-success' : 'chip-default'">
+            {{ c.isActive ? 'Active' : 'Inactive' }}
+          </span>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef>Actions</th>
+        <td mat-cell *matCellDef="let c">
+          <button mat-icon-button matTooltip="Edit" (click)="openEditCorridor(c)">
+            <mat-icon color="primary">edit</mat-icon>
+          </button>
+          <button mat-icon-button matTooltip="Manage Partners" (click)="openPartnerManagement(c)">
+            <mat-icon class="text-tertiary">people</mat-icon>
+          </button>
+          <button mat-icon-button [matTooltip]="c.isActive ? 'Deactivate' : 'Activate'" (click)="toggleCorridor(c)">
+            <mat-icon [ngClass]="c.isActive ? 'text-success' : ''">{{ c.isActive ? 'toggle_on' : 'toggle_off'
+              }}</mat-icon>
+          </button>
+          <button mat-icon-button matTooltip="Delete" (click)="deleteCorridor(c)">
+            <mat-icon color="warn">delete</mat-icon>
+          </button>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+    </table>
+  </div>
+
+  <!-- Mobile: card layout -->
+  <div class="mobile-cards">
+    <div *ngFor="let c of filteredCorridors" class="mobile-card">
+      <div class="mobile-card-header">
+        <span class="mobile-card-title">{{ c.sourceCountry }} &rarr; {{ c.destinationCountry }}</span>
+        <span class="chip" [ngClass]="c.isActive ? 'chip-success' : 'chip-default'">
+          {{ c.isActive ? 'Active' : 'Inactive' }}
+        </span>
+      </div>
+      <div class="mobile-card-body">
+        <div class="mobile-card-row">
+          <span class="mobile-card-label">Sending Agent</span>
+          <span>{{ c.sendingAgentName || 'All' }}</span>
+        </div>
+        <div class="mobile-card-row">
+          <span class="mobile-card-label">Currency</span>
+          <span>{{ c.sourceCurrency }} &rarr; {{ c.destinationCurrency }}</span>
+        </div>
+        <div class="mobile-card-row">
+          <span class="mobile-card-label">Partners</span>
+          <span class="chip chip-info">{{ c.payoutPartners?.length || 0 }}</span>
+        </div>
+      </div>
+      <div class="mobile-card-actions">
+        <button mat-icon-button matTooltip="Edit" (click)="openEditCorridor(c)">
+          <mat-icon color="primary">edit</mat-icon>
+        </button>
+        <button mat-icon-button matTooltip="Manage Partners" (click)="openPartnerManagement(c)">
+          <mat-icon class="text-tertiary">people</mat-icon>
+        </button>
+        <button mat-icon-button [matTooltip]="c.isActive ? 'Deactivate' : 'Activate'" (click)="toggleCorridor(c)">
+          <mat-icon [ngClass]="c.isActive ? 'text-success' : ''">{{ c.isActive ? 'toggle_on' : 'toggle_off' }}</mat-icon>
+        </button>
+        <button mat-icon-button matTooltip="Delete" (click)="deleteCorridor(c)">
+          <mat-icon color="warn">delete</mat-icon>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="!filteredCorridors.length && !loading" class="empty-state">
+    No corridors found.
+  </div>
+</mat-card>
+
+<!-- ============================================================ -->
+<!-- Create / Edit Corridor Popup                                  -->
+<!-- ============================================================ -->
+<div *ngIf="showCorridorPopup" class="overlay" (click)="closeCorridorPopup()"></div>
+<div *ngIf="showCorridorPopup" class="popup popup-md">
+  <div class="popup-header">
+    <h3>{{ isEditingCorridor ? 'Edit Corridor' : 'Create Corridor' }}</h3>
+    <button mat-icon-button (click)="closeCorridorPopup()"><mat-icon>close</mat-icon></button>
+  </div>
+
+  <div *ngIf="corridorFormError" class="alert-banner alert-error inline-alert">{{ corridorFormError }}</div>
+
+  <div class="form-grid">
+    <!-- Sending Agent -->
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Sending Agent (optional)</mat-label>
+      <mat-select searchable [(ngModel)]="corridorForm.sendingAgentId">
+        <mat-option [value]="null">All</mat-option>
+        <mat-option *ngFor="let a of sendingAgents" [value]="a.id">{{ a.businessName }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <!-- Source Country -->
+    <mat-form-field appearance="outline">
+      <mat-label>Source Country *</mat-label>
+      <mat-select searchable [(ngModel)]="corridorForm.sourceCountry" required>
+        <mat-option *ngFor="let c of countries" [value]="c.name">{{ c.name }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <!-- Source Currency -->
+    <mat-form-field appearance="outline">
+      <mat-label>Source Currency *</mat-label>
+      <mat-select searchable [(ngModel)]="corridorForm.sourceCurrency" required>
+        <mat-option *ngFor="let c of currencies" [value]="c">{{ c }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <!-- Destination Country -->
+    <mat-form-field appearance="outline">
+      <mat-label>Destination Country *</mat-label>
+      <mat-select searchable [(ngModel)]="corridorForm.destinationCountry" required>
+        <mat-option *ngFor="let c of countries" [value]="c.name">{{ c.name }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <!-- Destination Currency -->
+    <mat-form-field appearance="outline">
+      <mat-label>Destination Currency *</mat-label>
+      <mat-select searchable [(ngModel)]="corridorForm.destinationCurrency" required>
+        <mat-option *ngFor="let c of currencies" [value]="c">{{ c }}</mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+
+  <div class="popup-actions">
+    <button mat-button (click)="closeCorridorPopup()"><mat-icon>close</mat-icon> Cancel</button>
+    <button mat-raised-button color="primary" (click)="saveCorridor()" [disabled]="savingCorridor">
+      <mat-spinner *ngIf="savingCorridor" diameter="18" class="inline-spinner"></mat-spinner>
+      <mat-icon *ngIf="!savingCorridor">save</mat-icon> {{ isEditingCorridor ? 'Update' : 'Create' }}
+    </button>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- Payout Partners Management Popup                              -->
+<!-- ============================================================ -->
+<div *ngIf="showPartnerPopup && partnerCorridor" class="overlay" (click)="closePartnerPopup()"></div>
+<div *ngIf="showPartnerPopup && partnerCorridor" class="popup popup-xl">
+  <div class="popup-header">
+    <h3>
+      <mat-icon class="header-icon">people</mat-icon>
+      Payout Partners &mdash; {{ partnerCorridor.sourceCountry }} ({{ partnerCorridor.sourceCurrency }})
+      &rarr; {{ partnerCorridor.destinationCountry }} ({{ partnerCorridor.destinationCurrency }})
+    </h3>
+    <button mat-icon-button (click)="closePartnerPopup()"><mat-icon>close</mat-icon></button>
+  </div>
+
+  <div *ngIf="partnerMessage" class="alert-banner inline-alert" [ngClass]="'alert-' + partnerSeverity">
+    <span>{{ partnerMessage }}</span>
+    <button mat-icon-button (click)="partnerMessage = ''"><mat-icon>close</mat-icon></button>
+  </div>
+
+  <div class="popup-toolbar">
+    <button mat-raised-button color="primary" (click)="openAddPartner()">
+      <mat-icon>add</mat-icon> Add Partner
+    </button>
+  </div>
+
+  <!-- Desktop: partner table -->
+  <div class="table-scroll-wrapper" *ngIf="partnerCorridor.payoutPartners?.length">
+    <table mat-table [dataSource]="partnerCorridor.payoutPartners" class="inner-table">
+      <ng-container matColumnDef="payoutAgent">
+        <th mat-header-cell *matHeaderCellDef>Payout Agent</th>
+        <td mat-cell *matCellDef="let p">{{ p.payoutAgentName }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="paymentModes">
+        <th mat-header-cell *matHeaderCellDef>Payment Modes</th>
+        <td mat-cell *matCellDef="let p">
+          <span *ngFor="let mode of p.paymentModeNames" class="chip chip-info mode-chip">{{ mode }}</span>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="status">
+        <th mat-header-cell *matHeaderCellDef>Status</th>
+        <td mat-cell *matCellDef="let p">
+          <span class="chip" [ngClass]="p.isActive ? 'chip-success' : 'chip-default'">
+            {{ p.isActive ? 'Active' : 'Inactive' }}
+          </span>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef>Actions</th>
+        <td mat-cell *matCellDef="let p">
+          <button mat-icon-button matTooltip="Edit" (click)="openEditPartner(p)">
+            <mat-icon color="primary">edit</mat-icon>
+          </button>
+          <button mat-icon-button [matTooltip]="p.isActive ? 'Deactivate' : 'Activate'" (click)="togglePartner(p)">
+            <mat-icon [ngClass]="p.isActive ? 'text-success' : ''">{{ p.isActive ? 'toggle_on' : 'toggle_off' }}</mat-icon>
+          </button>
+          <button mat-icon-button matTooltip="Delete" (click)="deletePartner(p)">
+            <mat-icon color="warn">delete</mat-icon>
+          </button>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="['payoutAgent','paymentModes','status','actions']"></tr>
+      <tr mat-row *matRowDef="let row; columns: ['payoutAgent','paymentModes','status','actions'];"></tr>
+    </table>
+  </div>
+
+  <!-- Mobile: partner cards -->
+  <div class="mobile-cards mobile-cards-inner" *ngIf="partnerCorridor.payoutPartners?.length">
+    <div *ngFor="let p of partnerCorridor.payoutPartners" class="mobile-card">
+      <div class="mobile-card-header">
+        <span class="mobile-card-title">{{ p.payoutAgentName }}</span>
+        <span class="chip" [ngClass]="p.isActive ? 'chip-success' : 'chip-default'">
+          {{ p.isActive ? 'Active' : 'Inactive' }}
+        </span>
+      </div>
+      <div class="mobile-card-body">
+        <div class="mobile-card-row">
+          <span class="mobile-card-label">Payment Modes</span>
+          <span>
+            <span *ngFor="let mode of p.paymentModeNames" class="chip chip-info mode-chip">{{ mode }}</span>
+          </span>
+        </div>
+      </div>
+      <div class="mobile-card-actions">
+        <button mat-icon-button matTooltip="Edit" (click)="openEditPartner(p)">
+          <mat-icon color="primary">edit</mat-icon>
+        </button>
+        <button mat-icon-button [matTooltip]="p.isActive ? 'Deactivate' : 'Activate'" (click)="togglePartner(p)">
+          <mat-icon [ngClass]="p.isActive ? 'text-success' : ''">{{ p.isActive ? 'toggle_on' : 'toggle_off' }}</mat-icon>
+        </button>
+        <button mat-icon-button matTooltip="Delete" (click)="deletePartner(p)">
+          <mat-icon color="warn">delete</mat-icon>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="!partnerCorridor.payoutPartners?.length" class="empty-state-info">
+    No payout partners configured yet.
+  </div>
+</div>
+
+<!-- Partner Add/Edit Form -->
+<div *ngIf="showPartnerForm" class="overlay overlay-upper" (click)="closePartnerForm()"></div>
+<div *ngIf="showPartnerForm" class="popup popup-md popup-upper">
+  <div class="popup-header">
+    <h3>{{ isEditingPartner ? 'Edit Partner' : 'Add Partner' }}</h3>
+    <button mat-icon-button (click)="closePartnerForm()"><mat-icon>close</mat-icon></button>
+  </div>
+
+  <div *ngIf="partnerFormError" class="alert-banner alert-error inline-alert">{{ partnerFormError }}</div>
+
+  <mat-form-field appearance="outline" class="full-width">
+    <mat-label>Payout Agent</mat-label>
+    <mat-select searchable [(ngModel)]="partnerForm.payoutAgentId" required>
+      <mat-option *ngFor="let a of payoutAgents" [value]="a.id">{{ a.businessName }}</mat-option>
+    </mat-select>
+  </mat-form-field>
+
+  <mat-form-field appearance="outline" class="full-width mt-16">
+    <mat-label>Payment Modes</mat-label>
+    <mat-select searchable [(ngModel)]="partnerForm.paymentModeIds" multiple required>
+      <mat-option *ngFor="let pm of paymentMethods" [value]="pm.id">{{ pm.name }}</mat-option>
+    </mat-select>
+  </mat-form-field>
+
+  <div class="popup-actions">
+    <button mat-button (click)="closePartnerForm()"><mat-icon>close</mat-icon> Cancel</button>
+    <button mat-raised-button color="primary" (click)="savePartner()">
+      <mat-icon>save</mat-icon> Save
+    </button>
+  </div>
+</div>

@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["angular:styles/component:css;abd644ed2b4c87d9d82e4a890ab55da25fc721dadd5c963b61095214863a3130;C:/Users/pudas/OneDrive/Desktop/Remittance/Remittance.Angular/src/app/pages/customer/dashboard/customer-dashboard.component.ts"],
+  "sourcesContent": [".page-header { margin-bottom: 24px; } .page-header h2 { font-weight: 700; margin: 0; }"],
+  "mappings": ";AAAA,CAAC;AAAc,iBAAe;AAAM;AAAE,CAArC,YAAkD;AAAK,eAAa;AAAK,UAAQ;AAAG;",
+  "names": []
+}

@@ -1,0 +1,1111 @@
+// ---------------------------------------------------------------------------
+// Send Money — Variables
+// ---------------------------------------------------------------------------
+$primary: #1a56db;
+$primary-light: #e8eefb;
+$success: #2e7d32;
+$success-bg: #e8f5e9;
+$warn: #ed6c02;
+$warn-bg: #fff3e0;
+$danger: #d32f2f;
+$danger-bg: #fdeded;
+$text-primary: rgba(0, 0, 0, 0.87);
+$text-secondary: rgba(0, 0, 0, 0.6);
+$border: rgba(0, 0, 0, 0.08);
+$radius: 12px;
+
+.send-money {
+  padding: 0;
+  max-width: 1200px;
+}
+
+// ---------------------------------------------------------------------------
+// Steps Header
+// ---------------------------------------------------------------------------
+.steps-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  margin-bottom: 28px;
+  padding: 0 20px;
+}
+
+.step-indicator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  cursor: default;
+  min-width: 70px;
+
+  &.done {
+    cursor: pointer;
+  }
+}
+
+.step-circle {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 600;
+  background: #e0e0e0;
+  color: $text-secondary;
+  transition: all 0.2s;
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+
+  .active & {
+    background: $primary;
+    color: #fff;
+    box-shadow: 0 2px 8px rgba($primary, 0.35);
+  }
+
+  .done & {
+    background: $success;
+    color: #fff;
+  }
+}
+
+.step-text {
+  font-size: 12px;
+  font-weight: 500;
+  color: $text-secondary;
+
+  .active & {
+    color: $primary;
+    font-weight: 600;
+  }
+
+  .done & {
+    color: $success;
+  }
+}
+
+.step-line {
+  flex: 1;
+  height: 3px;
+  background: #e0e0e0;
+  margin: 0 4px;
+  margin-bottom: 22px;
+  border-radius: 2px;
+  max-width: 120px;
+  transition: background 0.3s;
+
+  &.done {
+    background: $success;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Error / Warn / Info Alerts
+// ---------------------------------------------------------------------------
+.error-alert {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  background: $danger-bg;
+  border: 1px solid #f5c6cb;
+  border-radius: 8px;
+  color: $danger;
+  font-size: 0.875rem;
+
+  mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+  }
+
+  span { flex: 1; }
+
+  .close-btn {
+    margin-left: auto;
+    color: $danger;
+  }
+}
+
+.warn-alert {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  margin-top: 12px;
+  background: $warn-bg;
+  border: 1px solid #ffe0b2;
+  border-radius: 8px;
+  color: $warn;
+  font-size: 0.875rem;
+
+  mat-icon { flex-shrink: 0; }
+}
+
+.info-alert {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  margin-bottom: 12px;
+  background: $primary-light;
+  border: 1px solid #c3d4f7;
+  border-radius: 8px;
+  color: $primary;
+  font-size: 0.875rem;
+
+  mat-icon { flex-shrink: 0; }
+}
+
+// ---------------------------------------------------------------------------
+// Panel Card
+// ---------------------------------------------------------------------------
+.step-panel {
+  animation: fadeSlideIn 0.3s ease;
+}
+
+@keyframes fadeSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.panel-card {
+  border-radius: $radius !important;
+
+  mat-card-content {
+    padding: 24px !important;
+  }
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+
+  h3 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: $text-primary;
+
+    mat-icon {
+      color: $primary;
+    }
+  }
+}
+
+.panel-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 20px 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: $text-primary;
+
+  mat-icon {
+    color: $primary;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Form Grids
+// ---------------------------------------------------------------------------
+.form-grid {
+  display: grid;
+  gap: 8px 16px;
+
+  &.cols-1 { grid-template-columns: 1fr; }
+  &.cols-2 { grid-template-columns: 1fr 1fr; }
+  &.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+
+  mat-form-field {
+    width: 100%;
+  }
+}
+
+.form-section-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: $primary;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 12px 0 8px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid $border;
+}
+
+.form-error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  margin-bottom: 12px;
+  background: $danger-bg;
+  border: 1px solid #f5c6cb;
+  border-radius: 8px;
+  color: $danger;
+  font-size: 0.85rem;
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Agent Info Bar (read-only sender country)
+// ---------------------------------------------------------------------------
+.agent-info-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px;
+  background: $primary-light;
+  border: 1px solid #c3d4f7;
+  border-radius: 10px;
+  margin-bottom: 16px;
+
+  > mat-icon {
+    color: $primary;
+    font-size: 28px;
+    width: 28px;
+    height: 28px;
+  }
+}
+
+.agent-info-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.agent-info-name {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: $text-primary;
+}
+
+.agent-info-detail {
+  font-size: 0.82rem;
+  color: $text-secondary;
+  margin-top: 1px;
+}
+
+// Receiver banner variant
+.receiver-banner {
+  background: #f3e8ff;
+  border-color: #d8b4fe;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.search-field {
+  width: 100%;
+}
+
+.amount-field {
+  max-width: 400px;
+}
+
+.currency-suffix {
+  font-weight: 600;
+  color: $text-secondary;
+  font-size: 0.875rem;
+}
+
+// ---------------------------------------------------------------------------
+// Customer / Receiver List
+// ---------------------------------------------------------------------------
+.customer-list {
+  max-height: 400px;
+  overflow-y: auto;
+  border: 1px solid $border;
+  border-radius: 8px;
+}
+
+.list-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: background 0.15s;
+  border-bottom: 1px solid $border;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &:hover {
+    background: #f5f7fa;
+  }
+
+  &.selected {
+    background: $primary-light;
+    border-left: 3px solid $primary;
+  }
+}
+
+.list-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: $primary;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.receiver-avatar {
+  background: #7c3aed;
+}
+
+.list-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.list-name {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: $text-primary;
+}
+
+.list-detail {
+  font-size: 0.8rem;
+  color: $text-secondary;
+  margin-top: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.list-badge {
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 3px 10px;
+  border-radius: 12px;
+  background: #f0f0f0;
+  color: $text-secondary;
+  white-space: nowrap;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 40px 20px;
+  color: $text-secondary;
+
+  mat-icon {
+    font-size: 40px;
+    width: 40px;
+    height: 40px;
+    opacity: 0.5;
+  }
+
+  span {
+    font-size: 0.875rem;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Selected Banner
+// ---------------------------------------------------------------------------
+.selected-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  background: $success-bg;
+  border: 1px solid #a5d6a7;
+  border-radius: 10px;
+  margin-bottom: 12px;
+}
+
+.selected-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.selected-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: $success;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 18px;
+
+  &.receiver-avatar {
+    background: #7c3aed;
+  }
+}
+
+.selected-name {
+  font-weight: 600;
+  font-size: 1rem;
+  color: $text-primary;
+}
+
+.selected-detail {
+  font-size: 0.85rem;
+  color: $text-secondary;
+  margin-top: 2px;
+}
+
+// ---------------------------------------------------------------------------
+// Calculation Layout (Step 1)
+// ---------------------------------------------------------------------------
+.calc-layout {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.route-matched-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  margin: 8px 0 4px;
+  background: $success-bg;
+  border: 1px solid #a5d6a7;
+  border-radius: 8px;
+  color: $success;
+  font-size: 0.85rem;
+  font-weight: 500;
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Live Calculation Card
+// ---------------------------------------------------------------------------
+.calc-card {
+  border-radius: $radius !important;
+  position: sticky;
+  top: 80px;
+
+  mat-card-content {
+    padding: 24px !important;
+  }
+}
+
+.calc-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin: 0 0 20px 0;
+  color: $text-primary;
+
+  mat-icon {
+    color: $primary;
+  }
+}
+
+.calc-row {
+  margin: 14px 0;
+}
+
+.calc-label {
+  display: block;
+  font-size: 0.8rem;
+  color: $text-secondary;
+  margin-bottom: 4px;
+}
+
+.calc-value-lg {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: $text-primary;
+}
+
+.calc-value-rate {
+  display: block;
+  font-size: 1rem;
+  font-weight: 600;
+  color: $text-primary;
+}
+
+.calc-no-rate {
+  display: block;
+  font-size: 0.875rem;
+  color: $text-secondary;
+  font-style: italic;
+}
+
+.calc-value-receive {
+  display: block;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: $success;
+}
+
+.calc-detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  font-size: 0.875rem;
+  color: rgba(0, 0, 0, 0.7);
+}
+
+.calc-detail-value {
+  font-weight: 600;
+}
+
+.calc-earning {
+  color: $success;
+}
+
+.calc-total-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: $text-primary;
+}
+
+.calc-ready {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 16px;
+  padding: 10px 14px;
+  background: $success-bg;
+  border-radius: 8px;
+  color: $success;
+  font-size: 0.85rem;
+  font-weight: 500;
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+  }
+}
+
+.calc-loading {
+  margin: 12px 0;
+}
+
+.calc-loading-text {
+  display: block;
+  text-align: center;
+  font-size: 0.82rem;
+  color: $text-secondary;
+  margin-top: 8px;
+}
+
+.calc-error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px;
+  margin: 8px 0;
+  background: $warn-bg;
+  border: 1px solid #ffe0b2;
+  border-radius: 8px;
+  color: $warn;
+  font-size: 0.85rem;
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Step Actions
+// ---------------------------------------------------------------------------
+.step-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 20px;
+  padding-top: 16px;
+
+  .spacer {
+    flex: 1;
+  }
+
+  button {
+    mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+    }
+  }
+}
+
+.btn-spinner {
+  display: inline-block;
+  margin-right: 8px;
+}
+
+// ---------------------------------------------------------------------------
+// Payout Details
+// ---------------------------------------------------------------------------
+.payout-details {
+  margin-top: 16px;
+}
+
+.wallet-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  background: #f3e8ff;
+  border: 1px solid #d8b4fe;
+  border-radius: 8px;
+  color: #6b21a8;
+  font-size: 0.875rem;
+
+  mat-icon {
+    flex-shrink: 0;
+    color: #7c3aed;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Summary Card
+// ---------------------------------------------------------------------------
+.summary-card {
+  border-radius: $radius !important;
+  margin-top: 16px;
+
+  mat-card-content {
+    padding: 24px !important;
+  }
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px 24px;
+}
+
+.summary-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.summary-label {
+  font-size: 0.78rem;
+  color: $text-secondary;
+  font-weight: 500;
+}
+
+.summary-value {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: $text-primary;
+
+  &.highlight {
+    color: $success;
+    font-size: 1.05rem;
+  }
+
+  &.total {
+    color: $primary;
+    font-size: 1.1rem;
+    font-weight: 700;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Success Card
+// ---------------------------------------------------------------------------
+.success-card {
+  border-radius: $radius !important;
+  max-width: 600px;
+  margin: 0 auto;
+
+  mat-card-content {
+    padding: 40px !important;
+    text-align: center;
+  }
+}
+
+.success-icon {
+  mat-icon {
+    font-size: 72px;
+    width: 72px;
+    height: 72px;
+    color: $success;
+  }
+}
+
+.success-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: $text-primary;
+  margin: 12px 0 4px;
+}
+
+.success-ref {
+  font-size: 1rem;
+  color: $text-secondary;
+  margin-bottom: 28px;
+
+  strong {
+    color: $primary;
+    font-size: 1.1rem;
+  }
+}
+
+.success-details {
+  text-align: left;
+  background: #fafafa;
+  border-radius: 10px;
+  padding: 16px 20px;
+  margin-bottom: 28px;
+}
+
+.success-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  font-size: 0.9rem;
+  color: $text-primary;
+
+  span:first-child {
+    color: $text-secondary;
+    font-weight: 500;
+  }
+
+  span:last-child {
+    font-weight: 600;
+  }
+}
+
+.success-amount {
+  color: $success !important;
+  font-size: 1.05rem !important;
+}
+
+.status-badge {
+  padding: 3px 12px;
+  border-radius: 12px;
+  background: $warn-bg;
+  color: $warn;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.success-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+// ---------------------------------------------------------------------------
+// Field with action button (bank + branch button)
+// ---------------------------------------------------------------------------
+.field-with-action {
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+
+  mat-form-field {
+    flex: 1;
+  }
+
+  button {
+    margin-top: 8px;
+  }
+}
+
+.branch-selected-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  margin-bottom: 12px;
+  background: $primary-light;
+  border: 1px solid #c3d4f7;
+  border-radius: 8px;
+  color: $primary;
+  font-size: 0.85rem;
+
+  mat-icon:first-child {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+  }
+
+  span {
+    flex: 1;
+  }
+
+  button {
+    margin-left: auto;
+    color: $text-secondary;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Branch Search Popup
+// ---------------------------------------------------------------------------
+.branch-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 1000;
+}
+
+.branch-popup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 560px;
+  max-width: 90vw;
+  max-height: 80vh;
+  background: #fff;
+  border-radius: $radius;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.2);
+  z-index: 1001;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.branch-popup-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid $border;
+
+  h3 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: $text-primary;
+
+    mat-icon {
+      color: $primary;
+    }
+  }
+}
+
+.branch-search-field {
+  width: 100%;
+  padding: 12px 20px 0;
+  box-sizing: border-box;
+}
+
+.branch-list {
+  flex: 1;
+  overflow-y: auto;
+  max-height: 400px;
+  padding: 0 8px 12px;
+}
+
+.branch-list-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  margin: 2px 0;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background 0.15s;
+
+  &:hover {
+    background: #f5f7fa;
+  }
+
+  &.selected {
+    background: $primary-light;
+    border-left: 3px solid $primary;
+  }
+}
+
+.branch-list-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: $primary-light;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+
+  mat-icon {
+    color: $primary;
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+  }
+}
+
+.branch-list-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.branch-list-name {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: $text-primary;
+}
+
+.branch-list-detail {
+  font-size: 0.8rem;
+  color: $text-secondary;
+  margin-top: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// ---------------------------------------------------------------------------
+// Responsive
+// ---------------------------------------------------------------------------
+@media (max-width: 1024px) {
+  .calc-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .calc-card {
+    position: static;
+  }
+}
+
+@media (max-width: 768px) {
+  .steps-header {
+    padding: 0;
+  }
+
+  .step-line {
+    max-width: 60px;
+  }
+
+  .form-grid {
+    &.cols-3 {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  .summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .success-card {
+    mat-card-content {
+      padding: 24px !important;
+    }
+  }
+}
+
+@media (max-width: 600px) {
+  .form-grid {
+    &.cols-2,
+    &.cols-3 {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .panel-header {
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-start;
+  }
+
+  .step-text {
+    font-size: 10px;
+  }
+
+  .step-circle {
+    width: 30px;
+    height: 30px;
+    font-size: 12px;
+  }
+
+  .step-indicator {
+    min-width: 50px;
+  }
+
+  .selected-banner {
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
+  }
+
+  .success-actions {
+    flex-direction: column;
+    width: 100%;
+
+    button {
+      width: 100%;
+    }
+  }
+
+  .calc-value-lg {
+    font-size: 1.25rem;
+  }
+
+  .calc-value-receive {
+    font-size: 1.25rem;
+  }
+}
