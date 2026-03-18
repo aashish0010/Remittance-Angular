@@ -609,6 +609,44 @@ export class SendMoneyComponent implements OnInit {
 
     this.submitting = true;
 
+    // Resolve bank/location/branch details based on payout method
+    const selectedBank = this.selectedBankId
+      ? this.payoutBanks.find(b => b.id === this.selectedBankId)
+      : null;
+    const selectedLocation = this.selectedLocationId
+      ? this.payoutLocations.find(l => l.id === this.selectedLocationId)
+      : null;
+
+    let receiverBankName = this.selectedReceiver.bankName || '';
+    let receiverBankCode = '';
+    let receiverBranchName = '';
+    let receiverBranchCode = '';
+
+    if (this.isBankTransfer() && selectedBank) {
+      // Bank transfer: use bank details
+      receiverBankName = receiverBankName || selectedBank.bankName;
+      receiverBankCode = selectedBank.bankCode || '';
+      if (this.selectedBranch) {
+        receiverBranchName = this.selectedBranch.branchName;
+        receiverBranchCode = this.selectedBranch.branchCode || '';
+      }
+    } else if (this.isCashTransfer() && selectedLocation) {
+      // Cash pickup: location name → bankName, location code → bankCode
+      receiverBankName = receiverBankName || selectedLocation.locationName;
+      receiverBankCode = selectedLocation.locationCode || '';
+    } else if (this.isWalletTransfer() && selectedLocation) {
+      // Wallet/Mobile money: location name → bankName, location code → bankCode
+      receiverBankName = receiverBankName || selectedLocation.locationName;
+      receiverBankCode = selectedLocation.locationCode || '';
+    } else if (selectedBank) {
+      // Fallback to bank if available
+      receiverBankName = receiverBankName || selectedBank.bankName;
+      receiverBankCode = selectedBank.bankCode || '';
+    }
+
+    const paymentMethodName = this.paymentMethods.find(pm => pm.id === this.selectedPaymentMethodId)?.name || '';
+    const payoutMethodName = this.paymentMethods.find(pm => pm.id === this.selectedPayoutModeId)?.name || '';
+
     const model: SendTransactionModel = {
       senderName: this.selectedCustomer.fullName,
       senderPhone: this.selectedCustomer.phone || '',
@@ -620,13 +658,18 @@ export class SendMoneyComponent implements OnInit {
       receiverPhone: this.selectedReceiver.phone,
       receiverEmail: this.selectedReceiver.email,
       receiverCountry: this.receiverCountry,
-      receiverBankName: this.selectedReceiver.bankName || this.getSelectedBankName(),
+      receiverBankName: receiverBankName,
+      receiverBankCode: receiverBankCode,
       receiverAccountNumber: this.selectedReceiver.accountNumber || '',
+      receiverBranchName: receiverBranchName,
+      receiverBranchCode: receiverBranchCode,
       sendAmount: this.sendAmount,
       sendCurrency: this.senderCurrency,
       receiveCurrency: this.receiverCurrency,
       paymentMethod: this.selectedPaymentMethodId || 0,
       payoutMethod: this.selectedPayoutModeId || 0,
+      paymentMethodName: paymentMethodName,
+      payoutMethodName: payoutMethodName,
       payoutPartnerId: this.selectedPartner?.payoutAgentId,
       purpose: '',
     };
@@ -646,13 +689,6 @@ export class SendMoneyComponent implements OnInit {
         this.submitting = false;
       },
     });
-  }
-
-  private getSelectedBankName(): string {
-    if (this.selectedBankId) {
-      return this.payoutBanks.find(b => b.id === this.selectedBankId)?.bankName || '';
-    }
-    return '';
   }
 
   // ---------------------------------------------------------------------------

@@ -2,8 +2,14 @@ export interface TransactionResult {
   id: number;
   referenceNumber: string;
   senderName: string;
+  senderCountry?: string;
   receiverName: string;
   receiverCountry: string;
+  receiverBankName?: string;
+  receiverBankCode?: string;
+  receiverAccountNumber?: string;
+  receiverBranchName?: string;
+  receiverBranchCode?: string;
   sendAmount: number;
   sendCurrency: string;
   receiveAmount: number;
@@ -11,7 +17,15 @@ export interface TransactionResult {
   exchangeRateApplied: number;
   totalCommission: number;
   agentCommission: number;
+  payoutAgentCommission: number;
+  companyCommission: number;
   status: string;
+  paymentMethod: number;
+  payoutMethod: number;
+  paymentMethodName?: string;
+  payoutMethodName?: string;
+  sendingAgentName?: string;
+  payoutAgentName?: string;
   createdAt: string;
 }
 
@@ -48,12 +62,17 @@ export interface SendTransactionModel {
   receiverEmail?: string;
   receiverCountry: string;
   receiverBankName?: string;
+  receiverBankCode?: string;
   receiverAccountNumber?: string;
+  receiverBranchName?: string;
+  receiverBranchCode?: string;
   sendAmount: number;
   sendCurrency: string;
   receiveCurrency: string;
   paymentMethod: number;
   payoutMethod: number;
+  paymentMethodName?: string;
+  payoutMethodName?: string;
   payoutPartnerId?: number;
   purpose?: string;
 }
