@@ -374,7 +374,7 @@ export class SendMoneyComponent implements OnInit {
       return;
     }
 
-    this.matchedPartners = this.matchedCorridor.payoutPartners.filter(p => p.isActive);
+    this.matchedPartners = (this.matchedCorridor.payoutPartners ?? []).filter(p => p.isActive);
 
     if (!this.selectedPaymentMethodId) return;
 

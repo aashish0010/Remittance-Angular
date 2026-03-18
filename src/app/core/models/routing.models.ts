@@ -8,7 +8,7 @@ export interface PaymentCorridorModel {
   destinationCurrency: string;
   isActive: boolean;
   createdAt: string;
-  payoutPartners: CorridorPayoutPartnerModel[];
+  payoutPartners?: CorridorPayoutPartnerModel[];
 }
 
 export interface CorridorPayoutPartnerModel {

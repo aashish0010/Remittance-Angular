@@ -228,7 +228,7 @@
 
   <!-- Desktop: partner table -->
   <div class="table-scroll-wrapper" *ngIf="partnerCorridor.payoutPartners?.length">
-    <table mat-table [dataSource]="partnerCorridor.payoutPartners" class="inner-table">
+    <table mat-table [dataSource]="partnerCorridor.payoutPartners ?? []" class="inner-table">
       <ng-container matColumnDef="payoutAgent">
         <th mat-header-cell *matHeaderCellDef>Payout Agent</th>
         <td mat-cell *matCellDef="let p">{{ p.payoutAgentName }}</td>
