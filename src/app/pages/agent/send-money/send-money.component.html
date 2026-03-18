@@ -351,8 +351,21 @@
               <span>{{ totalPayable | number:'1.2-2' }} {{ senderCurrency }}</span>
             </div>
 
-            <div *ngIf="calculationDone" class="calc-ready">
+            <!-- Compliance Violations -->
+            <div *ngIf="complianceViolations.length > 0" class="compliance-warnings">
+              <div *ngFor="let v of complianceViolations"
+                   [class]="v.action === 'Block' ? 'compliance-block' : 'compliance-warn'">
+                <mat-icon>{{ v.action === 'Block' ? 'block' : 'warning' }}</mat-icon>
+                <span><strong>{{ v.ruleName }}</strong>: {{ v.description }}</span>
+              </div>
+            </div>
+
+            <div *ngIf="calculationDone && !complianceBlocked" class="calc-ready">
               <mat-icon>check_circle</mat-icon> Ready to proceed
+            </div>
+            <div *ngIf="complianceBlocked" class="calc-error">
+              <mat-icon>block</mat-icon>
+              <span>Transaction blocked by compliance rules. Cannot proceed.</span>
             </div>
           </div>
         </mat-card-content>

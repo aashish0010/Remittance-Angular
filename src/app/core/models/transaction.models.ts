@@ -38,6 +38,17 @@ export interface CalculateTransferRequest {
   paymentMethodId?: number;
   paymentMethodName?: string;
   payoutPartnerId?: number;
+  sendingAgentId?: number;
+  senderName?: string;
+  receiverName?: string;
+  customerId?: number;
+}
+
+export interface ComplianceViolation {
+  ruleName: string;
+  ruleType: string;
+  action: string;
+  description: string;
 }
 
 export interface TransferCalculationResult {
@@ -48,6 +59,7 @@ export interface TransferCalculationResult {
   exchangeRate: number;
   serviceCharge: number;
   totalPayable: number;
+  complianceViolations: ComplianceViolation[];
 }
 
 export interface SendTransactionModel {
@@ -74,5 +86,6 @@ export interface SendTransactionModel {
   paymentMethodName?: string;
   payoutMethodName?: string;
   payoutPartnerId?: number;
+  customerId?: number;
   purpose?: string;
 }

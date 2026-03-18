@@ -19,7 +19,7 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { provideNativeDateAdapter } from '@angular/material/core';
 import { ApiService } from '../../../core/services/api.service';
 import { AuthStateService } from '../../../core/services/auth-state.service';
-import { SendTransactionModel, TransactionResult, CalculateTransferRequest } from '../../../core/models/transaction.models';
+import { SendTransactionModel, TransactionResult, CalculateTransferRequest, ComplianceViolation } from '../../../core/models/transaction.models';
 import { CountryInfo } from '../../../core/models/common.models';
 import { AgentModel, PaymentMethodModel, AgentBankModel, AgentBankBranchModel, AgentLocationModel } from '../../../core/models/agent.models';
 import { CustomerModel, ReceiverModel } from '../../../core/models/customer.models';
@@ -107,6 +107,8 @@ export class SendMoneyComponent implements OnInit {
   loadingCalc = false;
   calculationDone = false;
   calcError = '';
+  complianceViolations: ComplianceViolation[] = [];
+  complianceBlocked = false;
 
   // Step 3: Receiver
   receivers: ReceiverModel[] = [];
@@ -281,6 +283,8 @@ export class SendMoneyComponent implements OnInit {
     // Reset calculation when inputs change
     this.calculationDone = false;
     this.calcError = '';
+    this.complianceViolations = [];
+    this.complianceBlocked = false;
     if (this.canCalculate()) {
       this.calcTrigger$.next();
     } else {
@@ -320,6 +324,9 @@ export class SendMoneyComponent implements OnInit {
       paymentMethodId: this.selectedPaymentMethodId || undefined,
       paymentMethodName: this.getPayoutModeName() || undefined,
       payoutPartnerId: this.selectedPartner?.payoutAgentId || undefined,
+      sendingAgentId: this.agentProfile?.id || undefined,
+      senderName: this.selectedCustomer?.fullName || undefined,
+      customerId: this.selectedCustomerId || undefined,
     };
 
     this.api.calculateTransfer(req).subscribe({
@@ -329,6 +336,8 @@ export class SendMoneyComponent implements OnInit {
           this.receiveAmount = res.data.receiveAmount;
           this.serviceCharge = res.data.serviceCharge;
           this.totalPayable = res.data.totalPayable;
+          this.complianceViolations = res.data.complianceViolations || [];
+          this.complianceBlocked = this.complianceViolations.some(v => v.action === 'Block');
           this.calculationDone = true;
           this.calcError = '';
         } else {
@@ -565,7 +574,7 @@ export class SendMoneyComponent implements OnInit {
   }
 
   canProceedStep2(): boolean {
-    return this.calculationDone && !!this.selectedPartner && !!this.selectedPayoutModeId && this.sendAmount > 0 && !!this.selectedPaymentMethodId;
+    return this.calculationDone && !this.complianceBlocked && !!this.selectedPartner && !!this.selectedPayoutModeId && this.sendAmount > 0 && !!this.selectedPaymentMethodId;
   }
 
   canProceedStep3(): boolean {
@@ -671,6 +680,7 @@ export class SendMoneyComponent implements OnInit {
       paymentMethodName: paymentMethodName,
       payoutMethodName: payoutMethodName,
       payoutPartnerId: this.selectedPartner?.payoutAgentId,
+      customerId: this.selectedCustomerId || undefined,
       purpose: '',
     };
 
