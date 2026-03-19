@@ -353,6 +353,7 @@ body.dark-mode {
   .status-blocked, .status-rejected, .status-cancelled, .status-failed { background: rgba(239,68,68,.15) !important; color: #f87171 !important; }
   .status-processing { background: rgba(59,130,246,.15) !important; color: #60a5fa !important; }
   .status-on-hold { background: rgba(139,92,246,.15) !important; color: #a78bfa !important; }
+  .status-compliance { background: rgba(245,127,23,.15) !important; color: #fbbf24 !important; }
 
   // ── Modal / Popup ──
   .modal-content {
@@ -403,6 +404,7 @@ body.dark-mode {
 .status-processing { background: #eff6ff; color: #1e40af; }
 .status-completed { background: #ecfdf5; color: #065f46; }
 .status-on-hold { background: #faf5ff; color: #6b21a8; }
+.status-compliance { background: #fff8e1; color: #f57f17; }
 
 // ─── Page Header ───
 .page-header {

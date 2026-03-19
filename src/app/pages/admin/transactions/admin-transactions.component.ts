@@ -93,7 +93,7 @@ export class AdminTransactionsComponent implements OnInit {
         } else {
           this.transactions = [];
           this.dataSource.data = [];
-          this.message = res?.message || 'Failed to load transactions. Please ensure you are logged in.';
+          this.message = res?.message || 'Failed to load transactions.';
           this.messageType = 'error';
         }
         this.loading = false;
@@ -137,20 +137,20 @@ export class AdminTransactionsComponent implements OnInit {
     };
   }
 
-  approveTransaction(txn: TransactionResult): void {
-    this.api.approveTransaction(txn.id).subscribe({
+  completeTransaction(txn: TransactionResult): void {
+    this.api.completeTransaction(txn.id).subscribe({
       next: (res) => {
         if (res?.success) {
-          txn.status = 'Approved';
-          this.message = `Transaction ${txn.referenceNumber} approved.`;
+          txn.status = 'Completed';
+          this.message = `Transaction ${txn.referenceNumber} completed.`;
           this.messageType = 'success';
         } else {
-          this.message = res?.message || 'Failed to approve transaction.';
+          this.message = res?.message || 'Failed to complete transaction.';
           this.messageType = 'error';
         }
       },
       error: () => {
-        this.message = 'Error approving transaction.';
+        this.message = 'Error completing transaction.';
         this.messageType = 'error';
       },
     });
@@ -189,21 +189,22 @@ export class AdminTransactionsComponent implements OnInit {
 
   getStatusClass(status: string): string {
     switch (status) {
-      case 'Pending':
-        return 'status-pending';
+      case 'Pending': return 'status-pending';
       case 'Processing':
-      case 'Approved':
-        return 'status-processing';
-      case 'Completed':
-        return 'status-completed';
-      case 'Cancelled':
-        return 'status-cancelled';
-      case 'Failed':
-        return 'status-failed';
-      case 'OnHold':
-        return 'status-onhold';
-      default:
-        return 'status-default';
+      case 'Approved': return 'status-processing';
+      case 'Completed': return 'status-completed';
+      case 'Cancelled': return 'status-cancelled';
+      case 'Failed': return 'status-failed';
+      case 'OnHold': return 'status-onhold';
+      case 'Compliance': return 'status-compliance';
+      default: return 'status-default';
+    }
+  }
+
+  getStatusLabel(status: string): string {
+    switch (status) {
+      case 'OnHold': return 'On Hold';
+      default: return status;
     }
   }
 }

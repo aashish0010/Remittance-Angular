@@ -6,10 +6,24 @@ export interface ComplianceAlertModel {
   description: string;
   isResolved: boolean;
   resolution?: string;
+  resolvedAt?: string;
   createdAt: string;
   senderName: string;
+  senderCountry?: string;
+  receiverName: string;
+  receiverCountry?: string;
+  receiverBankName?: string;
+  receiverAccountNumber?: string;
   sendAmount: number;
   sendCurrency: string;
+  receiveAmount: number;
+  receiveCurrency: string;
+  exchangeRateApplied: number;
+  totalCommission: number;
+  paymentMethodName?: string;
+  payoutMethodName?: string;
+  sendingAgentName?: string;
+  payoutAgentName?: string;
   transactionStatus: string;
 }
 

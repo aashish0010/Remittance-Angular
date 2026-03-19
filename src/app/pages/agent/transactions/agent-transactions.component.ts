@@ -8,9 +8,11 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { ApiService } from '../../../core/services/api.service';
 import { AuthStateService } from '../../../core/services/auth-state.service';
 import { TransactionResult } from '../../../core/models/transaction.models';
@@ -28,9 +30,11 @@ import { TransactionResult } from '../../../core/models/transaction.models';
     MatButtonModule,
     MatFormFieldModule,
     MatInputModule,
+    MatSelectModule,
     MatProgressSpinnerModule,
     MatChipsModule,
     MatPaginatorModule,
+    MatTooltipModule,
     DecimalPipe,
     DatePipe,
   ],
@@ -43,6 +47,10 @@ export class AgentTransactionsComponent implements OnInit {
   loading = true;
   error = '';
   search = '';
+  statusFilter = 'All';
+  message = '';
+  messageType: 'success' | 'error' | 'warning' = 'success';
+  selectedTransaction: TransactionResult | null = null;
 
   displayedColumns: string[] = [
     'referenceNumber',
@@ -53,6 +61,7 @@ export class AgentTransactionsComponent implements OnInit {
     'commission',
     'status',
     'createdAt',
+    'actions',
   ];
 
   // Pagination
@@ -100,16 +109,15 @@ export class AgentTransactionsComponent implements OnInit {
 
   applyFilter(): void {
     const term = this.search.toLowerCase().trim();
-    if (!term) {
-      this.filteredTransactions = [...this.transactions];
-    } else {
-      this.filteredTransactions = this.transactions.filter(
-        (tx) =>
-          tx.referenceNumber.toLowerCase().includes(term) ||
-          tx.senderName.toLowerCase().includes(term) ||
-          tx.receiverName.toLowerCase().includes(term),
-      );
-    }
+    this.filteredTransactions = this.transactions.filter((tx) => {
+      const matchesStatus = this.statusFilter === 'All' || tx.status === this.statusFilter;
+      const matchesText =
+        !term ||
+        tx.referenceNumber.toLowerCase().includes(term) ||
+        tx.senderName.toLowerCase().includes(term) ||
+        tx.receiverName.toLowerCase().includes(term);
+      return matchesStatus && matchesText;
+    });
     this.pageIndex = 0;
   }
 
@@ -118,19 +126,74 @@ export class AgentTransactionsComponent implements OnInit {
     this.pageIndex = event.pageIndex;
   }
 
+  releaseTransaction(tx: TransactionResult): void {
+    this.api.releaseTransaction(tx.id).subscribe({
+      next: (res) => {
+        if (res?.success) {
+          tx.status = 'Pending';
+          this.message = `Transaction ${tx.referenceNumber} released to Pending.`;
+          this.messageType = 'success';
+        } else {
+          this.message = res?.message || 'Failed to release transaction.';
+          this.messageType = 'error';
+        }
+      },
+      error: () => {
+        this.message = 'Error releasing transaction.';
+        this.messageType = 'error';
+      },
+    });
+  }
+
+  rejectTransaction(tx: TransactionResult): void {
+    this.api.rejectTransaction(tx.id).subscribe({
+      next: (res) => {
+        if (res?.success) {
+          tx.status = 'Cancelled';
+          this.message = `Transaction ${tx.referenceNumber} rejected.`;
+          this.messageType = 'warning';
+        } else {
+          this.message = res?.message || 'Failed to reject transaction.';
+          this.messageType = 'error';
+        }
+      },
+      error: () => {
+        this.message = 'Error rejecting transaction.';
+        this.messageType = 'error';
+      },
+    });
+  }
+
+  viewDetail(tx: TransactionResult): void {
+    this.selectedTransaction = tx;
+  }
+
+  closeDetail(): void {
+    this.selectedTransaction = null;
+  }
+
+  dismissMessage(): void {
+    this.message = '';
+  }
+
   getStatusClass(status: string): string {
     switch (status) {
-      case 'Completed':
-        return 'status-completed';
-      case 'Pending':
-        return 'status-pending';
+      case 'Completed': return 'status-completed';
+      case 'Pending': return 'status-pending';
       case 'Approved':
-        return 'status-processing';
+      case 'Processing': return 'status-processing';
       case 'Cancelled':
-      case 'Failed':
-        return 'status-failed';
-      default:
-        return 'status-default';
+      case 'Failed': return 'status-failed';
+      case 'OnHold': return 'status-onhold';
+      case 'Compliance': return 'status-compliance';
+      default: return 'status-default';
+    }
+  }
+
+  getStatusLabel(status: string): string {
+    switch (status) {
+      case 'OnHold': return 'On Hold';
+      default: return status;
     }
   }
 }

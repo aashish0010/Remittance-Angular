@@ -222,6 +222,19 @@ export class ApiService {
     return this.put<TransactionResult>(`api/admin/transactions/${id}/cancel`);
   }
 
+  completeTransaction(id: number): Observable<ApiResponse<TransactionResult>> {
+    return this.put<TransactionResult>(`api/admin/transactions/${id}/complete`);
+  }
+
+  // Agent transaction actions
+  releaseTransaction(id: number): Observable<ApiResponse<TransactionResult>> {
+    return this.put<TransactionResult>(`api/agent/transactions/${id}/release`);
+  }
+
+  rejectTransaction(id: number): Observable<ApiResponse<TransactionResult>> {
+    return this.put<TransactionResult>(`api/agent/transactions/${id}/reject`);
+  }
+
   // ---------------------------------------------------------------------------
   // Compliance
   // ---------------------------------------------------------------------------

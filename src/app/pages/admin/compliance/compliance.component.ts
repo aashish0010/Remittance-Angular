@@ -10,6 +10,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { ApiService } from '../../../core/services/api.service';
 import { AuthStateService } from '../../../core/services/auth-state.service';
 import { NotificationService } from '../../../core/services/notification.service';
@@ -30,6 +31,7 @@ import { ComplianceAlertModel } from '../../../core/models/compliance.models';
     MatInputModule,
     MatCardModule,
     MatProgressSpinnerModule,
+    MatPaginatorModule,
     DecimalPipe,
     DatePipe,
   ],
@@ -38,18 +40,30 @@ import { ComplianceAlertModel } from '../../../core/models/compliance.models';
 })
 export class ComplianceComponent implements OnInit {
   alerts: ComplianceAlertModel[] = [];
+  filteredAlerts: ComplianceAlertModel[] = [];
   displayedColumns = [
-    'reference', 'sender', 'amount', 'alertType', 'description', 'status', 'created', 'actions',
+    'reference', 'sender', 'receiver', 'amount', 'alertType', 'txnStatus', 'alertStatus', 'created', 'actions',
   ];
   loading = true;
+  searchText = '';
 
-  // Filter
   filterMode: 'all' | 'open' | 'resolved' = 'all';
 
-  // Resolution popup
+  pageSize = 10;
+  pageIndex = 0;
+  get pagedAlerts(): ComplianceAlertModel[] {
+    const start = this.pageIndex * this.pageSize;
+    return this.filteredAlerts.slice(start, start + this.pageSize);
+  }
+
   showResolvePopup = false;
   resolveAlertTarget: ComplianceAlertModel | null = null;
   resolutionText = '';
+
+  selectedAlert: ComplianceAlertModel | null = null;
+
+  get openCount(): number { return this.alerts.filter(a => !a.isResolved).length; }
+  get resolvedCount(): number { return this.alerts.filter(a => a.isResolved).length; }
 
   constructor(
     private api: ApiService,
@@ -62,9 +76,6 @@ export class ComplianceComponent implements OnInit {
     this.loadAlerts();
   }
 
-  // ---------------------------------------------------------------------------
-  // Load alerts
-  // ---------------------------------------------------------------------------
   loadAlerts(): void {
     this.loading = true;
     let resolved: boolean | undefined;
@@ -75,27 +86,48 @@ export class ComplianceComponent implements OnInit {
       next: res => {
         if (res?.success && res.data) {
           this.alerts = res.data;
+          this.applySearch();
         } else {
           this.alerts = [];
+          this.filteredAlerts = [];
           this.notify.error(res?.message || 'Failed to load alerts.');
         }
         this.loading = false;
       },
       error: () => {
         this.alerts = [];
+        this.filteredAlerts = [];
         this.notify.error('Could not connect to server.');
         this.loading = false;
       },
     });
   }
 
-  onFilterChange(): void {
-    this.loadAlerts();
+  onFilterChange(): void { this.loadAlerts(); }
+
+  applySearch(): void {
+    const term = this.searchText.toLowerCase().trim();
+    if (!term) {
+      this.filteredAlerts = [...this.alerts];
+    } else {
+      this.filteredAlerts = this.alerts.filter(a =>
+        a.referenceNumber.toLowerCase().includes(term) ||
+        a.senderName.toLowerCase().includes(term) ||
+        a.receiverName?.toLowerCase().includes(term) ||
+        a.alertType.toLowerCase().includes(term)
+      );
+    }
+    this.pageIndex = 0;
   }
 
-  // ---------------------------------------------------------------------------
-  // Resolve popup
-  // ---------------------------------------------------------------------------
+  onPageChange(event: PageEvent): void {
+    this.pageSize = event.pageSize;
+    this.pageIndex = event.pageIndex;
+  }
+
+  viewDetail(alert: ComplianceAlertModel): void { this.selectedAlert = alert; }
+  closeDetail(): void { this.selectedAlert = null; }
+
   openResolvePopup(alert: ComplianceAlertModel): void {
     this.resolveAlertTarget = alert;
     this.resolutionText = '';
@@ -111,10 +143,7 @@ export class ComplianceComponent implements OnInit {
   resolveAlert(): void {
     if (!this.resolveAlertTarget) return;
     const resolution = this.resolutionText.trim();
-    if (!resolution) {
-      this.notify.warn('Please enter a resolution text.');
-      return;
-    }
+    if (!resolution) { this.notify.warn('Please enter resolution notes.'); return; }
 
     this.api.resolveAlert(this.resolveAlertTarget.id, resolution).subscribe(r => {
       if (r?.success) {
@@ -127,17 +156,29 @@ export class ComplianceComponent implements OnInit {
     });
   }
 
-  // ---------------------------------------------------------------------------
-  // Release
-  // ---------------------------------------------------------------------------
   releaseAlert(alert: ComplianceAlertModel): void {
     this.api.releaseAlert(alert.id).subscribe(r => {
       if (r?.success) {
-        this.notify.success('Transaction released.');
+        this.notify.success('Transaction released to Pending.');
         this.loadAlerts();
       } else {
         this.notify.error(r?.message || 'Failed.');
       }
     });
+  }
+
+  getTxnStatusClass(status: string): string {
+    switch (status) {
+      case 'Completed': return 'chip-success';
+      case 'Pending': return 'chip-warning';
+      case 'OnHold': return 'chip-info';
+      case 'Compliance': return 'chip-compliance';
+      case 'Cancelled': case 'Failed': return 'chip-error';
+      default: return 'chip-default';
+    }
+  }
+
+  getTxnStatusLabel(status: string): string {
+    return status === 'OnHold' ? 'On Hold' : status;
   }
 }
