@@ -47,7 +47,7 @@ export class ComplianceComponent implements OnInit {
   loading = true;
   searchText = '';
 
-  filterMode: 'all' | 'open' | 'resolved' = 'all';
+  filterMode: 'all' | 'open' | 'resolved' | 'rejected' = 'all';
 
   pageSize = 10;
   pageIndex = 0;
@@ -63,7 +63,8 @@ export class ComplianceComponent implements OnInit {
   selectedAlert: ComplianceAlertModel | null = null;
 
   get openCount(): number { return this.alerts.filter(a => !a.isResolved).length; }
-  get resolvedCount(): number { return this.alerts.filter(a => a.isResolved).length; }
+  get resolvedCount(): number { return this.alerts.filter(a => a.isResolved && a.resolution !== 'Rejected').length; }
+  get rejectedCount(): number { return this.alerts.filter(a => a.isResolved && a.resolution === 'Rejected').length; }
 
   constructor(
     private api: ApiService,
@@ -78,11 +79,7 @@ export class ComplianceComponent implements OnInit {
 
   loadAlerts(): void {
     this.loading = true;
-    let resolved: boolean | undefined;
-    if (this.filterMode === 'open') resolved = false;
-    else if (this.filterMode === 'resolved') resolved = true;
-
-    this.api.getAlerts(resolved).subscribe({
+    this.api.getAlerts().subscribe({
       next: res => {
         if (res?.success && res.data) {
           this.alerts = res.data;
@@ -105,12 +102,28 @@ export class ComplianceComponent implements OnInit {
 
   onFilterChange(): void { this.loadAlerts(); }
 
+  private _tabFiltered: ComplianceAlertModel[] = [];
+
   applySearch(): void {
+    this._tabFiltered = this.getTabFiltered();
+    this.applySearchOnFiltered();
+  }
+
+  private getTabFiltered(): ComplianceAlertModel[] {
+    switch (this.filterMode) {
+      case 'open': return this.alerts.filter(a => !a.isResolved);
+      case 'resolved': return this.alerts.filter(a => a.isResolved && a.resolution !== 'Rejected');
+      case 'rejected': return this.alerts.filter(a => a.isResolved && a.resolution === 'Rejected');
+      default: return [...this.alerts];
+    }
+  }
+
+  private applySearchOnFiltered(): void {
     const term = this.searchText.toLowerCase().trim();
     if (!term) {
-      this.filteredAlerts = [...this.alerts];
+      this.filteredAlerts = [...this._tabFiltered];
     } else {
-      this.filteredAlerts = this.alerts.filter(a =>
+      this.filteredAlerts = this._tabFiltered.filter(a =>
         a.referenceNumber.toLowerCase().includes(term) ||
         a.senderName.toLowerCase().includes(term) ||
         a.receiverName?.toLowerCase().includes(term) ||
@@ -156,10 +169,10 @@ export class ComplianceComponent implements OnInit {
     });
   }
 
-  releaseAlert(alert: ComplianceAlertModel): void {
-    this.api.releaseAlert(alert.id).subscribe(r => {
+  rejectAlert(alert: ComplianceAlertModel): void {
+    this.api.rejectAlert(alert.id).subscribe(r => {
       if (r?.success) {
-        this.notify.success('Transaction released to Pending.');
+        this.notify.warn('Alert rejected and transaction cancelled.');
         this.loadAlerts();
       } else {
         this.notify.error(r?.message || 'Failed.');

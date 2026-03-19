@@ -1,24 +1,6 @@
 <div class="agent-transactions">
   <h2 class="page-title">My Transactions</h2>
 
-  <!-- Alert Message -->
-  <div *ngIf="message" class="alert-message" [ngClass]="{
-    'alert-success': messageType === 'success',
-    'alert-error': messageType === 'error',
-    'alert-warning': messageType === 'warning'
-  }">
-    <span>{{ message }}</span>
-    <button mat-icon-button (click)="dismissMessage()" class="alert-close">
-      <mat-icon>close</mat-icon>
-    </button>
-  </div>
-
-  <!-- Error Alert -->
-  <div *ngIf="error" class="error-alert">
-    <mat-icon>error_outline</mat-icon>
-    <span>{{ error }}</span>
-  </div>
-
   <mat-card class="transactions-card" appearance="outlined">
     <mat-card-content>
       <!-- Toolbar -->

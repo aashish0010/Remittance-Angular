@@ -15,6 +15,7 @@ import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { ApiService } from '../../../core/services/api.service';
 import { AuthStateService } from '../../../core/services/auth-state.service';
+import { NotificationService } from '../../../core/services/notification.service';
 import { TransactionResult } from '../../../core/models/transaction.models';
 
 @Component({
@@ -45,11 +46,8 @@ export class AgentTransactionsComponent implements OnInit {
   transactions: TransactionResult[] = [];
   filteredTransactions: TransactionResult[] = [];
   loading = true;
-  error = '';
   search = '';
   statusFilter = 'All';
-  message = '';
-  messageType: 'success' | 'error' | 'warning' = 'success';
   selectedTransaction: TransactionResult | null = null;
 
   displayedColumns: string[] = [
@@ -75,6 +73,7 @@ export class AgentTransactionsComponent implements OnInit {
   constructor(
     private api: ApiService,
     private auth: AuthStateService,
+    private notify: NotificationService,
   ) {}
 
   ngOnInit(): void {
@@ -84,7 +83,6 @@ export class AgentTransactionsComponent implements OnInit {
 
   private loadTransactions(): void {
     this.loading = true;
-    this.error = '';
 
     this.api.getAgentTransactions().subscribe({
       next: (res) => {
@@ -94,14 +92,14 @@ export class AgentTransactionsComponent implements OnInit {
         } else {
           this.transactions = [];
           this.filteredTransactions = [];
-          this.error = res?.message || 'Failed to load transactions.';
+          this.notify.error(res?.message || 'Failed to load transactions.');
         }
         this.loading = false;
       },
       error: (err) => {
         this.transactions = [];
         this.filteredTransactions = [];
-        this.error = `Could not connect to server: ${err.message || 'Unknown error'}`;
+        this.notify.error(`Could not connect to server: ${err.message || 'Unknown error'}`);
         this.loading = false;
       },
     });
@@ -131,16 +129,13 @@ export class AgentTransactionsComponent implements OnInit {
       next: (res) => {
         if (res?.success) {
           tx.status = 'Pending';
-          this.message = `Transaction ${tx.referenceNumber} released to Pending.`;
-          this.messageType = 'success';
+          this.notify.success(`Transaction ${tx.referenceNumber} released to Pending.`);
         } else {
-          this.message = res?.message || 'Failed to release transaction.';
-          this.messageType = 'error';
+          this.notify.error(res?.message || 'Failed to release transaction.');
         }
       },
       error: () => {
-        this.message = 'Error releasing transaction.';
-        this.messageType = 'error';
+        this.notify.error('Error releasing transaction.');
       },
     });
   }
@@ -150,16 +145,13 @@ export class AgentTransactionsComponent implements OnInit {
       next: (res) => {
         if (res?.success) {
           tx.status = 'Cancelled';
-          this.message = `Transaction ${tx.referenceNumber} rejected.`;
-          this.messageType = 'warning';
+          this.notify.warn(`Transaction ${tx.referenceNumber} rejected.`);
         } else {
-          this.message = res?.message || 'Failed to reject transaction.';
-          this.messageType = 'error';
+          this.notify.error(res?.message || 'Failed to reject transaction.');
         }
       },
       error: () => {
-        this.message = 'Error rejecting transaction.';
-        this.messageType = 'error';
+        this.notify.error('Error rejecting transaction.');
       },
     });
   }
@@ -170,10 +162,6 @@ export class AgentTransactionsComponent implements OnInit {
 
   closeDetail(): void {
     this.selectedTransaction = null;
-  }
-
-  dismissMessage(): void {
-    this.message = '';
   }
 
   getStatusClass(status: string): string {

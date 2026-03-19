@@ -10,6 +10,10 @@
       <mat-icon>check_circle</mat-icon>
       <span>{{ resolvedCount }} Resolved</span>
     </div>
+    <div class="stat-badge stat-rejected">
+      <mat-icon>cancel</mat-icon>
+      <span>{{ rejectedCount }} Rejected</span>
+    </div>
   </div>
 </div>
 
@@ -19,6 +23,7 @@
     <mat-button-toggle value="all">All</mat-button-toggle>
     <mat-button-toggle value="open">Open</mat-button-toggle>
     <mat-button-toggle value="resolved">Resolved</mat-button-toggle>
+    <mat-button-toggle value="rejected">Rejected</mat-button-toggle>
   </mat-button-toggle-group>
 
   <mat-form-field appearance="outline" class="search-field">
@@ -117,13 +122,13 @@
           </button>
 
           <ng-container *ngIf="!a.isResolved">
-            <!-- Resolve -->
-            <button mat-icon-button matTooltip="Resolve Alert" (click)="openResolvePopup(a)">
+            <!-- Resolve & Release -->
+            <button mat-icon-button matTooltip="Resolve & Release to Pending" (click)="openResolvePopup(a)">
               <mat-icon class="action-resolve">check_circle</mat-icon>
             </button>
-            <!-- Release Transaction -->
-            <button mat-icon-button matTooltip="Release Transaction to Pending" (click)="releaseAlert(a)">
-              <mat-icon class="action-release">lock_open</mat-icon>
+            <!-- Reject & Cancel Transaction -->
+            <button mat-icon-button matTooltip="Reject & Cancel Transaction" (click)="rejectAlert(a)">
+              <mat-icon class="action-reject">cancel</mat-icon>
             </button>
           </ng-container>
 
@@ -266,10 +271,10 @@
     <!-- Action Buttons for Open Alerts -->
     <div *ngIf="!selectedAlert.isResolved" class="detail-actions">
       <button mat-stroked-button (click)="openResolvePopup(selectedAlert); closeDetail()">
-        <mat-icon>check_circle</mat-icon> Resolve
+        <mat-icon>check_circle</mat-icon> Resolve & Release
       </button>
-      <button mat-flat-button color="primary" (click)="releaseAlert(selectedAlert); closeDetail()">
-        <mat-icon>lock_open</mat-icon> Release Transaction
+      <button mat-flat-button color="warn" (click)="rejectAlert(selectedAlert); closeDetail()">
+        <mat-icon>cancel</mat-icon> Reject & Cancel
       </button>
     </div>
   </div>

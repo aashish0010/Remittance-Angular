@@ -6,12 +6,6 @@
   </button>
 </div>
 
-<!-- Alert Message -->
-<div *ngIf="message" class="alert-banner" [ngClass]="'alert-' + messageSeverity">
-  <span>{{ message }}</span>
-  <button mat-icon-button (click)="clearMessage()"><mat-icon>close</mat-icon></button>
-</div>
-
 <!-- Loading -->
 <div *ngIf="loading" class="loading-container">
   <mat-spinner diameter="40"></mat-spinner>

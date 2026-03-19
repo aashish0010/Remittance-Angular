@@ -247,11 +247,15 @@ export class ApiService {
   }
 
   resolveAlert(id: number, resolution: string): Observable<ApiResponse<ComplianceAlertModel>> {
-    return this.put<ComplianceAlertModel>(`api/admin/compliance/alerts/${id}/resolve`, resolution);
+    return this.http.put<ApiResponse<ComplianceAlertModel>>(
+      this.url(`api/admin/compliance/alerts/${id}/resolve`),
+      JSON.stringify(resolution),
+      { headers: { 'Content-Type': 'application/json' } }
+    ).pipe(catchError(err => this.handleError<ComplianceAlertModel>(err)));
   }
 
-  releaseAlert(id: number): Observable<ApiResponse<ComplianceAlertModel>> {
-    return this.put<ComplianceAlertModel>(`api/admin/compliance/alerts/${id}/release`);
+  rejectAlert(id: number): Observable<ApiResponse<ComplianceAlertModel>> {
+    return this.put<ComplianceAlertModel>(`api/admin/compliance/alerts/${id}/reject`);
   }
 
   // ---------------------------------------------------------------------------

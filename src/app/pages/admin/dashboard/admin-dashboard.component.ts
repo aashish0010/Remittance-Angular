@@ -9,6 +9,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatChipsModule } from '@angular/material/chips';
 import { ApiService } from '../../../core/services/api.service';
 import { AuthStateService } from '../../../core/services/auth-state.service';
+import { NotificationService } from '../../../core/services/notification.service';
 import {
   DashboardModel,
   RecentTransactionModel,
@@ -36,7 +37,6 @@ import {
 export class AdminDashboardComponent implements OnInit {
   dashboard: DashboardModel | null = null;
   loading = true;
-  error = '';
 
   transactionColumns: string[] = [
     'referenceNumber',
@@ -52,6 +52,7 @@ export class AdminDashboardComponent implements OnInit {
   constructor(
     private api: ApiService,
     private auth: AuthStateService,
+    private notify: NotificationService,
   ) {}
 
   ngOnInit(): void {
@@ -61,18 +62,17 @@ export class AdminDashboardComponent implements OnInit {
 
   private loadDashboard(): void {
     this.loading = true;
-    this.error = '';
     this.api.getDashboard().subscribe({
       next: (res) => {
         if (res?.success && res.data) {
           this.dashboard = res.data;
         } else {
-          this.error = res?.message || 'Failed to load dashboard data.';
+          this.notify.error(res?.message || 'Failed to load dashboard data.');
         }
         this.loading = false;
       },
       error: (err) => {
-        this.error = 'Error loading dashboard.';
+        this.notify.error('Error loading dashboard.');
         this.loading = false;
       },
     });

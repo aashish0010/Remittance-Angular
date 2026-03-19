@@ -1,23 +1,6 @@
 <!-- Page Header -->
 <h2 class="page-title">Transaction Management</h2>
 
-<!-- Alert Message -->
-<div
-  *ngIf="message"
-  class="alert-message"
-  [ngClass]="{
-    'alert-success': messageType === 'success',
-    'alert-error': messageType === 'error',
-    'alert-warning': messageType === 'warning',
-    'alert-info': messageType === 'info'
-  }"
->
-  <span>{{ message }}</span>
-  <button mat-icon-button (click)="dismissMessage()" class="alert-close">
-    <mat-icon>close</mat-icon>
-  </button>
-</div>
-
 <!-- Loading Spinner -->
 <div *ngIf="loading" class="loading-container">
   <mat-spinner diameter="48"></mat-spinner>

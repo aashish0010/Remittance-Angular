@@ -9,6 +9,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatChipsModule } from '@angular/material/chips';
 import { ApiService } from '../../../core/services/api.service';
 import { AuthStateService } from '../../../core/services/auth-state.service';
+import { NotificationService } from '../../../core/services/notification.service';
 import { AgentBalance } from '../../../core/models/agent.models';
 import { TransactionResult } from '../../../core/models/transaction.models';
 
@@ -41,7 +42,6 @@ export class AgentDashboardComponent implements OnInit {
   transactions: TransactionResult[] = [];
   recentTransactions: TransactionResult[] = [];
   loading = true;
-  error = '';
 
   transactionColumns: string[] = [
     'referenceNumber',
@@ -56,6 +56,7 @@ export class AgentDashboardComponent implements OnInit {
   constructor(
     private api: ApiService,
     private auth: AuthStateService,
+    private notify: NotificationService,
   ) {}
 
   ngOnInit(): void {
@@ -65,18 +66,17 @@ export class AgentDashboardComponent implements OnInit {
 
   private loadData(): void {
     this.loading = true;
-    this.error = '';
 
     this.api.getAgentBalance().subscribe({
       next: (res) => {
         if (res?.success && res.data) {
           this.balance = res.data;
         } else {
-          this.error = res?.message || 'Failed to load balance.';
+          this.notify.error(res?.message || 'Failed to load balance.');
         }
       },
       error: (err) => {
-        this.error = err?.error?.message || 'Error loading balance. Please contact your administrator.';
+        this.notify.error(err?.error?.message || 'Error loading balance. Please contact your administrator.');
       },
     });
 

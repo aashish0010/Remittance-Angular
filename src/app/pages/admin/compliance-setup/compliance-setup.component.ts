@@ -74,9 +74,6 @@ export class ComplianceSetupComponent implements OnInit {
   ];
   searchString = '';
   loading = true;
-  message = '';
-  messageSeverity: 'success' | 'error' | 'warning' | 'info' = 'info';
-
   // Reference data
   countries: CountryInfo[] = [];
 
@@ -117,16 +114,14 @@ export class ComplianceSetupComponent implements OnInit {
         } else {
           this.rules = [];
           this.filteredRules = [];
-          this.message = res?.message || 'Failed to load rules.';
-          this.messageSeverity = 'error';
+          this.notify.error(res?.message || 'Failed to load rules.');
         }
         this.loading = false;
       },
       error: () => {
         this.rules = [];
         this.filteredRules = [];
-        this.message = 'Could not connect to server.';
-        this.messageSeverity = 'error';
+        this.notify.error('Could not connect to server.');
         this.loading = false;
       },
     });
@@ -142,8 +137,6 @@ export class ComplianceSetupComponent implements OnInit {
           r.action.toLowerCase().includes(s)
         );
   }
-
-  clearMessage(): void { this.message = ''; }
 
   // ---------------------------------------------------------------------------
   // Threshold / Params display helper
@@ -231,8 +224,7 @@ export class ComplianceSetupComponent implements OnInit {
     obs.subscribe({
       next: res => {
         if (res?.success) {
-          this.message = this.isEditing ? 'Rule updated.' : 'Rule created.';
-          this.messageSeverity = 'success';
+          this.notify.success(this.isEditing ? 'Rule updated.' : 'Rule created.');
           this.showPopup = false;
           this.loadRules();
         } else {
@@ -253,12 +245,10 @@ export class ComplianceSetupComponent implements OnInit {
   toggleRule(rule: ComplianceRuleModel): void {
     this.api.toggleComplianceRule(rule.id).subscribe(r => {
       if (r?.success) {
-        this.message = `Rule '${rule.ruleName}' ${rule.isActive ? 'deactivated' : 'activated'}.`;
-        this.messageSeverity = 'success';
+        this.notify.success(`Rule '${rule.ruleName}' ${rule.isActive ? 'deactivated' : 'activated'}.`);
         this.loadRules();
       } else {
-        this.message = r?.message || 'Failed.';
-        this.messageSeverity = 'error';
+        this.notify.error(r?.message || 'Failed.');
       }
     });
   }
@@ -266,12 +256,10 @@ export class ComplianceSetupComponent implements OnInit {
   deleteRule(rule: ComplianceRuleModel): void {
     this.api.deleteComplianceRule(rule.id).subscribe(r => {
       if (r?.success) {
-        this.message = 'Rule deleted.';
-        this.messageSeverity = 'success';
+        this.notify.success('Rule deleted.');
         this.loadRules();
       } else {
-        this.message = r?.message || 'Failed.';
-        this.messageSeverity = 'error';
+        this.notify.error(r?.message || 'Failed.');
       }
     });
   }

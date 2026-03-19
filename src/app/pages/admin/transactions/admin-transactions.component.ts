@@ -15,6 +15,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatCardModule } from '@angular/material/card';
 import { ApiService } from '../../../core/services/api.service';
 import { AuthStateService } from '../../../core/services/auth-state.service';
+import { NotificationService } from '../../../core/services/notification.service';
 import { TransactionResult } from '../../../core/models/transaction.models';
 
 @Component({
@@ -58,8 +59,6 @@ export class AdminTransactionsComponent implements OnInit {
   dataSource = new MatTableDataSource<TransactionResult>([]);
   transactions: TransactionResult[] = [];
   loading = true;
-  message = '';
-  messageType: 'success' | 'error' | 'warning' | 'info' = 'info';
   searchText = '';
   statusFilter = 'All';
   selectedTransaction: TransactionResult | null = null;
@@ -70,6 +69,7 @@ export class AdminTransactionsComponent implements OnInit {
   constructor(
     private api: ApiService,
     private auth: AuthStateService,
+    private notify: NotificationService,
   ) {}
 
   ngOnInit(): void {
@@ -93,16 +93,14 @@ export class AdminTransactionsComponent implements OnInit {
         } else {
           this.transactions = [];
           this.dataSource.data = [];
-          this.message = res?.message || 'Failed to load transactions.';
-          this.messageType = 'error';
+          this.notify.error(res?.message || 'Failed to load transactions.');
         }
         this.loading = false;
       },
       error: () => {
         this.transactions = [];
         this.dataSource.data = [];
-        this.message = 'Could not connect to server.';
-        this.messageType = 'error';
+        this.notify.error('Could not connect to server.');
         this.loading = false;
       },
     });
@@ -142,16 +140,13 @@ export class AdminTransactionsComponent implements OnInit {
       next: (res) => {
         if (res?.success) {
           txn.status = 'Completed';
-          this.message = `Transaction ${txn.referenceNumber} completed.`;
-          this.messageType = 'success';
+          this.notify.success(`Transaction ${txn.referenceNumber} completed.`);
         } else {
-          this.message = res?.message || 'Failed to complete transaction.';
-          this.messageType = 'error';
+          this.notify.error(res?.message || 'Failed to complete transaction.');
         }
       },
       error: () => {
-        this.message = 'Error completing transaction.';
-        this.messageType = 'error';
+        this.notify.error('Error completing transaction.');
       },
     });
   }
@@ -161,16 +156,13 @@ export class AdminTransactionsComponent implements OnInit {
       next: (res) => {
         if (res?.success) {
           txn.status = 'Cancelled';
-          this.message = `Transaction ${txn.referenceNumber} cancelled.`;
-          this.messageType = 'warning';
+          this.notify.warn(`Transaction ${txn.referenceNumber} cancelled.`);
         } else {
-          this.message = res?.message || 'Failed to cancel transaction.';
-          this.messageType = 'error';
+          this.notify.error(res?.message || 'Failed to cancel transaction.');
         }
       },
       error: () => {
-        this.message = 'Error cancelling transaction.';
-        this.messageType = 'error';
+        this.notify.error('Error cancelling transaction.');
       },
     });
   }
@@ -181,10 +173,6 @@ export class AdminTransactionsComponent implements OnInit {
 
   closeDetail(): void {
     this.selectedTransaction = null;
-  }
-
-  dismissMessage(): void {
-    this.message = '';
   }
 
   getStatusClass(status: string): string {

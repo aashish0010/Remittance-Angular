@@ -68,9 +68,6 @@ export class RoutingComponent implements OnInit {
   ];
   searchString = '';
   loading = true;
-  message = '';
-  messageSeverity: 'success' | 'error' | 'warning' | 'info' = 'info';
-
   // Reference data
   sendingAgents: AgentModel[] = [];
   payoutAgents: AgentModel[] = [];
@@ -143,16 +140,14 @@ export class RoutingComponent implements OnInit {
         } else {
           this.corridors = [];
           this.filteredCorridors = [];
-          this.message = res?.message || 'Failed to load corridors.';
-          this.messageSeverity = 'error';
+          this.notify.error(res?.message || 'Failed to load corridors.');
         }
         this.loading = false;
       },
       error: () => {
         this.corridors = [];
         this.filteredCorridors = [];
-        this.message = 'Could not connect to server.';
-        this.messageSeverity = 'error';
+        this.notify.error('Could not connect to server.');
         this.loading = false;
       },
     });
@@ -170,8 +165,6 @@ export class RoutingComponent implements OnInit {
           c.destinationCurrency.toLowerCase().includes(s)
         );
   }
-
-  clearMessage(): void { this.message = ''; }
 
   // ---------------------------------------------------------------------------
   // Corridor Create / Edit popup
@@ -224,8 +217,7 @@ export class RoutingComponent implements OnInit {
     obs.subscribe({
       next: res => {
         if (res?.success) {
-          this.message = this.isEditingCorridor ? 'Corridor updated.' : 'Corridor created.';
-          this.messageSeverity = 'success';
+          this.notify.success(this.isEditingCorridor ? 'Corridor updated.' : 'Corridor created.');
           this.showCorridorPopup = false;
           this.loadCorridors();
         } else {
@@ -246,12 +238,10 @@ export class RoutingComponent implements OnInit {
   toggleCorridor(c: PaymentCorridorModel): void {
     this.api.toggleCorridor(c.id).subscribe(r => {
       if (r?.success) {
-        this.message = `Corridor ${c.isActive ? 'deactivated' : 'activated'}.`;
-        this.messageSeverity = 'success';
+        this.notify.success(`Corridor ${c.isActive ? 'deactivated' : 'activated'}.`);
         this.loadCorridors();
       } else {
-        this.message = r?.message || 'Failed.';
-        this.messageSeverity = 'error';
+        this.notify.error(r?.message || 'Failed.');
       }
     });
   }
@@ -259,12 +249,10 @@ export class RoutingComponent implements OnInit {
   deleteCorridor(c: PaymentCorridorModel): void {
     this.api.deleteCorridor(c.id).subscribe(r => {
       if (r?.success) {
-        this.message = 'Corridor deleted.';
-        this.messageSeverity = 'success';
+        this.notify.success('Corridor deleted.');
         this.loadCorridors();
       } else {
-        this.message = r?.message || 'Failed.';
-        this.messageSeverity = 'error';
+        this.notify.error(r?.message || 'Failed.');
       }
     });
   }

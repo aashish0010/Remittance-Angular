@@ -12,7 +12,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatDividerModule } from '@angular/material/divider';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { NotificationService } from '../../../core/services/notification.service';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDatepickerModule } from '@angular/material/datepicker';
@@ -45,7 +45,7 @@ import { SearchableSelectDirective } from '../../../shared/searchable-select.dir
     MatProgressSpinnerModule,
     MatProgressBarModule,
     MatDividerModule,
-    MatSnackBarModule,
+
     MatTabsModule,
     MatTooltipModule,
     MatDatepickerModule,
@@ -60,7 +60,6 @@ export class SendMoneyComponent implements OnInit {
   // Step tracking
   step = 0;
   submitting = false;
-  error = '';
   successResult: TransactionResult | null = null;
 
   // Agent profile
@@ -143,7 +142,7 @@ export class SendMoneyComponent implements OnInit {
     private api: ApiService,
     private auth: AuthStateService,
     private router: Router,
-    private snackBar: MatSnackBar,
+    private notify: NotificationService,
   ) {}
 
   ngOnInit(): void {
@@ -233,7 +232,7 @@ export class SendMoneyComponent implements OnInit {
           this.filteredCustomers = [...this.customers];
           this.selectCustomer(res.data);
           this.showCreateCustomer = false;
-          this.snackBar.open('Customer created!', 'Close', { duration: 3000 });
+          this.notify.success('Customer created!');
         } else {
           this.customerFormError = res?.message || 'Failed to create customer.';
         }
@@ -501,7 +500,7 @@ export class SendMoneyComponent implements OnInit {
           this.filterReceivers();
           this.selectReceiver(res.data);
           this.showCreateReceiver = false;
-          this.snackBar.open('Receiver created!', 'Close', { duration: 3000 });
+          this.notify.success('Receiver created!');
         } else {
           this.receiverFormError = res?.message || 'Failed.';
         }
@@ -615,20 +614,19 @@ export class SendMoneyComponent implements OnInit {
   }
 
   nextStep(): void {
-    this.error = '';
     if (this.step === 0 && !this.canProceedStep1()) {
-      this.error = 'Please select or create a customer first.';
+      this.notify.error('Please select or create a customer first.');
       return;
     }
     if (this.step === 1 && !this.canProceedStep2()) {
-      this.error = 'Please complete all transfer details.';
+      this.notify.error('Please complete all transfer details.');
       return;
     }
     if (this.step === 1) {
       this.loadReceivers();
     }
     if (this.step === 2 && !this.canProceedStep3()) {
-      this.error = 'Please select or create a receiver.';
+      this.notify.error('Please select or create a receiver.');
       return;
     }
     this.step++;
@@ -643,9 +641,8 @@ export class SendMoneyComponent implements OnInit {
   // ---------------------------------------------------------------------------
 
   submitTransaction(): void {
-    this.error = '';
     if (!this.selectedCustomer || !this.selectedReceiver || !this.selectedPartner) {
-      this.error = 'Missing required data.';
+      this.notify.error('Missing required data.');
       return;
     }
 
@@ -750,12 +747,12 @@ export class SendMoneyComponent implements OnInit {
           this.successResult = res.data;
           this.step = 3;
         } else {
-          this.error = res?.message || 'Failed to submit transaction.';
+          this.notify.error(res?.message || 'Failed to submit transaction.');
         }
         this.submitting = false;
       },
       error: err => {
-        this.error = `Error: ${err.message || 'Unknown error'}`;
+        this.notify.error(`Error: ${err.message || 'Unknown error'}`);
         this.submitting = false;
       },
     });
@@ -817,10 +814,6 @@ export class SendMoneyComponent implements OnInit {
     }
   }
 
-  dismissError(): void {
-    this.error = '';
-  }
-
   startNewTransaction(): void {
     this.step = 0;
     this.successResult = null;
@@ -845,7 +838,6 @@ export class SendMoneyComponent implements OnInit {
     this.receiveAmount = 0;
     this.calculationDone = false;
     this.calcError = '';
-    this.error = '';
     this.selectedBranch = null;
     this.showBranchPopup = false;
     if (this.agentProfile) {
