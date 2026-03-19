@@ -125,19 +125,19 @@
                 <mat-icon class="action-view">visibility</mat-icon>
               </button>
 
-              <!-- Process/Release (OnHold or Compliance) -->
+              <!-- Process/Release (OnHold only — Compliance goes through Compliance Alerts) -->
               <button
-                *ngIf="tx.status === 'OnHold' || tx.status === 'Compliance'"
+                *ngIf="tx.status === 'OnHold'"
                 mat-icon-button
-                matTooltip="Process"
+                matTooltip="Release to Pending"
                 (click)="releaseTransaction(tx)"
               >
                 <mat-icon class="action-approve">check_circle</mat-icon>
               </button>
 
-              <!-- Reject (OnHold or Compliance) -->
+              <!-- Reject (OnHold only) -->
               <button
-                *ngIf="tx.status === 'OnHold' || tx.status === 'Compliance'"
+                *ngIf="tx.status === 'OnHold'"
                 mat-icon-button
                 matTooltip="Reject"
                 (click)="rejectTransaction(tx)"

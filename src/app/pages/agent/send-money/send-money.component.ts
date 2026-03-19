@@ -788,7 +788,7 @@ export class SendMoneyComponent implements OnInit {
       <div class="ref">Reference: ${tx.referenceNumber}</div>
       <div class="section">Transaction Details</div>
       <table>
-        <tr><td>Status</td><td>${tx.status}</td></tr>
+        <tr><td>Status</td><td>${this.getStatusLabel(tx.status)}</td></tr>
         <tr><td>Date</td><td>${new Date(tx.createdAt).toLocaleString()}</td></tr>
         <tr><td>Send Amount</td><td class="amount">${tx.sendAmount.toFixed(2)} ${tx.sendCurrency}</td></tr>
         <tr><td>Exchange Rate</td><td>1 ${tx.sendCurrency} = ${tx.exchangeRateApplied.toFixed(4)} ${tx.receiveCurrency}</td></tr>
@@ -851,6 +851,14 @@ export class SendMoneyComponent implements OnInit {
     if (this.agentProfile) {
       this.senderCountry = this.agentProfile.country;
       this.senderCurrency = this.agentProfile.currency || '';
+    }
+  }
+
+  getStatusLabel(status: string): string {
+    switch (status) {
+      case 'OnHold': return 'On Hold';
+      case 'Compliance': return 'Under Review';
+      default: return status;
     }
   }
 }
