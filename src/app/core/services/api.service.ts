@@ -370,6 +370,10 @@ export class ApiService {
     return this.get<TransactionResult[]>('api/agent/transactions');
   }
 
+  getAgentEarnings(): Observable<ApiResponse<AgentEarningsResponse>> {
+    return this.get<AgentEarningsResponse>('api/agent/earnings');
+  }
+
   calculateTransfer(dto: CalculateTransferRequest): Observable<ApiResponse<TransferCalculationResult>> {
     return this.post<TransferCalculationResult>('api/agent/transactions/calculate', dto);
   }

@@ -48,7 +48,7 @@
 
 .stat-cards-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   gap: 16px;
   margin-bottom: 24px;
 }
@@ -78,6 +78,10 @@
 
 .stat-card-green {
   border-left-color: #2e7d32 !important;
+}
+
+.stat-card-teal {
+  border-left-color: #00897b !important;
 }
 
 .stat-card-purple {
@@ -112,6 +116,10 @@
   color: #2e7d32;
 }
 
+.stat-value-teal {
+  color: #00897b;
+}
+
 .stat-icon {
   font-size: 40px;
   width: 40px;
@@ -128,6 +136,10 @@
 
 .stat-icon-green {
   color: #2e7d32;
+}
+
+.stat-icon-teal {
+  color: #00897b;
 }
 
 .stat-icon-purple {
@@ -206,6 +218,11 @@
 .mono-text {
   font-family: 'Roboto Mono', monospace;
   font-size: 0.8125rem;
+}
+
+.commission-text {
+  color: #00897b;
+  font-weight: 600;
 }
 
 // ---------------------------------------------------------------------------
@@ -301,6 +318,12 @@
 // ---------------------------------------------------------------------------
 // Responsive
 // ---------------------------------------------------------------------------
+
+@media (max-width: 1400px) {
+  .stat-cards-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
 
 @media (max-width: 1200px) {
   .stat-cards-grid {

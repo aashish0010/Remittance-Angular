@@ -43,12 +43,19 @@ export class AgentDashboardComponent implements OnInit {
   recentTransactions: TransactionResult[] = [];
   loading = true;
 
+  get totalCommission(): number {
+    return this.transactions
+      .filter(tx => tx.status !== 'Cancelled' && tx.status !== 'Failed')
+      .reduce((sum, tx) => sum + (tx.agentCommission || 0), 0);
+  }
+
   transactionColumns: string[] = [
     'referenceNumber',
     'sender',
     'receiver',
     'sendAmount',
     'receiveAmount',
+    'commission',
     'status',
     'createdAt',
   ];
