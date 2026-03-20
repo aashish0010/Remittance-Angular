@@ -5,7 +5,7 @@ import { catchError, map, switchMap } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { AuthStateService } from './auth-state.service';
 import { ApiResponse, LoginResponse } from '../models/auth.models';
-import { AgentModel, AgentBalance, AgentAccountingSummary, AgentLimitAdjustmentModel, AgentCommissionModel, AgentLocationModel, AgentLocationBranchModel, AgentLocationUserModel, CreateLocationUserRequest, UpdateLocationUserRequest, AgentBankModel, AgentBankBranchModel, PaymentMethodModel } from '../models/agent.models';
+import { AgentModel, AgentBalance, AgentAccountingSummary, AgentLimitAdjustmentModel, AgentCommissionModel, AgentLocationModel, AgentLocationBranchModel, AgentLocationUserModel, CreateLocationUserRequest, UpdateLocationUserRequest, AgentBankModel, AgentBankBranchModel, PaymentMethodModel, AgentEarningsResponse, AgentListItem } from '../models/agent.models';
 import { ExchangeRateModel } from '../models/exchange-rate.models';
 import { CommissionRateModel } from '../models/commission.models';
 import { ComplianceAlertModel, ComplianceRuleModel } from '../models/compliance.models';
@@ -591,5 +591,57 @@ export class ApiService {
 
   getCurrencies(): Observable<ApiResponse<string[]>> {
     return this.get<string[]>('api/reference/currencies');
+  }
+
+  // ---------------------------------------------------------------------------
+  // Reports
+  // ---------------------------------------------------------------------------
+
+  getReportAgentsList(): Observable<ApiResponse<AgentListItem[]>> {
+    return this.get<AgentListItem[]>('api/admin/reports/agents-list');
+  }
+
+  getAgentStatement(params: { agentId?: number; startDate?: string; endDate?: string }): Observable<ApiResponse<any>> {
+    const q = new URLSearchParams();
+    if (params.agentId) q.set('agentId', params.agentId.toString());
+    if (params.startDate) q.set('startDate', params.startDate);
+    if (params.endDate) q.set('endDate', params.endDate);
+    return this.get<any>(`api/admin/reports/agent-statement?${q.toString()}`);
+  }
+
+  createBalanceEntry(dto: { agentId: number; entryType: string; amount: number; description?: string }): Observable<ApiResponse<any>> {
+    return this.post<any>('api/admin/reports/agent-balance-entry', dto);
+  }
+
+  getTransactionReport(params: { startDate?: string; endDate?: string; agentId?: number; status?: string; country?: string }): Observable<ApiResponse<any>> {
+    const q = new URLSearchParams();
+    if (params.startDate) q.set('startDate', params.startDate);
+    if (params.endDate) q.set('endDate', params.endDate);
+    if (params.agentId) q.set('agentId', params.agentId.toString());
+    if (params.status) q.set('status', params.status);
+    if (params.country) q.set('country', params.country);
+    return this.get<any>(`api/admin/reports/transactions?${q.toString()}`);
+  }
+
+  getCommissionReport(params: { startDate?: string; endDate?: string; agentId?: number }): Observable<ApiResponse<any>> {
+    const q = new URLSearchParams();
+    if (params.startDate) q.set('startDate', params.startDate);
+    if (params.endDate) q.set('endDate', params.endDate);
+    if (params.agentId) q.set('agentId', params.agentId.toString());
+    return this.get<any>(`api/admin/reports/commissions?${q.toString()}`);
+  }
+
+  getRevenueReport(params: { startDate?: string; endDate?: string }): Observable<ApiResponse<any>> {
+    const q = new URLSearchParams();
+    if (params.startDate) q.set('startDate', params.startDate);
+    if (params.endDate) q.set('endDate', params.endDate);
+    return this.get<any>(`api/admin/reports/revenue?${q.toString()}`);
+  }
+
+  getSettlementReport(params: { startDate?: string; endDate?: string }): Observable<ApiResponse<any>> {
+    const q = new URLSearchParams();
+    if (params.startDate) q.set('startDate', params.startDate);
+    if (params.endDate) q.set('endDate', params.endDate);
+    return this.get<any>(`api/admin/reports/settlement?${q.toString()}`);
   }
 }

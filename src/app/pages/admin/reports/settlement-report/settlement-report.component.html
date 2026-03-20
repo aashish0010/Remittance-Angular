@@ -1,0 +1,154 @@
+<div class="report-page">
+  <h1 class="page-title">Settlement Report</h1>
+
+  <!-- Filters -->
+  <mat-card class="filters-card">
+    <mat-card-content>
+      <div class="filters-row">
+        <mat-form-field appearance="outline">
+          <mat-label>Start Date</mat-label>
+          <input matInput type="date" [(ngModel)]="startDate" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>End Date</mat-label>
+          <input matInput type="date" [(ngModel)]="endDate" />
+        </mat-form-field>
+
+        <button mat-raised-button color="primary" class="filter-btn" (click)="loadReport()" [disabled]="loading">
+          <mat-icon>assessment</mat-icon>
+          Generate
+        </button>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Summary Cards -->
+  <div class="stats-grid" *ngIf="!loading && settlements.length > 0">
+    <mat-card class="stat-card stat-blue">
+      <mat-card-content>
+        <div class="stat-inner">
+          <div class="stat-text">
+            <span class="stat-label">Active Agents</span>
+            <span class="stat-value stat-value-blue">{{ totalAgents | number }}</span>
+          </div>
+          <mat-icon class="stat-icon stat-icon-blue">groups</mat-icon>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card stat-green">
+      <mat-card-content>
+        <div class="stat-inner">
+          <div class="stat-text">
+            <span class="stat-label">Total Send Volume</span>
+            <span class="stat-value stat-value-green">{{ totalSendVolume | number:'1.2-2' }}</span>
+          </div>
+          <mat-icon class="stat-icon stat-icon-green">trending_up</mat-icon>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <mat-card class="stat-card stat-orange">
+      <mat-card-content>
+        <div class="stat-inner">
+          <div class="stat-text">
+            <span class="stat-label">Total Commission Paid</span>
+            <span class="stat-value stat-value-orange">{{ totalCommissionPaid | number:'1.2-2' }}</span>
+          </div>
+          <mat-icon class="stat-icon stat-icon-orange">payments</mat-icon>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading-container" *ngIf="loading">
+    <mat-spinner diameter="48"></mat-spinner>
+  </div>
+
+  <!-- Data Table -->
+  <mat-card class="data-card" *ngIf="!loading && settlements.length > 0">
+    <mat-card-content>
+      <h2 class="section-title">Agent Settlements</h2>
+      <div class="table-responsive">
+        <table mat-table [dataSource]="settlements" class="report-table">
+
+          <!-- Agent Name -->
+          <ng-container matColumnDef="agentName">
+            <th mat-header-cell *matHeaderCellDef>Agent Name</th>
+            <td mat-cell *matCellDef="let row">{{ row.agentName }}</td>
+          </ng-container>
+
+          <!-- Type -->
+          <ng-container matColumnDef="agentType">
+            <th mat-header-cell *matHeaderCellDef>Type</th>
+            <td mat-cell *matCellDef="let row">{{ row.agentType }}</td>
+          </ng-container>
+
+          <!-- Credit Limit -->
+          <ng-container matColumnDef="creditLimit">
+            <th mat-header-cell *matHeaderCellDef class="text-right">Credit Limit</th>
+            <td mat-cell *matCellDef="let row" class="text-right mono-text">{{ row.creditLimit | number:'1.2-2' }}</td>
+          </ng-container>
+
+          <!-- Current Balance -->
+          <ng-container matColumnDef="currentBalance">
+            <th mat-header-cell *matHeaderCellDef class="text-right">Current Balance</th>
+            <td mat-cell *matCellDef="let row" class="text-right mono-text">{{ row.currentBalance | number:'1.2-2' }}</td>
+          </ng-container>
+
+          <!-- Available -->
+          <ng-container matColumnDef="availableBalance">
+            <th mat-header-cell *matHeaderCellDef class="text-right">Available</th>
+            <td mat-cell *matCellDef="let row" class="text-right mono-text">{{ row.availableBalance | number:'1.2-2' }}</td>
+          </ng-container>
+
+          <!-- Txns Sent -->
+          <ng-container matColumnDef="transactionsSent">
+            <th mat-header-cell *matHeaderCellDef class="text-right">Txns Sent</th>
+            <td mat-cell *matCellDef="let row" class="text-right mono-text">{{ row.transactionsSent | number }}</td>
+          </ng-container>
+
+          <!-- Txns as Payout -->
+          <ng-container matColumnDef="transactionsAsPayout">
+            <th mat-header-cell *matHeaderCellDef class="text-right">Txns as Payout</th>
+            <td mat-cell *matCellDef="let row" class="text-right mono-text">{{ row.transactionsAsPayout | number }}</td>
+          </ng-container>
+
+          <!-- Send Volume -->
+          <ng-container matColumnDef="sendVolume">
+            <th mat-header-cell *matHeaderCellDef class="text-right">Send Volume</th>
+            <td mat-cell *matCellDef="let row" class="text-right mono-text text-green">{{ row.sendVolume | number:'1.2-2' }}</td>
+          </ng-container>
+
+          <!-- Commission Earned -->
+          <ng-container matColumnDef="commissionEarned">
+            <th mat-header-cell *matHeaderCellDef class="text-right">Commission Earned</th>
+            <td mat-cell *matCellDef="let row" class="text-right mono-text text-teal">{{ row.commissionEarned | number:'1.2-2' }}</td>
+          </ng-container>
+
+          <!-- Credits -->
+          <ng-container matColumnDef="creditsReceived">
+            <th mat-header-cell *matHeaderCellDef class="text-right">Credits</th>
+            <td mat-cell *matCellDef="let row" class="text-right mono-text text-green">{{ row.creditsReceived | number:'1.2-2' }}</td>
+          </ng-container>
+
+          <!-- Debits -->
+          <ng-container matColumnDef="debitsApplied">
+            <th mat-header-cell *matHeaderCellDef class="text-right">Debits</th>
+            <td mat-cell *matCellDef="let row" class="text-right mono-text text-red">{{ row.debitsApplied | number:'1.2-2' }}</td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        </table>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <!-- Empty State -->
+  <p class="empty-text" *ngIf="!loading && settlements.length === 0">
+    No settlement data available. Select a date range and click Generate.
+  </p>
+</div>

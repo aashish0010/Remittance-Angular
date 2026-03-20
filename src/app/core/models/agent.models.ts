@@ -169,3 +169,22 @@ export interface PaymentMethodModel {
   name: string;
   isActive: boolean;
 }
+
+export interface AgentEarningsResponse {
+  totalEarnings: number;
+  earnings: AgentEarningItem[];
+}
+
+export interface AgentEarningItem {
+  id: number;
+  transactionId: number;
+  earningType: string;
+  amount: number;
+  createdAt: string;
+}
+
+export interface AgentListItem {
+  id: number;
+  businessName: string;
+  agentType: string;
+}
