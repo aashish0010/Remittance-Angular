@@ -45,17 +45,12 @@ interface CustomerForm {
   state: string;
   postalCode: string;
   address: string;
-  idDocumentType: string;
-  idDocumentNumber: string;
-  issueDate: string;
-  expiryDate: string;
 }
 
 function emptyForm(): CustomerForm {
   return {
     fullName: '', dateOfBirth: '', gender: 'Male', nationality: '',
     email: '', phone: '', country: '', contactCountry: '', city: '', state: '', postalCode: '', address: '',
-    idDocumentType: 'Passport', idDocumentNumber: '', issueDate: '', expiryDate: '',
   };
 }
 
@@ -207,10 +202,6 @@ export class CustomerRegisterComponent implements OnInit {
       state: customer.state || '',
       postalCode: customer.postalCode || '',
       address: customer.address || '',
-      idDocumentType: customer.idDocumentType || 'Passport',
-      idDocumentNumber: customer.idDocumentNumber || '',
-      issueDate: (customer as any).issueDate || '',
-      expiryDate: (customer as any).expiryDate || '',
     };
     this.formError = '';
     this.showFormPopup = true;
@@ -239,10 +230,6 @@ export class CustomerRegisterComponent implements OnInit {
       state: f.state || null,
       postalCode: f.postalCode || null,
       address: f.address || null,
-      idDocumentType: f.idDocumentType || null,
-      idDocumentNumber: f.idDocumentNumber || null,
-      issueDate: f.issueDate || null,
-      expiryDate: f.expiryDate || null,
     };
 
     const obs = this.isEditing
@@ -252,12 +239,13 @@ export class CustomerRegisterComponent implements OnInit {
     obs.subscribe({
       next: async res => {
         if (res?.success) {
-          // Upload documents if any
-          if (this.documentUploads.length > 0 && res.data?.id) {
+          // Upload documents if editing and docs were added
+          const customerId = res.data?.id || this.editingId;
+          if (this.isEditing && this.documentUploads.length > 0 && customerId) {
             try {
               this.uploadingDocs = true;
-              await this.uploadDocuments(res.data.id);
-              this.notify.success(this.isEditing ? 'Customer updated.' : 'Customer created with documents.');
+              await this.uploadDocuments(customerId);
+              this.notify.success('Customer updated with documents.');
             } catch {
               this.notify.warn('Customer saved but some documents failed to upload.');
             }
@@ -293,12 +281,7 @@ export class CustomerRegisterComponent implements OnInit {
         }
       },
       error: () => {
-        // Fallback defaults
-        this.documentTypeConfigs = [
-          { name: 'Passport', requiredSides: 2 },
-          { name: 'National ID', requiredSides: 2 },
-          { name: 'Driver License', requiredSides: 1 },
-        ];
+        this.notify.warn('Could not load document types.');
       },
     });
   }

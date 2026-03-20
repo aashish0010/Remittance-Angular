@@ -3,7 +3,6 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatTabsModule } from '@angular/material/tabs';
-import { MatTableModule } from '@angular/material/table';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
@@ -91,7 +90,6 @@ function emptySystemSetting(): SystemSettingModel {
     FormsModule,
     MatCardModule,
     MatTabsModule,
-    MatTableModule,
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
@@ -114,7 +112,6 @@ export class SetupFieldsComponent implements OnInit {
   // Setup fields state (tabs 0-5)
   // ---------------------------------------------------------------------------
   setupFields: SetupFieldModel[] = [];
-  setupFieldColumns = ['code', 'name', 'description', 'isActive', 'sortOrder', 'actions'];
   loadingSetupFields = false;
 
   // Inline editing / adding
@@ -127,7 +124,6 @@ export class SetupFieldsComponent implements OnInit {
   // Document Types state (tab 6)
   // ---------------------------------------------------------------------------
   documentTypes: DocumentTypeModel[] = [];
-  docTypeColumns = ['name', 'code', 'requiredSides', 'isActive', 'sortOrder', 'actions'];
   loadingDocTypes = false;
 
   editingDocTypeId: number | null = null;
@@ -139,7 +135,6 @@ export class SetupFieldsComponent implements OnInit {
   // System Settings state (tab 7)
   // ---------------------------------------------------------------------------
   systemSettings: SystemSettingModel[] = [];
-  settingColumns = ['key', 'value', 'description', 'actions'];
   loadingSettings = false;
 
   editingSettingId: number | null = null;

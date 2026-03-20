@@ -214,99 +214,74 @@
       </div>
     </mat-tab>
 
-    <!-- Tab 3: ID Document -->
-    <mat-tab label="ID Document">
+    <!-- Tab 3: Documents (only when editing existing customer) -->
+    <mat-tab label="Documents" [disabled]="!isEditing">
       <div class="tab-content">
-        <div class="form-grid">
-          <mat-form-field appearance="outline">
-            <mat-label>Document Type</mat-label>
-            <mat-select [(ngModel)]="form.idDocumentType">
-              <mat-option value="Passport">Passport</mat-option>
-              <mat-option value="NationalID">National ID</mat-option>
-              <mat-option value="DriverLicense">Driver License</mat-option>
-            </mat-select>
-          </mat-form-field>
-          <mat-form-field appearance="outline">
-            <mat-label>Document Number</mat-label>
-            <input matInput [(ngModel)]="form.idDocumentNumber" />
-          </mat-form-field>
-          <mat-form-field appearance="outline">
-            <mat-label>Issue Date</mat-label>
-            <input matInput [matDatepicker]="issuePicker" [(ngModel)]="form.issueDate" readonly placeholder="Select date" />
-            <mat-datepicker-toggle matSuffix [for]="issuePicker"></mat-datepicker-toggle>
-            <mat-datepicker #issuePicker></mat-datepicker>
-          </mat-form-field>
-          <mat-form-field appearance="outline">
-            <mat-label>Expiry Date</mat-label>
-            <input matInput [matDatepicker]="expiryPicker" [(ngModel)]="form.expiryDate" readonly placeholder="Select date" />
-            <mat-datepicker-toggle matSuffix [for]="expiryPicker"></mat-datepicker-toggle>
-            <mat-datepicker #expiryPicker></mat-datepicker>
-          </mat-form-field>
-        </div>
-      </div>
-    </mat-tab>
-
-    <!-- Tab 4: Document Upload -->
-    <mat-tab label="Documents">
-      <div class="tab-content">
-        <div class="doc-upload-header">
-          <span class="doc-upload-label">Upload identification documents</span>
-          <button mat-stroked-button color="primary" (click)="addDocumentRow()">
-            <mat-icon>add</mat-icon> Add Document
-          </button>
+        <div *ngIf="!isEditing" class="doc-empty-state">
+          <mat-icon>info</mat-icon>
+          <span>Save the customer first, then you can upload documents.</span>
         </div>
 
-        <div *ngIf="documentUploads.length === 0" class="doc-empty-state">
-          <mat-icon>upload_file</mat-icon>
-          <span>No documents added. Click "Add Document" to upload identification documents.</span>
-        </div>
-
-        <div *ngFor="let doc of documentUploads; let i = index" class="doc-upload-row">
-          <div class="doc-upload-row-header">
-            <span class="doc-row-number">Document {{ i + 1 }}</span>
-            <button mat-icon-button color="warn" matTooltip="Remove" (click)="removeDocumentRow(i)">
-              <mat-icon>delete</mat-icon>
+        <ng-container *ngIf="isEditing">
+          <div class="doc-upload-header">
+            <span class="doc-upload-label">Upload identification documents</span>
+            <button mat-stroked-button color="primary" (click)="addDocumentRow()">
+              <mat-icon>add</mat-icon> Add Document
             </button>
           </div>
 
-          <div class="form-grid">
-            <mat-form-field appearance="outline">
-              <mat-label>Document Type</mat-label>
-              <mat-select [(ngModel)]="doc.documentType" (selectionChange)="onDocTypeChange(doc)">
-                <mat-option *ngFor="let dt of documentTypeConfigs" [value]="dt.name">{{ dt.name }}</mat-option>
-              </mat-select>
-            </mat-form-field>
-            <mat-form-field appearance="outline">
-              <mat-label>Document Number</mat-label>
-              <input matInput [(ngModel)]="doc.documentNumber" />
-            </mat-form-field>
-            <mat-form-field appearance="outline">
-              <mat-label>Issuing Country</mat-label>
-              <mat-select [(ngModel)]="doc.issuingCountry" searchable>
-                <mat-option *ngFor="let c of countries" [value]="c.name">{{ c.name }}</mat-option>
-              </mat-select>
-            </mat-form-field>
+          <div *ngIf="documentUploads.length === 0" class="doc-empty-state">
+            <mat-icon>upload_file</mat-icon>
+            <span>No documents added. Click "Add Document" to upload identification documents.</span>
           </div>
 
-          <div class="doc-file-row">
-            <div class="doc-file-item">
-              <label class="file-upload-btn">
-                <mat-icon>image</mat-icon> Front Side
-                <input type="file" accept="image/*" (change)="onFileSelected(doc, 'front', $event)" hidden />
-              </label>
-              <img *ngIf="doc.frontPreview" [src]="doc.frontPreview" class="doc-preview-thumb" />
-              <span *ngIf="doc.frontImage" class="doc-file-name">{{ doc.frontImage.name }}</span>
+          <div *ngFor="let doc of documentUploads; let i = index" class="doc-upload-row">
+            <div class="doc-upload-row-header">
+              <span class="doc-row-number">Document {{ i + 1 }}</span>
+              <button mat-icon-button color="warn" matTooltip="Remove" (click)="removeDocumentRow(i)">
+                <mat-icon>delete</mat-icon>
+              </button>
             </div>
-            <div *ngIf="doc.requiredSides >= 2" class="doc-file-item">
-              <label class="file-upload-btn">
-                <mat-icon>image</mat-icon> Back Side
-                <input type="file" accept="image/*" (change)="onFileSelected(doc, 'back', $event)" hidden />
-              </label>
-              <img *ngIf="doc.backPreview" [src]="doc.backPreview" class="doc-preview-thumb" />
-              <span *ngIf="doc.backImage" class="doc-file-name">{{ doc.backImage.name }}</span>
+
+            <div class="form-grid">
+              <mat-form-field appearance="outline">
+                <mat-label>Document Type</mat-label>
+                <mat-select [(ngModel)]="doc.documentType" (selectionChange)="onDocTypeChange(doc)">
+                  <mat-option *ngFor="let dt of documentTypeConfigs" [value]="dt.name">{{ dt.name }}</mat-option>
+                </mat-select>
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Document Number</mat-label>
+                <input matInput [(ngModel)]="doc.documentNumber" />
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Issuing Country</mat-label>
+                <mat-select [(ngModel)]="doc.issuingCountry" searchable>
+                  <mat-option *ngFor="let c of countries" [value]="c.name">{{ c.name }}</mat-option>
+                </mat-select>
+              </mat-form-field>
+            </div>
+
+            <div class="doc-file-row">
+              <div class="doc-file-item">
+                <label class="file-upload-btn">
+                  <mat-icon>image</mat-icon> Front Side
+                  <input type="file" accept="image/*" (change)="onFileSelected(doc, 'front', $event)" hidden />
+                </label>
+                <img *ngIf="doc.frontPreview" [src]="doc.frontPreview" class="doc-preview-thumb" />
+                <span *ngIf="doc.frontImage" class="doc-file-name">{{ doc.frontImage.name }}</span>
+              </div>
+              <div *ngIf="doc.requiredSides >= 2" class="doc-file-item">
+                <label class="file-upload-btn">
+                  <mat-icon>image</mat-icon> Back Side
+                  <input type="file" accept="image/*" (change)="onFileSelected(doc, 'back', $event)" hidden />
+                </label>
+                <img *ngIf="doc.backPreview" [src]="doc.backPreview" class="doc-preview-thumb" />
+                <span *ngIf="doc.backImage" class="doc-file-name">{{ doc.backImage.name }}</span>
+              </div>
             </div>
           </div>
-        </div>
+        </ng-container>
       </div>
     </mat-tab>
   </mat-tab-group>

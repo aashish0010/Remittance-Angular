@@ -60,6 +60,7 @@ export class AdminLayoutComponent implements OnInit {
     { label: 'Transactions', icon: 'receipt_long', route: '/admin/transactions', section: 'Operations' },
     { label: 'Compliance Setup', icon: 'tune', route: '/admin/compliance-setup', section: 'Compliance' },
     { label: 'Compliance Alerts', icon: 'security', route: '/admin/compliance', section: 'Compliance' },
+    { label: 'Static Values', icon: 'dataset', route: '/admin/static-values', section: 'System' },
     { label: 'Agent Statement', icon: 'account_balance', route: '/admin/reports/agent-statement', section: 'Reports' },
     { label: 'Transaction Report', icon: 'summarize', route: '/admin/reports/transactions', section: 'Reports' },
     { label: 'Commission Report', icon: 'paid', route: '/admin/reports/commissions', section: 'Reports' },
