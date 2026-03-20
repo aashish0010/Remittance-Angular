@@ -1,6 +1,7 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule, DecimalPipe, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { ActivatedRoute, RouterModule } from '@angular/router';
 import { MatTableModule, MatTableDataSource } from '@angular/material/table';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatSort, MatSortModule } from '@angular/material/sort';
@@ -36,6 +37,7 @@ import { TransactionResult } from '../../../core/models/transaction.models';
     MatChipsModule,
     MatProgressSpinnerModule,
     MatCardModule,
+    RouterModule,
     DecimalPipe,
     DatePipe,
   ],
@@ -70,10 +72,14 @@ export class AdminTransactionsComponent implements OnInit {
     private api: ApiService,
     private auth: AuthStateService,
     private notify: NotificationService,
+    private route: ActivatedRoute,
   ) {}
 
   ngOnInit(): void {
     this.auth.loadFromSession();
+    // Read status from query params (e.g. from dashboard click)
+    const qStatus = this.route.snapshot.queryParamMap.get('status');
+    if (qStatus) this.statusFilter = qStatus;
     this.loadTransactions();
   }
 

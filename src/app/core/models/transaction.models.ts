@@ -3,8 +3,14 @@ export interface TransactionResult {
   referenceNumber: string;
   senderName: string;
   senderCountry?: string;
+  senderPhone?: string;
+  senderEmail?: string;
+  senderIdType?: string;
+  senderIdNumber?: string;
   receiverName: string;
   receiverCountry: string;
+  receiverPhone?: string;
+  receiverEmail?: string;
   receiverBankName?: string;
   receiverBankCode?: string;
   receiverAccountNumber?: string;
@@ -28,7 +34,16 @@ export interface TransactionResult {
   payoutMethodName?: string;
   sendingAgentName?: string;
   payoutAgentName?: string;
+  purpose?: string;
+  notes?: string;
+  customerId?: number;
+  receiverId?: number;
+  agentId?: number;
+  payoutAgentId?: number;
+  approvedByUserId?: string;
   createdAt: string;
+  updatedAt?: string;
+  completedAt?: string;
 }
 
 export interface CalculateTransferRequest {
@@ -61,6 +76,8 @@ export interface TransferCalculationResult {
   exchangeRate: number;
   serviceCharge: number;
   totalPayable: number;
+  agentAvailableBalance?: number;
+  balanceWarning?: string;
   complianceViolations: ComplianceViolation[];
 }
 

@@ -81,6 +81,9 @@
         <button mat-icon-button matTooltip="View Details" (click)="viewDetail(c)">
           <mat-icon color="primary">visibility</mat-icon>
         </button>
+        <button mat-icon-button matTooltip="Documents" (click)="viewDocuments(c)">
+          <mat-icon color="accent">folder_open</mat-icon>
+        </button>
         <button *ngIf="!c.isKycVerified" mat-icon-button matTooltip="Approve KYC" (click)="approveKyc(c)">
           <mat-icon class="text-success">check_circle</mat-icon>
         </button>
@@ -130,4 +133,58 @@
     </div>
     <div class="detail-item"><span class="detail-label">Created</span><span>{{ detailCustomer.createdAt | date:'yyyy-MM-dd' }}</span></div>
   </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- Document Viewer Popup                                         -->
+<!-- ============================================================ -->
+<div *ngIf="showDocViewer" class="overlay" (click)="closeDocViewer()"></div>
+<div *ngIf="showDocViewer" class="popup popup-lg">
+  <div class="popup-header">
+    <h3>Documents &mdash; {{ docViewerCustomer?.fullName }}</h3>
+    <button mat-icon-button (click)="closeDocViewer()"><mat-icon>close</mat-icon></button>
+  </div>
+
+  <div *ngIf="loadingDocs" class="loading-container">
+    <mat-spinner diameter="30"></mat-spinner>
+  </div>
+
+  <div *ngIf="!loadingDocs && customerDocs.length === 0" class="doc-empty-state">
+    <mat-icon>folder_off</mat-icon>
+    <span>No documents uploaded for this customer.</span>
+  </div>
+
+  <div *ngIf="!loadingDocs && customerDocs.length > 0" class="doc-viewer-grid">
+    <div *ngFor="let doc of customerDocs" class="doc-viewer-card">
+      <div class="doc-viewer-header">
+        <strong>{{ doc.documentType }}</strong>
+        <span class="chip" [ngClass]="doc.isVerified ? 'chip-success' : 'chip-warning'">
+          {{ doc.isVerified ? 'Verified' : 'Pending' }}
+        </span>
+      </div>
+      <div class="doc-viewer-info">
+        <span *ngIf="doc.documentNumber">No: {{ doc.documentNumber }}</span>
+        <span *ngIf="doc.issuingCountry"> &middot; {{ doc.issuingCountry }}</span>
+      </div>
+      <div class="doc-viewer-images">
+        <div *ngIf="doc.frontImagePath" class="doc-viewer-img-wrap" (click)="openImagePopup(doc.frontImagePath)">
+          <img [src]="getDocImageFullUrl(doc.frontImagePath)" alt="Front" />
+          <span class="doc-img-label">Front</span>
+        </div>
+        <div *ngIf="doc.backImagePath" class="doc-viewer-img-wrap" (click)="openImagePopup(doc.backImagePath)">
+          <img [src]="getDocImageFullUrl(doc.backImagePath)" alt="Back" />
+          <span class="doc-img-label">Back</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Image Full View Popup -->
+<div *ngIf="showImagePopup" class="overlay image-overlay" (click)="closeImagePopup()"></div>
+<div *ngIf="showImagePopup" class="image-popup">
+  <button mat-icon-button class="image-popup-close" (click)="closeImagePopup()">
+    <mat-icon>close</mat-icon>
+  </button>
+  <img [src]="docImageUrl" alt="Document Image" class="image-popup-img" />
 </div>

@@ -1,0 +1,320 @@
+<div class="setup-fields-page">
+  <h2 class="page-title">System Setup</h2>
+
+  <mat-card appearance="outlined">
+    <mat-tab-group (selectedIndexChange)="onTabChange($event)" [selectedIndex]="activeTabIndex" animationDuration="200ms">
+
+      <!-- Setup Field Tabs (0-5) -->
+      <mat-tab *ngFor="let tab of setupTabs; let i = index" [label]="tab.label">
+        <div class="tab-content">
+          <div class="tab-toolbar">
+            <button mat-raised-button color="primary" (click)="startAddSetupField()" *ngIf="!addingSetupField">
+              <mat-icon>add</mat-icon> Add New
+            </button>
+          </div>
+
+          <div *ngIf="loadingSetupFields" class="loading-row">
+            <mat-spinner diameter="32"></mat-spinner>
+          </div>
+
+          <!-- Add New Row -->
+          <div class="inline-form" *ngIf="addingSetupField">
+            <mat-form-field appearance="outline">
+              <mat-label>Code</mat-label>
+              <input matInput [(ngModel)]="setupFieldForm.code" placeholder="e.g. CASH">
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Name</mat-label>
+              <input matInput [(ngModel)]="setupFieldForm.name" placeholder="e.g. Cash Payment">
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Description</mat-label>
+              <input matInput [(ngModel)]="setupFieldForm.description">
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="narrow">
+              <mat-label>Sort</mat-label>
+              <input matInput type="number" [(ngModel)]="setupFieldForm.sortOrder">
+            </mat-form-field>
+            <mat-slide-toggle [(ngModel)]="setupFieldForm.isActive">Active</mat-slide-toggle>
+            <div class="form-actions">
+              <button mat-raised-button color="primary" (click)="saveSetupField()" [disabled]="savingSetupField">Save</button>
+              <button mat-button (click)="cancelSetupFieldEdit()">Cancel</button>
+            </div>
+          </div>
+
+          <!-- Table -->
+          <div class="table-responsive" *ngIf="!loadingSetupFields && setupFields.length > 0">
+            <table mat-table [dataSource]="setupFields" class="setup-table">
+              <ng-container matColumnDef="code">
+                <th mat-header-cell *matHeaderCellDef>Code</th>
+                <td mat-cell *matCellDef="let row">
+                  <ng-container *ngIf="editingSetupFieldId !== row.id">{{ row.code }}</ng-container>
+                  <mat-form-field appearance="outline" *ngIf="editingSetupFieldId === row.id" class="cell-input">
+                    <input matInput [(ngModel)]="setupFieldForm.code">
+                  </mat-form-field>
+                </td>
+              </ng-container>
+              <ng-container matColumnDef="name">
+                <th mat-header-cell *matHeaderCellDef>Name</th>
+                <td mat-cell *matCellDef="let row">
+                  <ng-container *ngIf="editingSetupFieldId !== row.id">{{ row.name }}</ng-container>
+                  <mat-form-field appearance="outline" *ngIf="editingSetupFieldId === row.id" class="cell-input">
+                    <input matInput [(ngModel)]="setupFieldForm.name">
+                  </mat-form-field>
+                </td>
+              </ng-container>
+              <ng-container matColumnDef="description">
+                <th mat-header-cell *matHeaderCellDef>Description</th>
+                <td mat-cell *matCellDef="let row">
+                  <ng-container *ngIf="editingSetupFieldId !== row.id">{{ row.description }}</ng-container>
+                  <mat-form-field appearance="outline" *ngIf="editingSetupFieldId === row.id" class="cell-input">
+                    <input matInput [(ngModel)]="setupFieldForm.description">
+                  </mat-form-field>
+                </td>
+              </ng-container>
+              <ng-container matColumnDef="isActive">
+                <th mat-header-cell *matHeaderCellDef>Active</th>
+                <td mat-cell *matCellDef="let row">
+                  <ng-container *ngIf="editingSetupFieldId !== row.id">
+                    <span class="badge" [class.badge-active]="row.isActive" [class.badge-inactive]="!row.isActive">{{ row.isActive ? 'Yes' : 'No' }}</span>
+                  </ng-container>
+                  <mat-slide-toggle *ngIf="editingSetupFieldId === row.id" [(ngModel)]="setupFieldForm.isActive"></mat-slide-toggle>
+                </td>
+              </ng-container>
+              <ng-container matColumnDef="sortOrder">
+                <th mat-header-cell *matHeaderCellDef>Sort</th>
+                <td mat-cell *matCellDef="let row">
+                  <ng-container *ngIf="editingSetupFieldId !== row.id">{{ row.sortOrder }}</ng-container>
+                  <mat-form-field appearance="outline" *ngIf="editingSetupFieldId === row.id" class="cell-input narrow">
+                    <input matInput type="number" [(ngModel)]="setupFieldForm.sortOrder">
+                  </mat-form-field>
+                </td>
+              </ng-container>
+              <ng-container matColumnDef="actions">
+                <th mat-header-cell *matHeaderCellDef>Actions</th>
+                <td mat-cell *matCellDef="let row">
+                  <ng-container *ngIf="editingSetupFieldId !== row.id && !isConfirmingDelete('setupField', row.id)">
+                    <button mat-icon-button matTooltip="Edit" (click)="startEditSetupField(row)"><mat-icon>edit</mat-icon></button>
+                    <button mat-icon-button matTooltip="Delete" color="warn" (click)="confirmDeleteSetupField(row)"><mat-icon>delete</mat-icon></button>
+                  </ng-container>
+                  <ng-container *ngIf="editingSetupFieldId === row.id">
+                    <button mat-icon-button matTooltip="Save" color="primary" (click)="saveSetupField()" [disabled]="savingSetupField"><mat-icon>check</mat-icon></button>
+                    <button mat-icon-button matTooltip="Cancel" (click)="cancelSetupFieldEdit()"><mat-icon>close</mat-icon></button>
+                  </ng-container>
+                  <ng-container *ngIf="isConfirmingDelete('setupField', row.id)">
+                    <span class="confirm-text">Delete?</span>
+                    <button mat-icon-button color="warn" (click)="executeDelete()"><mat-icon>check</mat-icon></button>
+                    <button mat-icon-button (click)="cancelDelete()"><mat-icon>close</mat-icon></button>
+                  </ng-container>
+                </td>
+              </ng-container>
+              <tr mat-header-row *matHeaderRowDef="setupFieldColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: setupFieldColumns;"></tr>
+            </table>
+          </div>
+
+          <div *ngIf="!loadingSetupFields && setupFields.length === 0 && !addingSetupField" class="empty-text">
+            No items configured. Click "Add New" to get started.
+          </div>
+        </div>
+      </mat-tab>
+
+      <!-- Document Types Tab (index 6) -->
+      <mat-tab label="Document Types">
+        <div class="tab-content">
+          <div class="tab-toolbar">
+            <button mat-raised-button color="primary" (click)="startAddDocType()" *ngIf="!addingDocType">
+              <mat-icon>add</mat-icon> Add New
+            </button>
+          </div>
+
+          <div *ngIf="loadingDocTypes" class="loading-row"><mat-spinner diameter="32"></mat-spinner></div>
+
+          <div class="inline-form" *ngIf="addingDocType">
+            <mat-form-field appearance="outline">
+              <mat-label>Name</mat-label>
+              <input matInput [(ngModel)]="docTypeForm.name" placeholder="e.g. Passport">
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Code</mat-label>
+              <input matInput [(ngModel)]="docTypeForm.code" placeholder="e.g. PASSPORT">
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="narrow">
+              <mat-label>Required Sides</mat-label>
+              <input matInput type="number" [(ngModel)]="docTypeForm.requiredSides" min="1" max="4">
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="narrow">
+              <mat-label>Sort</mat-label>
+              <input matInput type="number" [(ngModel)]="docTypeForm.sortOrder">
+            </mat-form-field>
+            <mat-slide-toggle [(ngModel)]="docTypeForm.isActive">Active</mat-slide-toggle>
+            <div class="form-actions">
+              <button mat-raised-button color="primary" (click)="saveDocType()" [disabled]="savingDocType">Save</button>
+              <button mat-button (click)="cancelDocTypeEdit()">Cancel</button>
+            </div>
+          </div>
+
+          <div class="table-responsive" *ngIf="!loadingDocTypes && documentTypes.length > 0">
+            <table mat-table [dataSource]="documentTypes" class="setup-table">
+              <ng-container matColumnDef="name">
+                <th mat-header-cell *matHeaderCellDef>Name</th>
+                <td mat-cell *matCellDef="let row">
+                  <ng-container *ngIf="editingDocTypeId !== row.id">{{ row.name }}</ng-container>
+                  <mat-form-field appearance="outline" *ngIf="editingDocTypeId === row.id" class="cell-input">
+                    <input matInput [(ngModel)]="docTypeForm.name">
+                  </mat-form-field>
+                </td>
+              </ng-container>
+              <ng-container matColumnDef="code">
+                <th mat-header-cell *matHeaderCellDef>Code</th>
+                <td mat-cell *matCellDef="let row">
+                  <ng-container *ngIf="editingDocTypeId !== row.id">{{ row.code }}</ng-container>
+                  <mat-form-field appearance="outline" *ngIf="editingDocTypeId === row.id" class="cell-input">
+                    <input matInput [(ngModel)]="docTypeForm.code">
+                  </mat-form-field>
+                </td>
+              </ng-container>
+              <ng-container matColumnDef="requiredSides">
+                <th mat-header-cell *matHeaderCellDef>Required Sides</th>
+                <td mat-cell *matCellDef="let row">
+                  <ng-container *ngIf="editingDocTypeId !== row.id">{{ row.requiredSides }}</ng-container>
+                  <mat-form-field appearance="outline" *ngIf="editingDocTypeId === row.id" class="cell-input narrow">
+                    <input matInput type="number" [(ngModel)]="docTypeForm.requiredSides" min="1" max="4">
+                  </mat-form-field>
+                </td>
+              </ng-container>
+              <ng-container matColumnDef="isActive">
+                <th mat-header-cell *matHeaderCellDef>Active</th>
+                <td mat-cell *matCellDef="let row">
+                  <ng-container *ngIf="editingDocTypeId !== row.id">
+                    <span class="badge" [class.badge-active]="row.isActive" [class.badge-inactive]="!row.isActive">{{ row.isActive ? 'Yes' : 'No' }}</span>
+                  </ng-container>
+                  <mat-slide-toggle *ngIf="editingDocTypeId === row.id" [(ngModel)]="docTypeForm.isActive"></mat-slide-toggle>
+                </td>
+              </ng-container>
+              <ng-container matColumnDef="sortOrder">
+                <th mat-header-cell *matHeaderCellDef>Sort</th>
+                <td mat-cell *matCellDef="let row">
+                  <ng-container *ngIf="editingDocTypeId !== row.id">{{ row.sortOrder }}</ng-container>
+                  <mat-form-field appearance="outline" *ngIf="editingDocTypeId === row.id" class="cell-input narrow">
+                    <input matInput type="number" [(ngModel)]="docTypeForm.sortOrder">
+                  </mat-form-field>
+                </td>
+              </ng-container>
+              <ng-container matColumnDef="actions">
+                <th mat-header-cell *matHeaderCellDef>Actions</th>
+                <td mat-cell *matCellDef="let row">
+                  <ng-container *ngIf="editingDocTypeId !== row.id && !isConfirmingDelete('docType', row.id)">
+                    <button mat-icon-button matTooltip="Edit" (click)="startEditDocType(row)"><mat-icon>edit</mat-icon></button>
+                    <button mat-icon-button matTooltip="Delete" color="warn" (click)="confirmDeleteDocType(row)"><mat-icon>delete</mat-icon></button>
+                  </ng-container>
+                  <ng-container *ngIf="editingDocTypeId === row.id">
+                    <button mat-icon-button matTooltip="Save" color="primary" (click)="saveDocType()" [disabled]="savingDocType"><mat-icon>check</mat-icon></button>
+                    <button mat-icon-button matTooltip="Cancel" (click)="cancelDocTypeEdit()"><mat-icon>close</mat-icon></button>
+                  </ng-container>
+                  <ng-container *ngIf="isConfirmingDelete('docType', row.id)">
+                    <span class="confirm-text">Delete?</span>
+                    <button mat-icon-button color="warn" (click)="executeDelete()"><mat-icon>check</mat-icon></button>
+                    <button mat-icon-button (click)="cancelDelete()"><mat-icon>close</mat-icon></button>
+                  </ng-container>
+                </td>
+              </ng-container>
+              <tr mat-header-row *matHeaderRowDef="docTypeColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: docTypeColumns;"></tr>
+            </table>
+          </div>
+
+          <div *ngIf="!loadingDocTypes && documentTypes.length === 0 && !addingDocType" class="empty-text">
+            No document types configured.
+          </div>
+        </div>
+      </mat-tab>
+
+      <!-- System Settings Tab (index 7) -->
+      <mat-tab label="Settings">
+        <div class="tab-content">
+          <div class="tab-toolbar">
+            <button mat-raised-button color="primary" (click)="startAddSetting()" *ngIf="!addingSetting">
+              <mat-icon>add</mat-icon> Add Setting
+            </button>
+          </div>
+
+          <div *ngIf="loadingSettings" class="loading-row"><mat-spinner diameter="32"></mat-spinner></div>
+
+          <div class="inline-form" *ngIf="addingSetting">
+            <mat-form-field appearance="outline">
+              <mat-label>Key</mat-label>
+              <mat-select [(ngModel)]="settingForm.key" (ngModelChange)="onSettingKeySelected($event)">
+                <mat-option *ngFor="let k of availableSettingKeys" [value]="k">{{ k }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Value</mat-label>
+              <input matInput [(ngModel)]="settingForm.value">
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Description</mat-label>
+              <input matInput [(ngModel)]="settingForm.description">
+            </mat-form-field>
+            <div class="form-actions">
+              <button mat-raised-button color="primary" (click)="saveSetting()" [disabled]="savingSetting">Save</button>
+              <button mat-button (click)="cancelSettingEdit()">Cancel</button>
+            </div>
+          </div>
+
+          <div class="table-responsive" *ngIf="!loadingSettings && systemSettings.length > 0">
+            <table mat-table [dataSource]="systemSettings" class="setup-table">
+              <ng-container matColumnDef="key">
+                <th mat-header-cell *matHeaderCellDef>Key</th>
+                <td mat-cell *matCellDef="let row">{{ row.key }}</td>
+              </ng-container>
+              <ng-container matColumnDef="value">
+                <th mat-header-cell *matHeaderCellDef>Value</th>
+                <td mat-cell *matCellDef="let row">
+                  <ng-container *ngIf="editingSettingId !== row.id">{{ row.value }}</ng-container>
+                  <mat-form-field appearance="outline" *ngIf="editingSettingId === row.id" class="cell-input">
+                    <input matInput [(ngModel)]="settingForm.value">
+                  </mat-form-field>
+                </td>
+              </ng-container>
+              <ng-container matColumnDef="description">
+                <th mat-header-cell *matHeaderCellDef>Description</th>
+                <td mat-cell *matCellDef="let row">
+                  <ng-container *ngIf="editingSettingId !== row.id">{{ row.description }}</ng-container>
+                  <mat-form-field appearance="outline" *ngIf="editingSettingId === row.id" class="cell-input">
+                    <input matInput [(ngModel)]="settingForm.description">
+                  </mat-form-field>
+                </td>
+              </ng-container>
+              <ng-container matColumnDef="actions">
+                <th mat-header-cell *matHeaderCellDef>Actions</th>
+                <td mat-cell *matCellDef="let row">
+                  <ng-container *ngIf="editingSettingId !== row.id && !isConfirmingDelete('setting', row.id)">
+                    <button mat-icon-button matTooltip="Edit" (click)="startEditSetting(row)"><mat-icon>edit</mat-icon></button>
+                    <button mat-icon-button matTooltip="Delete" color="warn" (click)="confirmDeleteSetting(row)"><mat-icon>delete</mat-icon></button>
+                  </ng-container>
+                  <ng-container *ngIf="editingSettingId === row.id">
+                    <button mat-icon-button matTooltip="Save" color="primary" (click)="saveSetting()" [disabled]="savingSetting"><mat-icon>check</mat-icon></button>
+                    <button mat-icon-button matTooltip="Cancel" (click)="cancelSettingEdit()"><mat-icon>close</mat-icon></button>
+                  </ng-container>
+                  <ng-container *ngIf="isConfirmingDelete('setting', row.id)">
+                    <span class="confirm-text">Delete?</span>
+                    <button mat-icon-button color="warn" (click)="executeDelete()"><mat-icon>check</mat-icon></button>
+                    <button mat-icon-button (click)="cancelDelete()"><mat-icon>close</mat-icon></button>
+                  </ng-container>
+                </td>
+              </ng-container>
+              <tr mat-header-row *matHeaderRowDef="settingColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: settingColumns;"></tr>
+            </table>
+          </div>
+
+          <div *ngIf="!loadingSettings && systemSettings.length === 0 && !addingSetting" class="empty-text">
+            No settings configured.
+          </div>
+        </div>
+      </mat-tab>
+
+    </mat-tab-group>
+  </mat-card>
+</div>

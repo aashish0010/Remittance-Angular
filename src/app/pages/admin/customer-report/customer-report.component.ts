@@ -42,6 +42,14 @@ export class CustomerReportComponent implements OnInit {
   showDetail = false;
   detailCustomer: CustomerModel | null = null;
 
+  // Document viewer
+  showDocViewer = false;
+  docViewerCustomer: CustomerModel | null = null;
+  customerDocs: any[] = [];
+  loadingDocs = false;
+  docImageUrl = '';
+  showImagePopup = false;
+
   constructor(
     private api: ApiService,
     private auth: AuthStateService,
@@ -100,6 +108,44 @@ export class CustomerReportComponent implements OnInit {
   }
 
   closeDetail(): void { this.showDetail = false; }
+
+  // Document Viewer
+  viewDocuments(customer: CustomerModel): void {
+    this.docViewerCustomer = customer;
+    this.showDocViewer = true;
+    this.loadingDocs = true;
+    this.customerDocs = [];
+    this.api.getCustomerDocuments(customer.id).subscribe({
+      next: res => {
+        if (res?.success && res.data) {
+          this.customerDocs = res.data;
+        }
+        this.loadingDocs = false;
+      },
+      error: () => { this.loadingDocs = false; },
+    });
+  }
+
+  closeDocViewer(): void {
+    this.showDocViewer = false;
+    this.docViewerCustomer = null;
+  }
+
+  getDocImageFullUrl(path: string): string {
+    if (!path) return '';
+    const base = this.api.getBaseUrl().replace(/\/$/, '');
+    return `${base}${path}`;
+  }
+
+  openImagePopup(path: string): void {
+    this.docImageUrl = this.getDocImageFullUrl(path);
+    this.showImagePopup = true;
+  }
+
+  closeImagePopup(): void {
+    this.showImagePopup = false;
+    this.docImageUrl = '';
+  }
 
   // KYC Actions
   approveKyc(customer: CustomerModel): void {

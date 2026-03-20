@@ -478,6 +478,20 @@
   }
 }
 
+// Clickable cards & chips
+.clickable-card { cursor: pointer; }
+.clickable-chip {
+  cursor: pointer;
+  text-decoration: none;
+  color: inherit;
+  &:hover {
+    opacity: 0.85;
+    transform: scale(1.05);
+  }
+  transition: opacity 0.15s, transform 0.15s;
+}
+.clickable-row { cursor: pointer; }
+
 @media (max-width: 600px) {
   .stat-cards-grid {
     grid-template-columns: 1fr;

@@ -62,8 +62,15 @@ export class SendMoneyComponent implements OnInit {
   submitting = false;
   successResult: TransactionResult | null = null;
 
-  // Agent profile
+  // Agent profile & balance
   agentProfile: AgentModel | null = null;
+  agentBalanceZero = false;
+  balanceWarning = '';
+  agentAvailableBalance: number | null = null;
+
+  // KYC / DOB warnings
+  kycWarning = '';
+  dobWarning = '';
 
   // Reference data
   countries: CountryInfo[] = [];
@@ -166,6 +173,12 @@ export class SendMoneyComponent implements OnInit {
         if (r.data.currency) {
           this.senderCurrency = r.data.currency;
         }
+        // Check if agent balance is zero or negative
+        const available = r.data.creditLimit - r.data.currentBalance;
+        if (available <= 0) {
+          this.agentBalanceZero = true;
+          this.notify.error('Insufficient balance. Your available balance is 0. Please contact admin to top up.');
+        }
       }
     });
     this.api.getCountries().subscribe(r => {
@@ -203,11 +216,34 @@ export class SendMoneyComponent implements OnInit {
   selectCustomer(customer: CustomerModel): void {
     this.selectedCustomerId = customer.id;
     this.selectedCustomer = customer;
+    this.kycWarning = '';
+    this.dobWarning = '';
+
+    // KYC check
+    if (!customer.isKycVerified) {
+      this.kycWarning = 'This customer has not completed KYC verification. Transaction cannot proceed.';
+    }
+
+    // DOB check (must be 16+)
+    if (customer.dateOfBirth) {
+      const dob = new Date(customer.dateOfBirth);
+      const today = new Date();
+      let age = today.getFullYear() - dob.getFullYear();
+      const monthDiff = today.getMonth() - dob.getMonth();
+      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
+        age--;
+      }
+      if (age < 16) {
+        this.dobWarning = `Customer is ${age} years old. Must be at least 16 years old to send a transaction.`;
+      }
+    }
   }
 
   clearSelectedCustomer(): void {
     this.selectedCustomerId = null;
     this.selectedCustomer = null;
+    this.kycWarning = '';
+    this.dobWarning = '';
   }
 
   toggleCreateCustomer(): void {
@@ -284,6 +320,8 @@ export class SendMoneyComponent implements OnInit {
     this.calcError = '';
     this.complianceViolations = [];
     this.complianceBlocked = false;
+    this.balanceWarning = '';
+    this.agentAvailableBalance = null;
     if (this.canCalculate()) {
       this.calcTrigger$.next();
     } else {
@@ -337,6 +375,8 @@ export class SendMoneyComponent implements OnInit {
           this.totalPayable = res.data.totalPayable;
           this.complianceViolations = res.data.complianceViolations || [];
           this.complianceBlocked = this.complianceViolations.some(v => v.action === 'Block');
+          this.agentAvailableBalance = res.data.agentAvailableBalance ?? null;
+          this.balanceWarning = res.data.balanceWarning || '';
           this.calculationDone = true;
           this.calcError = '';
         } else {
@@ -602,11 +642,14 @@ export class SendMoneyComponent implements OnInit {
   // ---------------------------------------------------------------------------
 
   canProceedStep1(): boolean {
-    return !!this.selectedCustomer;
+    return !!this.selectedCustomer && !this.kycWarning && !this.dobWarning;
   }
 
   canProceedStep2(): boolean {
-    return this.calculationDone && !this.complianceBlocked && !!this.selectedPartner && !!this.selectedPayoutModeId && this.sendAmount > 0 && !!this.selectedPaymentMethodId;
+    return this.calculationDone && !this.complianceBlocked && !this.balanceWarning
+      && !!this.selectedPartner && !!this.selectedPayoutModeId
+      && this.sendAmount > 0 && !!this.selectedPaymentMethodId
+      && !this.agentBalanceZero;
   }
 
   canProceedStep3(): boolean {

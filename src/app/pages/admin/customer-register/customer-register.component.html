@@ -66,6 +66,9 @@
         <button mat-icon-button matTooltip="View Details" (click)="viewDetail(c)">
           <mat-icon color="primary">visibility</mat-icon>
         </button>
+        <button mat-icon-button matTooltip="Documents" (click)="viewDocuments(c)">
+          <mat-icon color="accent">folder_open</mat-icon>
+        </button>
         <button mat-icon-button matTooltip="Edit" (click)="openEditPopup(c)">
           <mat-icon color="primary">edit</mat-icon>
         </button>
@@ -242,14 +245,134 @@
         </div>
       </div>
     </mat-tab>
+
+    <!-- Tab 4: Document Upload -->
+    <mat-tab label="Documents">
+      <div class="tab-content">
+        <div class="doc-upload-header">
+          <span class="doc-upload-label">Upload identification documents</span>
+          <button mat-stroked-button color="primary" (click)="addDocumentRow()">
+            <mat-icon>add</mat-icon> Add Document
+          </button>
+        </div>
+
+        <div *ngIf="documentUploads.length === 0" class="doc-empty-state">
+          <mat-icon>upload_file</mat-icon>
+          <span>No documents added. Click "Add Document" to upload identification documents.</span>
+        </div>
+
+        <div *ngFor="let doc of documentUploads; let i = index" class="doc-upload-row">
+          <div class="doc-upload-row-header">
+            <span class="doc-row-number">Document {{ i + 1 }}</span>
+            <button mat-icon-button color="warn" matTooltip="Remove" (click)="removeDocumentRow(i)">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </div>
+
+          <div class="form-grid">
+            <mat-form-field appearance="outline">
+              <mat-label>Document Type</mat-label>
+              <mat-select [(ngModel)]="doc.documentType" (selectionChange)="onDocTypeChange(doc)">
+                <mat-option *ngFor="let dt of documentTypeConfigs" [value]="dt.name">{{ dt.name }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Document Number</mat-label>
+              <input matInput [(ngModel)]="doc.documentNumber" />
+            </mat-form-field>
+            <mat-form-field appearance="outline">
+              <mat-label>Issuing Country</mat-label>
+              <mat-select [(ngModel)]="doc.issuingCountry" searchable>
+                <mat-option *ngFor="let c of countries" [value]="c.name">{{ c.name }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+
+          <div class="doc-file-row">
+            <div class="doc-file-item">
+              <label class="file-upload-btn">
+                <mat-icon>image</mat-icon> Front Side
+                <input type="file" accept="image/*" (change)="onFileSelected(doc, 'front', $event)" hidden />
+              </label>
+              <img *ngIf="doc.frontPreview" [src]="doc.frontPreview" class="doc-preview-thumb" />
+              <span *ngIf="doc.frontImage" class="doc-file-name">{{ doc.frontImage.name }}</span>
+            </div>
+            <div *ngIf="doc.requiredSides >= 2" class="doc-file-item">
+              <label class="file-upload-btn">
+                <mat-icon>image</mat-icon> Back Side
+                <input type="file" accept="image/*" (change)="onFileSelected(doc, 'back', $event)" hidden />
+              </label>
+              <img *ngIf="doc.backPreview" [src]="doc.backPreview" class="doc-preview-thumb" />
+              <span *ngIf="doc.backImage" class="doc-file-name">{{ doc.backImage.name }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </mat-tab>
   </mat-tab-group>
 
   <div class="popup-actions">
     <button mat-button (click)="closeFormPopup()"><mat-icon>close</mat-icon> Cancel</button>
-    <button mat-raised-button color="primary" (click)="saveCustomer()" [disabled]="saving">
-      <mat-spinner *ngIf="saving" diameter="18" class="inline-spinner"></mat-spinner>
-      <mat-icon *ngIf="!saving">save</mat-icon>
-      {{ isEditing ? 'Save Changes' : 'Register Customer' }}
+    <button mat-raised-button color="primary" (click)="saveCustomer()" [disabled]="saving || uploadingDocs">
+      <mat-spinner *ngIf="saving || uploadingDocs" diameter="18" class="inline-spinner"></mat-spinner>
+      <mat-icon *ngIf="!saving && !uploadingDocs">save</mat-icon>
+      {{ uploadingDocs ? 'Uploading Documents...' : (isEditing ? 'Save Changes' : 'Register Customer') }}
     </button>
   </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- Document Viewer Popup                                         -->
+<!-- ============================================================ -->
+<div *ngIf="showDocViewer" class="overlay" (click)="closeDocViewer()"></div>
+<div *ngIf="showDocViewer" class="popup popup-lg">
+  <div class="popup-header">
+    <h3>Documents &mdash; {{ docViewerCustomer?.fullName }}</h3>
+    <button mat-icon-button (click)="closeDocViewer()"><mat-icon>close</mat-icon></button>
+  </div>
+
+  <div *ngIf="loadingDocs" class="loading-container">
+    <mat-spinner diameter="30"></mat-spinner>
+  </div>
+
+  <div *ngIf="!loadingDocs && customerDocs.length === 0" class="doc-empty-state">
+    <mat-icon>folder_off</mat-icon>
+    <span>No documents uploaded for this customer.</span>
+  </div>
+
+  <div *ngIf="!loadingDocs && customerDocs.length > 0" class="doc-viewer-grid">
+    <div *ngFor="let doc of customerDocs" class="doc-viewer-card">
+      <div class="doc-viewer-header">
+        <strong>{{ doc.documentType }}</strong>
+        <span class="chip" [ngClass]="doc.isVerified ? 'chip-success' : 'chip-warning'">
+          {{ doc.isVerified ? 'Verified' : 'Pending' }}
+        </span>
+      </div>
+      <div class="doc-viewer-info">
+        <span *ngIf="doc.documentNumber">No: {{ doc.documentNumber }}</span>
+        <span *ngIf="doc.issuingCountry"> &middot; {{ doc.issuingCountry }}</span>
+      </div>
+      <div class="doc-viewer-images">
+        <div *ngIf="doc.frontImagePath" class="doc-viewer-img-wrap" (click)="openImagePopup(doc.frontImagePath)">
+          <img [src]="getDocImageFullUrl(doc.frontImagePath)" alt="Front" />
+          <span class="doc-img-label">Front</span>
+        </div>
+        <div *ngIf="doc.backImagePath" class="doc-viewer-img-wrap" (click)="openImagePopup(doc.backImagePath)">
+          <img [src]="getDocImageFullUrl(doc.backImagePath)" alt="Back" />
+          <span class="doc-img-label">Back</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- Image Full View Popup                                         -->
+<!-- ============================================================ -->
+<div *ngIf="showImagePopup" class="overlay image-overlay" (click)="closeImagePopup()"></div>
+<div *ngIf="showImagePopup" class="image-popup">
+  <button mat-icon-button class="image-popup-close" (click)="closeImagePopup()">
+    <mat-icon>close</mat-icon>
+  </button>
+  <img [src]="docImageUrl" alt="Document Image" class="image-popup-img" />
 </div>

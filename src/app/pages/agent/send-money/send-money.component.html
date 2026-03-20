@@ -51,6 +51,12 @@
           </button>
         </div>
 
+        <!-- Agent Balance Zero Warning -->
+        <div *ngIf="agentBalanceZero" class="warn-alert warn-alert--block">
+          <mat-icon>account_balance_wallet</mat-icon>
+          <span>Your available balance is 0. You cannot send transactions until your balance is topped up. Please contact admin.</span>
+        </div>
+
         <!-- Selected Customer Banner -->
         <div *ngIf="selectedCustomer && !showCreateCustomer" class="selected-banner">
           <div class="selected-info">
@@ -67,6 +73,18 @@
           <button mat-icon-button color="warn" (click)="clearSelectedCustomer()" matTooltip="Remove selection">
             <mat-icon>close</mat-icon>
           </button>
+        </div>
+
+        <!-- KYC Warning -->
+        <div *ngIf="kycWarning" class="warn-alert warn-alert--block">
+          <mat-icon>gpp_bad</mat-icon>
+          <span>{{ kycWarning }}</span>
+        </div>
+
+        <!-- DOB Warning -->
+        <div *ngIf="dobWarning" class="warn-alert warn-alert--block">
+          <mat-icon>cake</mat-icon>
+          <span>{{ dobWarning }}</span>
         </div>
 
         <!-- Create Customer Form -->
@@ -342,6 +360,14 @@
               <span>{{ totalPayable | number:'1.2-2' }} {{ senderCurrency }}</span>
             </div>
 
+            <!-- Balance Warning -->
+            <div *ngIf="balanceWarning" class="compliance-warnings">
+              <div class="compliance-block">
+                <mat-icon>account_balance_wallet</mat-icon>
+                <span>{{ balanceWarning }}</span>
+              </div>
+            </div>
+
             <!-- Compliance Violations -->
             <div *ngIf="complianceViolations.length > 0" class="compliance-warnings">
               <div *ngFor="let v of complianceViolations"
@@ -351,7 +377,7 @@
               </div>
             </div>
 
-            <div *ngIf="calculationDone && !complianceBlocked" class="calc-ready">
+            <div *ngIf="calculationDone && !complianceBlocked && !balanceWarning" class="calc-ready">
               <mat-icon>check_circle</mat-icon> Ready to proceed
             </div>
             <div *ngIf="complianceBlocked" class="calc-error">

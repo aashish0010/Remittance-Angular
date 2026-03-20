@@ -21,6 +21,17 @@ import { CustomerModel } from '../../../core/models/customer.models';
 import { CountryInfo } from '../../../core/models/common.models';
 import { SearchableSelectDirective } from '../../../shared/searchable-select.directive';
 
+interface DocumentUpload {
+  documentType: string;
+  documentNumber: string;
+  requiredSides: number;
+  issuingCountry: string;
+  frontImage: File | null;
+  backImage: File | null;
+  frontPreview: string | null;
+  backPreview: string | null;
+}
+
 interface CustomerForm {
   fullName: string;
   dateOfBirth: string;
@@ -81,6 +92,19 @@ export class CustomerRegisterComponent implements OnInit {
   formError = '';
   form: CustomerForm = emptyForm();
 
+  // Document upload
+  documentUploads: DocumentUpload[] = [];
+  documentTypeConfigs: { name: string; requiredSides: number }[] = [];
+  uploadingDocs = false;
+
+  // Document viewer
+  showDocViewer = false;
+  docViewerCustomer: CustomerModel | null = null;
+  customerDocs: any[] = [];
+  loadingDocs = false;
+  docImageUrl = '';
+  showImagePopup = false;
+
   constructor(
     private api: ApiService,
     private auth: AuthStateService,
@@ -91,6 +115,7 @@ export class CustomerRegisterComponent implements OnInit {
     this.auth.loadFromSession();
     this.loadCustomers();
     this.loadCountries();
+    this.loadDocumentTypeConfigs();
   }
 
   // ---------------------------------------------------------------------------
@@ -162,6 +187,7 @@ export class CustomerRegisterComponent implements OnInit {
     this.isEditing = false;
     this.editingId = 0;
     this.formError = '';
+    this.documentUploads = [];
     this.showFormPopup = true;
   }
 
@@ -224,9 +250,21 @@ export class CustomerRegisterComponent implements OnInit {
       : this.api.createCustomer(dto);
 
     obs.subscribe({
-      next: res => {
+      next: async res => {
         if (res?.success) {
-          this.notify.success(this.isEditing ? 'Customer updated.' : 'Customer created.');
+          // Upload documents if any
+          if (this.documentUploads.length > 0 && res.data?.id) {
+            try {
+              this.uploadingDocs = true;
+              await this.uploadDocuments(res.data.id);
+              this.notify.success(this.isEditing ? 'Customer updated.' : 'Customer created with documents.');
+            } catch {
+              this.notify.warn('Customer saved but some documents failed to upload.');
+            }
+            this.uploadingDocs = false;
+          } else {
+            this.notify.success(this.isEditing ? 'Customer updated.' : 'Customer created.');
+          }
           this.showFormPopup = false;
           this.loadCustomers();
         } else {
@@ -239,6 +277,130 @@ export class CustomerRegisterComponent implements OnInit {
         this.saving = false;
       },
     });
+  }
+
+  // ---------------------------------------------------------------------------
+  // Document Type Configs
+  // ---------------------------------------------------------------------------
+  loadDocumentTypeConfigs(): void {
+    this.api.getReferenceDocumentTypes().subscribe({
+      next: res => {
+        if (res?.success && res.data) {
+          this.documentTypeConfigs = res.data.map((d: any) => ({
+            name: d.name,
+            requiredSides: d.requiredSides || 1,
+          }));
+        }
+      },
+      error: () => {
+        // Fallback defaults
+        this.documentTypeConfigs = [
+          { name: 'Passport', requiredSides: 2 },
+          { name: 'National ID', requiredSides: 2 },
+          { name: 'Driver License', requiredSides: 1 },
+        ];
+      },
+    });
+  }
+
+  // ---------------------------------------------------------------------------
+  // Document Upload helpers
+  // ---------------------------------------------------------------------------
+  addDocumentRow(): void {
+    this.documentUploads.push({
+      documentType: '',
+      documentNumber: '',
+      requiredSides: 1,
+      issuingCountry: '',
+      frontImage: null,
+      backImage: null,
+      frontPreview: null,
+      backPreview: null,
+    });
+  }
+
+  removeDocumentRow(index: number): void {
+    this.documentUploads.splice(index, 1);
+  }
+
+  onDocTypeChange(doc: DocumentUpload): void {
+    const config = this.documentTypeConfigs.find(d => d.name === doc.documentType);
+    if (config) {
+      doc.requiredSides = config.requiredSides;
+    }
+  }
+
+  onFileSelected(doc: DocumentUpload, side: 'front' | 'back', event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (!input.files?.length) return;
+    const file = input.files[0];
+    if (side === 'front') {
+      doc.frontImage = file;
+      doc.frontPreview = URL.createObjectURL(file);
+    } else {
+      doc.backImage = file;
+      doc.backPreview = URL.createObjectURL(file);
+    }
+  }
+
+  private async uploadDocuments(customerId: number): Promise<void> {
+    for (const doc of this.documentUploads) {
+      if (!doc.documentType || !doc.frontImage) continue;
+      const formData = new FormData();
+      formData.append('customerId', customerId.toString());
+      formData.append('documentType', doc.documentType);
+      formData.append('documentNumber', doc.documentNumber);
+      formData.append('requiredSides', doc.requiredSides.toString());
+      formData.append('issuingCountry', doc.issuingCountry || '');
+      formData.append('frontImage', doc.frontImage);
+      if (doc.backImage && doc.requiredSides >= 2) {
+        formData.append('backImage', doc.backImage);
+      }
+      await this.api.uploadDocument(formData).toPromise();
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Document Viewer
+  // ---------------------------------------------------------------------------
+  viewDocuments(customer: CustomerModel): void {
+    this.docViewerCustomer = customer;
+    this.showDocViewer = true;
+    this.loadingDocs = true;
+    this.customerDocs = [];
+    this.api.getCustomerDocuments(customer.id).subscribe({
+      next: res => {
+        if (res?.success && res.data) {
+          this.customerDocs = res.data;
+        }
+        this.loadingDocs = false;
+      },
+      error: () => {
+        this.loadingDocs = false;
+      },
+    });
+  }
+
+  closeDocViewer(): void {
+    this.showDocViewer = false;
+    this.docViewerCustomer = null;
+  }
+
+  getDocImageFullUrl(path: string): string {
+    if (!path) return '';
+    // API base url without trailing slash + path
+    const base = this.api.getBaseUrl().replace(/\/$/, '');
+    return `${base}${path}`;
+  }
+
+  openImagePopup(path: string): void {
+    this.docImageUrl = this.getDocImageFullUrl(path);
+    this.showImagePopup = true;
+  }
+
+  closeImagePopup(): void {
+    this.showImagePopup = false;
+    this.docImageUrl = '';
   }
 
   // ---------------------------------------------------------------------------

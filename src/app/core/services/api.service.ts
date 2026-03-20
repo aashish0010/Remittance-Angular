@@ -34,6 +34,10 @@ export class ApiService {
   // Internal helpers
   // ---------------------------------------------------------------------------
 
+  getBaseUrl(): string {
+    return this.baseUrl;
+  }
+
   private url(path: string): string {
     return `${this.baseUrl}${path}`;
   }
@@ -643,5 +647,98 @@ export class ApiService {
     if (params.startDate) q.set('startDate', params.startDate);
     if (params.endDate) q.set('endDate', params.endDate);
     return this.get<any>(`api/admin/reports/settlement?${q.toString()}`);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Setup Fields
+  // ---------------------------------------------------------------------------
+
+  getSetupFields(category?: string): Observable<ApiResponse<any[]>> {
+    const q = category ? `?category=${category}` : '';
+    return this.get<any[]>(`api/admin/setup-fields${q}`);
+  }
+
+  createSetupField(dto: any): Observable<ApiResponse<any>> {
+    return this.post<any>('api/admin/setup-fields', dto);
+  }
+
+  updateSetupField(id: number, dto: any): Observable<ApiResponse<any>> {
+    return this.put<any>(`api/admin/setup-fields/${id}`, dto);
+  }
+
+  deleteSetupField(id: number): Observable<ApiResponse<boolean>> {
+    return this.delete<boolean>(`api/admin/setup-fields/${id}`);
+  }
+
+  getDocumentTypeConfigs(): Observable<ApiResponse<any[]>> {
+    return this.get<any[]>('api/admin/setup-fields/document-types');
+  }
+  getDocumentTypes(): Observable<ApiResponse<any[]>> { return this.getDocumentTypeConfigs(); }
+
+  createDocumentTypeConfig(dto: any): Observable<ApiResponse<any>> {
+    return this.post<any>('api/admin/setup-fields/document-types', dto);
+  }
+  createDocumentType(dto: any): Observable<ApiResponse<any>> { return this.createDocumentTypeConfig(dto); }
+
+  updateDocumentTypeConfig(id: number, dto: any): Observable<ApiResponse<any>> {
+    return this.put<any>(`api/admin/setup-fields/document-types/${id}`, dto);
+  }
+  updateDocumentType(id: number, dto: any): Observable<ApiResponse<any>> { return this.updateDocumentTypeConfig(id, dto); }
+
+  deleteDocumentTypeConfig(id: number): Observable<ApiResponse<boolean>> {
+    return this.delete<boolean>(`api/admin/setup-fields/document-types/${id}`);
+  }
+  deleteDocumentType(id: number): Observable<ApiResponse<boolean>> { return this.deleteDocumentTypeConfig(id); }
+
+  getSystemSettings(): Observable<ApiResponse<any[]>> {
+    return this.get<any[]>('api/admin/setup-fields/settings');
+  }
+
+  saveSystemSetting(dto: any): Observable<ApiResponse<boolean>> {
+    return this.post<boolean>('api/admin/setup-fields/settings', dto);
+  }
+
+  deleteSystemSetting(id: number): Observable<ApiResponse<boolean>> {
+    return this.delete<boolean>(`api/admin/setup-fields/settings/${id}`);
+  }
+
+  // Reference data (dynamic)
+  getReferenceSetupFields(category?: string): Observable<ApiResponse<any[]>> {
+    const q = category ? `?category=${category}` : '';
+    return this.get<any[]>(`api/reference/setup-fields${q}`);
+  }
+
+  getReferenceDocumentTypes(): Observable<ApiResponse<any[]>> {
+    return this.get<any[]>('api/reference/document-types');
+  }
+
+  getReferenceSettings(): Observable<ApiResponse<any[]>> {
+    return this.get<any[]>('api/reference/settings');
+  }
+
+  // ---------------------------------------------------------------------------
+  // Transaction Detail
+  // ---------------------------------------------------------------------------
+
+  getTransactionDetail(id: number): Observable<ApiResponse<TransactionResult>> {
+    return this.get<TransactionResult>(`api/admin/transactions/${id}`);
+  }
+
+  getAgentTransactionDetail(id: number): Observable<ApiResponse<TransactionResult>> {
+    return this.get<TransactionResult>(`api/agent/transactions/${id}`);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Document Upload
+  // ---------------------------------------------------------------------------
+
+  uploadDocument(formData: FormData): Observable<ApiResponse<any>> {
+    return this.http.post<ApiResponse<any>>(this.url('api/documents/upload'), formData).pipe(
+      catchError(err => this.handleError<any>(err))
+    );
+  }
+
+  getCustomerDocuments(customerId: number): Observable<ApiResponse<any[]>> {
+    return this.get<any[]>(`api/documents/${customerId}`);
   }
 }

@@ -70,7 +70,33 @@
     <!-- ── Sidenav ── -->
     <mat-sidenav #sidenav mode="side" [opened]="sidenavOpened" class="app-sidenav">
 
-      <nav class="nav-list">
+      <!-- Search Box -->
+      <div class="nav-search">
+        <mat-form-field appearance="outline" class="nav-search-field">
+          <mat-icon matPrefix>search</mat-icon>
+          <input matInput [(ngModel)]="searchQuery" (ngModelChange)="onSearchChange()"
+            placeholder="Search pages..." autocomplete="off" />
+          <button *ngIf="searchQuery" mat-icon-button matSuffix (click)="clearSearch()">
+            <mat-icon>close</mat-icon>
+          </button>
+        </mat-form-field>
+      </div>
+
+      <!-- Search Results -->
+      <div *ngIf="searchQuery && filteredNavItems.length > 0" class="search-results">
+        <a *ngFor="let item of filteredNavItems" class="nav-item nav-item--sub"
+          [routerLink]="item.route" routerLinkActive="nav-item--active" (click)="clearSearch()">
+          <span class="nav-icon"><mat-icon>{{ item.icon }}</mat-icon></span>
+          <span class="nav-label">{{ item.label }}</span>
+          <span *ngIf="item.section" class="nav-search-section">{{ item.section }}</span>
+        </a>
+      </div>
+      <div *ngIf="searchQuery && filteredNavItems.length === 0" class="search-no-results">
+        <mat-icon>search_off</mat-icon>
+        <span>No pages found</span>
+      </div>
+
+      <nav class="nav-list" [style.display]="searchQuery ? 'none' : ''">
 
         <!-- Dashboard -->
         <a class="nav-item" routerLink="/admin/dashboard" routerLinkActive="nav-item--active">

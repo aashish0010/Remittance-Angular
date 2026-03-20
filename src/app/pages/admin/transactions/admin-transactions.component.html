@@ -38,7 +38,9 @@
       <!-- Reference Number -->
       <ng-container matColumnDef="referenceNumber">
         <th mat-header-cell *matHeaderCellDef mat-sort-header>Reference</th>
-        <td mat-cell *matCellDef="let txn" class="ref-cell">{{ txn.referenceNumber }}</td>
+        <td mat-cell *matCellDef="let txn" class="ref-cell">
+          <a [routerLink]="['/admin/transactions', txn.id]" class="ref-link">{{ txn.referenceNumber }}</a>
+        </td>
       </ng-container>
 
       <!-- Sender -->

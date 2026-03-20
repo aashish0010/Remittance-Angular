@@ -148,6 +148,12 @@ $radius: 12px;
   font-size: 0.875rem;
 
   mat-icon { flex-shrink: 0; }
+
+  &--block {
+    background: #fef2f2;
+    border-color: #fca5a5;
+    color: #dc2626;
+  }
 }
 
 .info-alert {
