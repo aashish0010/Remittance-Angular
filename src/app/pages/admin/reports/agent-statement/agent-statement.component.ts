@@ -40,8 +40,8 @@ import { NotificationService } from '../../../../core/services/notification.serv
 export class AgentStatementComponent implements OnInit {
   agents: { id: number; businessName: string; agentType: string }[] = [];
   selectedAgentId: number = 0;
-  startDate: string = '';
-  endDate: string = '';
+  startDateObj: Date | null = null;
+  endDateObj: Date | null = null;
   loading = false;
 
   report: any = null;
@@ -74,11 +74,12 @@ export class AgentStatementComponent implements OnInit {
     const today = new Date();
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(today.getDate() - 30);
-    this.endDate = this.formatDate(today);
-    this.startDate = this.formatDate(thirtyDaysAgo);
+    this.endDateObj = today;
+    this.startDateObj = thirtyDaysAgo;
   }
 
-  private formatDate(d: Date): string {
+  private formatDate(d: Date | null): string {
+    if (!d) return '';
     const year = d.getFullYear();
     const month = String(d.getMonth() + 1).padStart(2, '0');
     const day = String(d.getDate()).padStart(2, '0');
@@ -98,7 +99,7 @@ export class AgentStatementComponent implements OnInit {
 
   loadReport(): void {
     this.loading = true;
-    const params: any = { startDate: this.startDate, endDate: this.endDate };
+    const params: any = { startDate: this.formatDate(this.startDateObj), endDate: this.formatDate(this.endDateObj) };
     if (this.selectedAgentId) {
       params.agentId = this.selectedAgentId;
     }

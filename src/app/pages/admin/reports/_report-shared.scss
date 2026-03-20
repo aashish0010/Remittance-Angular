@@ -21,7 +21,7 @@
 .filters-row {
   display: flex;
   gap: 16px;
-  align-items: flex-end;
+  align-items: center;
   flex-wrap: wrap;
 
   mat-form-field { flex: 1; min-width: 160px; }

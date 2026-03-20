@@ -9,6 +9,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTableModule } from '@angular/material/table';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatNativeDateModule } from '@angular/material/core';
 import { ApiService } from '../../../../core/services/api.service';
 import { NotificationService } from '../../../../core/services/notification.service';
 
@@ -26,6 +28,8 @@ import { NotificationService } from '../../../../core/services/notification.serv
     MatIconModule,
     MatTableModule,
     MatProgressSpinnerModule,
+    MatDatepickerModule,
+    MatNativeDateModule,
   ],
   providers: [DecimalPipe, DatePipe],
   templateUrl: './commission-report.component.html',
@@ -33,8 +37,8 @@ import { NotificationService } from '../../../../core/services/notification.serv
 })
 export class CommissionReportComponent implements OnInit {
   agents: { id: number; businessName: string; agentType: string }[] = [];
-  startDate: string = '';
-  endDate: string = '';
+  startDateObj: Date | null = null;
+  endDateObj: Date | null = null;
   agentId: number | null = null;
   loading = false;
 
@@ -70,11 +74,12 @@ export class CommissionReportComponent implements OnInit {
     const today = new Date();
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(today.getDate() - 30);
-    this.endDate = this.formatDate(today);
-    this.startDate = this.formatDate(thirtyDaysAgo);
+    this.endDateObj = today;
+    this.startDateObj = thirtyDaysAgo;
   }
 
-  private formatDate(d: Date): string {
+  private formatDate(d: Date | null): string {
+    if (!d) return '';
     const year = d.getFullYear();
     const month = String(d.getMonth() + 1).padStart(2, '0');
     const day = String(d.getDate()).padStart(2, '0');
@@ -95,8 +100,8 @@ export class CommissionReportComponent implements OnInit {
   loadReport(): void {
     this.loading = true;
     const params: { startDate?: string; endDate?: string; agentId?: number } = {
-      startDate: this.startDate,
-      endDate: this.endDate,
+      startDate: this.formatDate(this.startDateObj),
+      endDate: this.formatDate(this.endDateObj),
     };
     if (this.agentId) {
       params.agentId = this.agentId;

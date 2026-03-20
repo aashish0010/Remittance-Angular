@@ -8,6 +8,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTableModule } from '@angular/material/table';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatNativeDateModule } from '@angular/material/core';
 import { ApiService } from '../../../../core/services/api.service';
 import { NotificationService } from '../../../../core/services/notification.service';
 
@@ -55,6 +57,8 @@ interface RevenueReport {
     MatIconModule,
     MatTableModule,
     MatProgressSpinnerModule,
+    MatDatepickerModule,
+    MatNativeDateModule,
     DecimalPipe,
     DatePipe,
   ],
@@ -62,8 +66,8 @@ interface RevenueReport {
   styleUrls: ['./revenue-report.component.scss'],
 })
 export class RevenueReportComponent {
-  startDate = '';
-  endDate = '';
+  startDateObj: Date | null = null;
+  endDateObj: Date | null = null;
   loading = false;
   report: RevenueReport | null = null;
 
@@ -75,11 +79,19 @@ export class RevenueReportComponent {
     private notification: NotificationService
   ) {}
 
+  private formatDate(d: Date | null): string {
+    if (!d) return '';
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
   loadReport(): void {
     this.loading = true;
     const params: { startDate?: string; endDate?: string } = {};
-    if (this.startDate) params.startDate = this.startDate;
-    if (this.endDate) params.endDate = this.endDate;
+    if (this.startDateObj) params.startDate = this.formatDate(this.startDateObj);
+    if (this.endDateObj) params.endDate = this.formatDate(this.endDateObj);
 
     this.api.getRevenueReport(params).subscribe({
       next: (res) => {

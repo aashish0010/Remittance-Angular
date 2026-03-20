@@ -11,6 +11,8 @@ import { MatTableModule } from '@angular/material/table';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatNativeDateModule } from '@angular/material/core';
 
 import { ApiService } from '../../../../core/services/api.service';
 import { NotificationService } from '../../../../core/services/notification.service';
@@ -60,6 +62,8 @@ interface TransactionReportData {
     MatProgressSpinnerModule,
     MatPaginatorModule,
     MatTooltipModule,
+    MatDatepickerModule,
+    MatNativeDateModule,
     DecimalPipe,
     DatePipe,
   ],
@@ -68,8 +72,8 @@ interface TransactionReportData {
 })
 export class TransactionReportComponent implements OnInit {
   // Filters
-  startDate = '';
-  endDate = '';
+  startDateObj: Date | null = null;
+  endDateObj: Date | null = null;
   agentId?: number;
   status?: string;
 
@@ -113,6 +117,14 @@ export class TransactionReportComponent implements OnInit {
     this.pageSize = event.pageSize;
   }
 
+  private formatDate(d: Date | null): string {
+    if (!d) return '';
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
   loadAgents(): void {
     this.api.getReportAgentsList().subscribe({
       next: (res) => {
@@ -128,8 +140,8 @@ export class TransactionReportComponent implements OnInit {
     this.pageIndex = 0;
 
     const params: any = {};
-    if (this.startDate) params.startDate = this.startDate;
-    if (this.endDate) params.endDate = this.endDate;
+    if (this.startDateObj) params.startDate = this.formatDate(this.startDateObj);
+    if (this.endDateObj) params.endDate = this.formatDate(this.endDateObj);
     if (this.agentId) params.agentId = this.agentId;
     if (this.status) params.status = this.status;
 
