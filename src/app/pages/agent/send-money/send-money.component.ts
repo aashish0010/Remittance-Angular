@@ -141,7 +141,7 @@ export class SendMoneyComponent implements OnInit {
   branchSearch = '';
   selectedBranch: AgentBankBranchModel | null = null;
 
-  idTypes = ['Passport', 'National ID', 'Driver License'];
+  idTypes: string[] = [];
 
   private calcTrigger$ = new Subject<void>();
 
@@ -194,6 +194,11 @@ export class SendMoneyComponent implements OnInit {
       if (r?.success && r.data) {
         this.customers = r.data;
         this.filteredCustomers = [...r.data];
+      }
+    });
+    this.api.getReferenceSetupFields('IdType').subscribe(r => {
+      if (r?.success && r.data) {
+        this.idTypes = r.data.filter((d: any) => d.isActive).map((d: any) => d.name);
       }
     });
   }
