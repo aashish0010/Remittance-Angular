@@ -239,13 +239,13 @@ export class CustomerRegisterComponent implements OnInit {
     obs.subscribe({
       next: async res => {
         if (res?.success) {
-          // Upload documents if editing and docs were added
+          // Upload documents if any were added
           const customerId = res.data?.id || this.editingId;
-          if (this.isEditing && this.documentUploads.length > 0 && customerId) {
+          if (this.documentUploads.length > 0 && customerId) {
             try {
               this.uploadingDocs = true;
               await this.uploadDocuments(customerId);
-              this.notify.success('Customer updated with documents.');
+              this.notify.success(this.isEditing ? 'Customer updated with documents.' : 'Customer created with documents.');
             } catch {
               this.notify.warn('Customer saved but some documents failed to upload.');
             }

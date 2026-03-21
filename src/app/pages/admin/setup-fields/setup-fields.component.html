@@ -17,125 +17,99 @@
             <mat-spinner diameter="32"></mat-spinner>
           </div>
 
-          <!-- Add New Card -->
-          <div class="field-card field-card--add" *ngIf="addingSetupField">
-            <div class="field-card__header">
-              <span class="field-card__title">New {{ tab.label.endsWith('s') ? tab.label.slice(0, -1) : tab.label }}</span>
+          <!-- Add New Row -->
+          <div class="value-row value-row--add" *ngIf="addingSetupField">
+            <div class="value-row__form">
+              <mat-form-field appearance="outline">
+                <mat-label>Code</mat-label>
+                <input matInput [(ngModel)]="setupFieldForm.code">
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Name</mat-label>
+                <input matInput [(ngModel)]="setupFieldForm.name">
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Description</mat-label>
+                <input matInput [(ngModel)]="setupFieldForm.description">
+              </mat-form-field>
+              <mat-form-field appearance="outline" class="narrow-field">
+                <mat-label>Sort</mat-label>
+                <input matInput type="number" [(ngModel)]="setupFieldForm.sortOrder">
+              </mat-form-field>
+              <mat-slide-toggle [(ngModel)]="setupFieldForm.isActive">Active</mat-slide-toggle>
             </div>
-            <div class="field-card__body">
-              <div class="field-card__grid">
-                <mat-form-field appearance="outline">
-                  <mat-label>Code</mat-label>
-                  <input matInput [(ngModel)]="setupFieldForm.code">
-                </mat-form-field>
-                <mat-form-field appearance="outline">
-                  <mat-label>Name</mat-label>
-                  <input matInput [(ngModel)]="setupFieldForm.name">
-                </mat-form-field>
-                <mat-form-field appearance="outline" class="full-width">
-                  <mat-label>Description</mat-label>
-                  <input matInput [(ngModel)]="setupFieldForm.description">
-                </mat-form-field>
-                <mat-form-field appearance="outline" class="narrow-field">
-                  <mat-label>Sort Order</mat-label>
-                  <input matInput type="number" [(ngModel)]="setupFieldForm.sortOrder">
-                </mat-form-field>
-                <div class="field-card__toggle">
-                  <mat-slide-toggle [(ngModel)]="setupFieldForm.isActive">Active</mat-slide-toggle>
-                </div>
-              </div>
-            </div>
-            <div class="field-card__actions">
-              <button mat-raised-button color="primary" (click)="saveSetupField()" [disabled]="savingSetupField">
-                <mat-icon>check</mat-icon> Save
-              </button>
+            <div class="value-row__actions">
+              <button mat-raised-button color="primary" (click)="saveSetupField()" [disabled]="savingSetupField">Save</button>
               <button mat-button (click)="cancelSetupFieldEdit()">Cancel</button>
             </div>
           </div>
 
-          <!-- Field Cards List -->
-          <div class="field-cards-list" *ngIf="!loadingSetupFields && setupFields.length > 0">
-            <div *ngFor="let row of setupFields" class="field-card"
-              [class.field-card--editing]="editingSetupFieldId === row.id">
+          <!-- Rows List -->
+          <div class="value-list" *ngIf="!loadingSetupFields && setupFields.length > 0">
+            <!-- Header -->
+            <div class="value-row value-row--header">
+              <span class="col-code">Code</span>
+              <span class="col-name">Name</span>
+              <span class="col-desc">Description</span>
+              <span class="col-sort">Sort</span>
+              <span class="col-status">Status</span>
+              <span class="col-actions">Actions</span>
+            </div>
+
+            <div *ngFor="let row of setupFields" class="value-row" [class.value-row--editing]="editingSetupFieldId === row.id">
 
               <!-- View Mode -->
               <ng-container *ngIf="editingSetupFieldId !== row.id && !isConfirmingDelete('setupField', row.id)">
-                <div class="field-card__header">
-                  <div class="field-card__name">{{ row.name }}</div>
-                  <div class="field-card__header-actions">
-                    <span class="badge" [class.badge-active]="row.isActive" [class.badge-inactive]="!row.isActive">
-                      {{ row.isActive ? 'Active' : 'Inactive' }}
-                    </span>
-                    <button mat-icon-button matTooltip="Edit" (click)="startEditSetupField(row)"><mat-icon>edit</mat-icon></button>
-                    <button mat-icon-button matTooltip="Delete" color="warn" (click)="confirmDeleteSetupField(row)"><mat-icon>delete</mat-icon></button>
-                  </div>
-                </div>
-                <div class="field-card__body">
-                  <div class="field-card__detail">
-                    <span class="field-card__label">Code</span>
-                    <span>{{ row.code }}</span>
-                  </div>
-                  <div class="field-card__detail" *ngIf="row.description">
-                    <span class="field-card__label">Description</span>
-                    <span>{{ row.description }}</span>
-                  </div>
-                  <div class="field-card__detail">
-                    <span class="field-card__label">Sort Order</span>
-                    <span>{{ row.sortOrder }}</span>
-                  </div>
-                </div>
+                <span class="col-code">{{ row.code }}</span>
+                <span class="col-name">{{ row.name }}</span>
+                <span class="col-desc">{{ row.description || '-' }}</span>
+                <span class="col-sort">{{ row.sortOrder }}</span>
+                <span class="col-status">
+                  <span class="badge" [class.badge-active]="row.isActive" [class.badge-inactive]="!row.isActive">
+                    {{ row.isActive ? 'Active' : 'Inactive' }}
+                  </span>
+                </span>
+                <span class="col-actions">
+                  <button mat-icon-button matTooltip="Edit" (click)="startEditSetupField(row)"><mat-icon>edit</mat-icon></button>
+                  <button mat-icon-button matTooltip="Delete" color="warn" (click)="confirmDeleteSetupField(row)"><mat-icon>delete</mat-icon></button>
+                </span>
               </ng-container>
 
               <!-- Edit Mode -->
               <ng-container *ngIf="editingSetupFieldId === row.id">
-                <div class="field-card__header">
-                  <span class="field-card__title">Editing</span>
+                <div class="value-row__form">
+                  <mat-form-field appearance="outline">
+                    <mat-label>Code</mat-label>
+                    <input matInput [(ngModel)]="setupFieldForm.code">
+                  </mat-form-field>
+                  <mat-form-field appearance="outline">
+                    <mat-label>Name</mat-label>
+                    <input matInput [(ngModel)]="setupFieldForm.name">
+                  </mat-form-field>
+                  <mat-form-field appearance="outline">
+                    <mat-label>Description</mat-label>
+                    <input matInput [(ngModel)]="setupFieldForm.description">
+                  </mat-form-field>
+                  <mat-form-field appearance="outline" class="narrow-field">
+                    <mat-label>Sort</mat-label>
+                    <input matInput type="number" [(ngModel)]="setupFieldForm.sortOrder">
+                  </mat-form-field>
+                  <mat-slide-toggle [(ngModel)]="setupFieldForm.isActive">Active</mat-slide-toggle>
                 </div>
-                <div class="field-card__body">
-                  <div class="field-card__grid">
-                    <mat-form-field appearance="outline">
-                      <mat-label>Code</mat-label>
-                      <input matInput [(ngModel)]="setupFieldForm.code">
-                    </mat-form-field>
-                    <mat-form-field appearance="outline">
-                      <mat-label>Name</mat-label>
-                      <input matInput [(ngModel)]="setupFieldForm.name">
-                    </mat-form-field>
-                    <mat-form-field appearance="outline" class="full-width">
-                      <mat-label>Description</mat-label>
-                      <input matInput [(ngModel)]="setupFieldForm.description">
-                    </mat-form-field>
-                    <mat-form-field appearance="outline" class="narrow-field">
-                      <mat-label>Sort Order</mat-label>
-                      <input matInput type="number" [(ngModel)]="setupFieldForm.sortOrder">
-                    </mat-form-field>
-                    <div class="field-card__toggle">
-                      <mat-slide-toggle [(ngModel)]="setupFieldForm.isActive">Active</mat-slide-toggle>
-                    </div>
-                  </div>
-                </div>
-                <div class="field-card__actions">
-                  <button mat-raised-button color="primary" (click)="saveSetupField()" [disabled]="savingSetupField">
-                    <mat-icon>check</mat-icon> Save
-                  </button>
+                <div class="value-row__actions">
+                  <button mat-raised-button color="primary" (click)="saveSetupField()" [disabled]="savingSetupField">Save</button>
                   <button mat-button (click)="cancelSetupFieldEdit()">Cancel</button>
                 </div>
               </ng-container>
 
               <!-- Delete Confirm -->
               <ng-container *ngIf="isConfirmingDelete('setupField', row.id)">
-                <div class="field-card__header">
-                  <div class="field-card__name">{{ row.name }}</div>
-                </div>
-                <div class="field-card__confirm">
-                  <span class="confirm-text">Are you sure you want to delete this item?</span>
-                  <div class="field-card__actions">
-                    <button mat-raised-button color="warn" (click)="executeDelete()">
-                      <mat-icon>delete</mat-icon> Delete
-                    </button>
-                    <button mat-button (click)="cancelDelete()">Cancel</button>
-                  </div>
-                </div>
+                <span class="col-name">{{ row.name }}</span>
+                <span class="confirm-text">Delete this item?</span>
+                <span class="col-actions">
+                  <button mat-raised-button color="warn" (click)="executeDelete()">Yes</button>
+                  <button mat-button (click)="cancelDelete()">No</button>
+                </span>
               </ng-container>
             </div>
           </div>
@@ -157,125 +131,95 @@
 
           <div *ngIf="loadingDocTypes" class="loading-row"><mat-spinner diameter="32"></mat-spinner></div>
 
-          <!-- Add New Card -->
-          <div class="field-card field-card--add" *ngIf="addingDocType">
-            <div class="field-card__header">
-              <span class="field-card__title">New Document Type</span>
+          <!-- Add New Row -->
+          <div class="value-row value-row--add" *ngIf="addingDocType">
+            <div class="value-row__form">
+              <mat-form-field appearance="outline">
+                <mat-label>Name</mat-label>
+                <input matInput [(ngModel)]="docTypeForm.name">
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Code</mat-label>
+                <input matInput [(ngModel)]="docTypeForm.code">
+              </mat-form-field>
+              <mat-form-field appearance="outline" class="narrow-field">
+                <mat-label>Sides</mat-label>
+                <input matInput type="number" [(ngModel)]="docTypeForm.requiredSides" min="1" max="4">
+              </mat-form-field>
+              <mat-form-field appearance="outline" class="narrow-field">
+                <mat-label>Sort</mat-label>
+                <input matInput type="number" [(ngModel)]="docTypeForm.sortOrder">
+              </mat-form-field>
+              <mat-slide-toggle [(ngModel)]="docTypeForm.isActive">Active</mat-slide-toggle>
             </div>
-            <div class="field-card__body">
-              <div class="field-card__grid">
-                <mat-form-field appearance="outline">
-                  <mat-label>Name</mat-label>
-                  <input matInput [(ngModel)]="docTypeForm.name">
-                </mat-form-field>
-                <mat-form-field appearance="outline">
-                  <mat-label>Code</mat-label>
-                  <input matInput [(ngModel)]="docTypeForm.code">
-                </mat-form-field>
-                <mat-form-field appearance="outline" class="narrow-field">
-                  <mat-label>Required Sides</mat-label>
-                  <input matInput type="number" [(ngModel)]="docTypeForm.requiredSides" min="1" max="4">
-                </mat-form-field>
-                <mat-form-field appearance="outline" class="narrow-field">
-                  <mat-label>Sort Order</mat-label>
-                  <input matInput type="number" [(ngModel)]="docTypeForm.sortOrder">
-                </mat-form-field>
-                <div class="field-card__toggle">
-                  <mat-slide-toggle [(ngModel)]="docTypeForm.isActive">Active</mat-slide-toggle>
-                </div>
-              </div>
-            </div>
-            <div class="field-card__actions">
-              <button mat-raised-button color="primary" (click)="saveDocType()" [disabled]="savingDocType">
-                <mat-icon>check</mat-icon> Save
-              </button>
+            <div class="value-row__actions">
+              <button mat-raised-button color="primary" (click)="saveDocType()" [disabled]="savingDocType">Save</button>
               <button mat-button (click)="cancelDocTypeEdit()">Cancel</button>
             </div>
           </div>
 
-          <!-- Document Type Cards -->
-          <div class="field-cards-list" *ngIf="!loadingDocTypes && documentTypes.length > 0">
-            <div *ngFor="let row of documentTypes" class="field-card"
-              [class.field-card--editing]="editingDocTypeId === row.id">
+          <!-- Rows List -->
+          <div class="value-list" *ngIf="!loadingDocTypes && documentTypes.length > 0">
+            <div class="value-row value-row--header">
+              <span class="col-name">Name</span>
+              <span class="col-code">Code</span>
+              <span class="col-sort">Sides</span>
+              <span class="col-sort">Sort</span>
+              <span class="col-status">Status</span>
+              <span class="col-actions">Actions</span>
+            </div>
 
-              <!-- View Mode -->
+            <div *ngFor="let row of documentTypes" class="value-row" [class.value-row--editing]="editingDocTypeId === row.id">
+
               <ng-container *ngIf="editingDocTypeId !== row.id && !isConfirmingDelete('docType', row.id)">
-                <div class="field-card__header">
-                  <div class="field-card__name">{{ row.name }}</div>
-                  <div class="field-card__header-actions">
-                    <span class="badge" [class.badge-active]="row.isActive" [class.badge-inactive]="!row.isActive">
-                      {{ row.isActive ? 'Active' : 'Inactive' }}
-                    </span>
-                    <button mat-icon-button matTooltip="Edit" (click)="startEditDocType(row)"><mat-icon>edit</mat-icon></button>
-                    <button mat-icon-button matTooltip="Delete" color="warn" (click)="confirmDeleteDocType(row)"><mat-icon>delete</mat-icon></button>
-                  </div>
-                </div>
-                <div class="field-card__body">
-                  <div class="field-card__detail">
-                    <span class="field-card__label">Code</span>
-                    <span>{{ row.code }}</span>
-                  </div>
-                  <div class="field-card__detail">
-                    <span class="field-card__label">Required Sides</span>
-                    <span>{{ row.requiredSides }}</span>
-                  </div>
-                  <div class="field-card__detail">
-                    <span class="field-card__label">Sort Order</span>
-                    <span>{{ row.sortOrder }}</span>
-                  </div>
-                </div>
+                <span class="col-name">{{ row.name }}</span>
+                <span class="col-code">{{ row.code }}</span>
+                <span class="col-sort">{{ row.requiredSides }}</span>
+                <span class="col-sort">{{ row.sortOrder }}</span>
+                <span class="col-status">
+                  <span class="badge" [class.badge-active]="row.isActive" [class.badge-inactive]="!row.isActive">
+                    {{ row.isActive ? 'Active' : 'Inactive' }}
+                  </span>
+                </span>
+                <span class="col-actions">
+                  <button mat-icon-button matTooltip="Edit" (click)="startEditDocType(row)"><mat-icon>edit</mat-icon></button>
+                  <button mat-icon-button matTooltip="Delete" color="warn" (click)="confirmDeleteDocType(row)"><mat-icon>delete</mat-icon></button>
+                </span>
               </ng-container>
 
-              <!-- Edit Mode -->
               <ng-container *ngIf="editingDocTypeId === row.id">
-                <div class="field-card__header">
-                  <span class="field-card__title">Editing</span>
+                <div class="value-row__form">
+                  <mat-form-field appearance="outline">
+                    <mat-label>Name</mat-label>
+                    <input matInput [(ngModel)]="docTypeForm.name">
+                  </mat-form-field>
+                  <mat-form-field appearance="outline">
+                    <mat-label>Code</mat-label>
+                    <input matInput [(ngModel)]="docTypeForm.code">
+                  </mat-form-field>
+                  <mat-form-field appearance="outline" class="narrow-field">
+                    <mat-label>Sides</mat-label>
+                    <input matInput type="number" [(ngModel)]="docTypeForm.requiredSides" min="1" max="4">
+                  </mat-form-field>
+                  <mat-form-field appearance="outline" class="narrow-field">
+                    <mat-label>Sort</mat-label>
+                    <input matInput type="number" [(ngModel)]="docTypeForm.sortOrder">
+                  </mat-form-field>
+                  <mat-slide-toggle [(ngModel)]="docTypeForm.isActive">Active</mat-slide-toggle>
                 </div>
-                <div class="field-card__body">
-                  <div class="field-card__grid">
-                    <mat-form-field appearance="outline">
-                      <mat-label>Name</mat-label>
-                      <input matInput [(ngModel)]="docTypeForm.name">
-                    </mat-form-field>
-                    <mat-form-field appearance="outline">
-                      <mat-label>Code</mat-label>
-                      <input matInput [(ngModel)]="docTypeForm.code">
-                    </mat-form-field>
-                    <mat-form-field appearance="outline" class="narrow-field">
-                      <mat-label>Required Sides</mat-label>
-                      <input matInput type="number" [(ngModel)]="docTypeForm.requiredSides" min="1" max="4">
-                    </mat-form-field>
-                    <mat-form-field appearance="outline" class="narrow-field">
-                      <mat-label>Sort Order</mat-label>
-                      <input matInput type="number" [(ngModel)]="docTypeForm.sortOrder">
-                    </mat-form-field>
-                    <div class="field-card__toggle">
-                      <mat-slide-toggle [(ngModel)]="docTypeForm.isActive">Active</mat-slide-toggle>
-                    </div>
-                  </div>
-                </div>
-                <div class="field-card__actions">
-                  <button mat-raised-button color="primary" (click)="saveDocType()" [disabled]="savingDocType">
-                    <mat-icon>check</mat-icon> Save
-                  </button>
+                <div class="value-row__actions">
+                  <button mat-raised-button color="primary" (click)="saveDocType()" [disabled]="savingDocType">Save</button>
                   <button mat-button (click)="cancelDocTypeEdit()">Cancel</button>
                 </div>
               </ng-container>
 
-              <!-- Delete Confirm -->
               <ng-container *ngIf="isConfirmingDelete('docType', row.id)">
-                <div class="field-card__header">
-                  <div class="field-card__name">{{ row.name }}</div>
-                </div>
-                <div class="field-card__confirm">
-                  <span class="confirm-text">Are you sure you want to delete this item?</span>
-                  <div class="field-card__actions">
-                    <button mat-raised-button color="warn" (click)="executeDelete()">
-                      <mat-icon>delete</mat-icon> Delete
-                    </button>
-                    <button mat-button (click)="cancelDelete()">Cancel</button>
-                  </div>
-                </div>
+                <span class="col-name">{{ row.name }}</span>
+                <span class="confirm-text">Delete this item?</span>
+                <span class="col-actions">
+                  <button mat-raised-button color="warn" (click)="executeDelete()">Yes</button>
+                  <button mat-button (click)="cancelDelete()">No</button>
+                </span>
               </ng-container>
             </div>
           </div>
@@ -297,106 +241,79 @@
 
           <div *ngIf="loadingSettings" class="loading-row"><mat-spinner diameter="32"></mat-spinner></div>
 
-          <!-- Add New Card -->
-          <div class="field-card field-card--add" *ngIf="addingSetting">
-            <div class="field-card__header">
-              <span class="field-card__title">New Setting</span>
+          <!-- Add New Row -->
+          <div class="value-row value-row--add" *ngIf="addingSetting">
+            <div class="value-row__form">
+              <mat-form-field appearance="outline">
+                <mat-label>Key</mat-label>
+                <mat-select [(ngModel)]="settingForm.key" (ngModelChange)="onSettingKeySelected($event)">
+                  <mat-option *ngFor="let k of availableSettingKeys" [value]="k">{{ k }}</mat-option>
+                </mat-select>
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Value</mat-label>
+                <input matInput [(ngModel)]="settingForm.value">
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Description</mat-label>
+                <input matInput [(ngModel)]="settingForm.description">
+              </mat-form-field>
             </div>
-            <div class="field-card__body">
-              <div class="field-card__grid">
-                <mat-form-field appearance="outline">
-                  <mat-label>Key</mat-label>
-                  <mat-select [(ngModel)]="settingForm.key" (ngModelChange)="onSettingKeySelected($event)">
-                    <mat-option *ngFor="let k of availableSettingKeys" [value]="k">{{ k }}</mat-option>
-                  </mat-select>
-                </mat-form-field>
-                <mat-form-field appearance="outline">
-                  <mat-label>Value</mat-label>
-                  <input matInput [(ngModel)]="settingForm.value">
-                </mat-form-field>
-                <mat-form-field appearance="outline" class="full-width">
-                  <mat-label>Description</mat-label>
-                  <input matInput [(ngModel)]="settingForm.description">
-                </mat-form-field>
-              </div>
-            </div>
-            <div class="field-card__actions">
-              <button mat-raised-button color="primary" (click)="saveSetting()" [disabled]="savingSetting">
-                <mat-icon>check</mat-icon> Save
-              </button>
+            <div class="value-row__actions">
+              <button mat-raised-button color="primary" (click)="saveSetting()" [disabled]="savingSetting">Save</button>
               <button mat-button (click)="cancelSettingEdit()">Cancel</button>
             </div>
           </div>
 
-          <!-- Settings Cards -->
-          <div class="field-cards-list" *ngIf="!loadingSettings && systemSettings.length > 0">
-            <div *ngFor="let row of systemSettings" class="field-card"
-              [class.field-card--editing]="editingSettingId === row.id">
+          <!-- Rows List -->
+          <div class="value-list" *ngIf="!loadingSettings && systemSettings.length > 0">
+            <div class="value-row value-row--header">
+              <span class="col-name">Key</span>
+              <span class="col-code">Value</span>
+              <span class="col-desc">Description</span>
+              <span class="col-actions">Actions</span>
+            </div>
 
-              <!-- View Mode -->
+            <div *ngFor="let row of systemSettings" class="value-row" [class.value-row--editing]="editingSettingId === row.id">
+
               <ng-container *ngIf="editingSettingId !== row.id && !isConfirmingDelete('setting', row.id)">
-                <div class="field-card__header">
-                  <div class="field-card__name">{{ row.key }}</div>
-                  <div class="field-card__header-actions">
-                    <button mat-icon-button matTooltip="Edit" (click)="startEditSetting(row)"><mat-icon>edit</mat-icon></button>
-                    <button mat-icon-button matTooltip="Delete" color="warn" (click)="confirmDeleteSetting(row)"><mat-icon>delete</mat-icon></button>
-                  </div>
-                </div>
-                <div class="field-card__body">
-                  <div class="field-card__detail">
-                    <span class="field-card__label">Value</span>
-                    <span>{{ row.value }}</span>
-                  </div>
-                  <div class="field-card__detail" *ngIf="row.description">
-                    <span class="field-card__label">Description</span>
-                    <span>{{ row.description }}</span>
-                  </div>
-                </div>
+                <span class="col-name">{{ row.key }}</span>
+                <span class="col-code">{{ row.value }}</span>
+                <span class="col-desc">{{ row.description || '-' }}</span>
+                <span class="col-actions">
+                  <button mat-icon-button matTooltip="Edit" (click)="startEditSetting(row)"><mat-icon>edit</mat-icon></button>
+                  <button mat-icon-button matTooltip="Delete" color="warn" (click)="confirmDeleteSetting(row)"><mat-icon>delete</mat-icon></button>
+                </span>
               </ng-container>
 
-              <!-- Edit Mode -->
               <ng-container *ngIf="editingSettingId === row.id">
-                <div class="field-card__header">
-                  <span class="field-card__title">Editing</span>
+                <div class="value-row__form">
+                  <mat-form-field appearance="outline">
+                    <mat-label>Key</mat-label>
+                    <input matInput [value]="settingForm.key" disabled>
+                  </mat-form-field>
+                  <mat-form-field appearance="outline">
+                    <mat-label>Value</mat-label>
+                    <input matInput [(ngModel)]="settingForm.value">
+                  </mat-form-field>
+                  <mat-form-field appearance="outline">
+                    <mat-label>Description</mat-label>
+                    <input matInput [(ngModel)]="settingForm.description">
+                  </mat-form-field>
                 </div>
-                <div class="field-card__body">
-                  <div class="field-card__grid">
-                    <mat-form-field appearance="outline">
-                      <mat-label>Key</mat-label>
-                      <input matInput [value]="settingForm.key" disabled>
-                    </mat-form-field>
-                    <mat-form-field appearance="outline">
-                      <mat-label>Value</mat-label>
-                      <input matInput [(ngModel)]="settingForm.value">
-                    </mat-form-field>
-                    <mat-form-field appearance="outline" class="full-width">
-                      <mat-label>Description</mat-label>
-                      <input matInput [(ngModel)]="settingForm.description">
-                    </mat-form-field>
-                  </div>
-                </div>
-                <div class="field-card__actions">
-                  <button mat-raised-button color="primary" (click)="saveSetting()" [disabled]="savingSetting">
-                    <mat-icon>check</mat-icon> Save
-                  </button>
+                <div class="value-row__actions">
+                  <button mat-raised-button color="primary" (click)="saveSetting()" [disabled]="savingSetting">Save</button>
                   <button mat-button (click)="cancelSettingEdit()">Cancel</button>
                 </div>
               </ng-container>
 
-              <!-- Delete Confirm -->
               <ng-container *ngIf="isConfirmingDelete('setting', row.id)">
-                <div class="field-card__header">
-                  <div class="field-card__name">{{ row.key }}</div>
-                </div>
-                <div class="field-card__confirm">
-                  <span class="confirm-text">Are you sure you want to delete this setting?</span>
-                  <div class="field-card__actions">
-                    <button mat-raised-button color="warn" (click)="executeDelete()">
-                      <mat-icon>delete</mat-icon> Delete
-                    </button>
-                    <button mat-button (click)="cancelDelete()">Cancel</button>
-                  </div>
-                </div>
+                <span class="col-name">{{ row.key }}</span>
+                <span class="confirm-text">Delete this setting?</span>
+                <span class="col-actions">
+                  <button mat-raised-button color="warn" (click)="executeDelete()">Yes</button>
+                  <button mat-button (click)="cancelDelete()">No</button>
+                </span>
               </ng-container>
             </div>
           </div>
