@@ -91,6 +91,8 @@ export class CustomerRegisterComponent implements OnInit {
   documentUploads: DocumentUpload[] = [];
   documentTypeConfigs: { name: string; requiredSides: number }[] = [];
   uploadingDocs = false;
+  existingDocs: any[] = [];
+  loadingExistingDocs = false;
 
   // Document viewer
   showDocViewer = false;
@@ -183,6 +185,7 @@ export class CustomerRegisterComponent implements OnInit {
     this.editingId = 0;
     this.formError = '';
     this.documentUploads = [];
+    this.existingDocs = [];
     this.showFormPopup = true;
   }
 
@@ -204,7 +207,24 @@ export class CustomerRegisterComponent implements OnInit {
       address: customer.address || '',
     };
     this.formError = '';
+    this.documentUploads = [];
+    this.existingDocs = [];
     this.showFormPopup = true;
+    this.loadExistingDocs(customer.id);
+  }
+
+  private loadExistingDocs(customerId: number): void {
+    this.loadingExistingDocs = true;
+    this.api.getCustomerDocuments(customerId).subscribe({
+      next: res => {
+        this.existingDocs = res?.success && res.data ? res.data : [];
+        this.loadingExistingDocs = false;
+      },
+      error: () => {
+        this.existingDocs = [];
+        this.loadingExistingDocs = false;
+      },
+    });
   }
 
   closeFormPopup(): void { this.showFormPopup = false; }

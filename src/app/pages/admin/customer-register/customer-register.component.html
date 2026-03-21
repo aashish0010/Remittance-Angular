@@ -217,8 +217,47 @@
     <!-- Tab 3: Documents -->
     <mat-tab label="Documents">
       <div class="tab-content">
+        <!-- Existing Documents (shown when editing) -->
+        <div *ngIf="isEditing" style="margin-bottom:16px">
+          <div class="doc-upload-header">
+            <span class="doc-upload-label">Existing Documents</span>
+          </div>
+          <div *ngIf="loadingExistingDocs" class="loading-container" style="padding:16px">
+            <mat-spinner diameter="24"></mat-spinner>
+          </div>
+          <div *ngIf="!loadingExistingDocs && existingDocs.length === 0" class="doc-empty-state" style="padding:12px 0">
+            <mat-icon>folder_off</mat-icon>
+            <span>No documents uploaded yet.</span>
+          </div>
+          <div *ngIf="!loadingExistingDocs && existingDocs.length > 0" class="doc-viewer-grid">
+            <div *ngFor="let doc of existingDocs" class="doc-viewer-card">
+              <div class="doc-viewer-header">
+                <strong>{{ doc.documentType }}</strong>
+                <span class="chip" [ngClass]="doc.isVerified ? 'chip-success' : 'chip-warning'">
+                  {{ doc.isVerified ? 'Verified' : 'Pending' }}
+                </span>
+              </div>
+              <div class="doc-viewer-info">
+                <span *ngIf="doc.documentNumber">No: {{ doc.documentNumber }}</span>
+                <span *ngIf="doc.issuingCountry"> &middot; {{ doc.issuingCountry }}</span>
+              </div>
+              <div class="doc-viewer-images">
+                <div *ngIf="doc.frontImagePath" class="doc-viewer-img-wrap" (click)="openImagePopup(doc.frontImagePath)">
+                  <img [src]="getDocImageFullUrl(doc.frontImagePath)" alt="Front" />
+                  <span class="doc-img-label">Front</span>
+                </div>
+                <div *ngIf="doc.backImagePath" class="doc-viewer-img-wrap" (click)="openImagePopup(doc.backImagePath)">
+                  <img [src]="getDocImageFullUrl(doc.backImagePath)" alt="Back" />
+                  <span class="doc-img-label">Back</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Upload New Documents -->
         <div class="doc-upload-header">
-          <span class="doc-upload-label">Upload identification documents</span>
+          <span class="doc-upload-label">{{ isEditing ? 'Upload Additional Documents' : 'Upload identification documents' }}</span>
           <button mat-stroked-button color="primary" (click)="addDocumentRow()">
             <mat-icon>add</mat-icon> Add Document
           </button>
@@ -226,7 +265,7 @@
 
         <div *ngIf="documentUploads.length === 0" class="doc-empty-state">
           <mat-icon>upload_file</mat-icon>
-          <span>No documents added. Click "Add Document" to upload identification documents.</span>
+          <span>Click "Add Document" to upload {{ isEditing ? 'additional' : 'identification' }} documents.</span>
         </div>
 
         <div *ngFor="let doc of documentUploads; let i = index" class="doc-upload-row">
