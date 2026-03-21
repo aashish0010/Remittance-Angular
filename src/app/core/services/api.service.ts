@@ -12,7 +12,7 @@ import { ComplianceAlertModel, ComplianceRuleModel } from '../models/compliance.
 import { TransactionResult, SendTransactionModel, CalculateTransferRequest, TransferCalculationResult } from '../models/transaction.models';
 import { DashboardModel } from '../models/dashboard.models';
 import { PaymentCorridorModel, CorridorPayoutPartnerModel } from '../models/routing.models';
-import { CountryInfo } from '../models/common.models';
+import { CountryInfo, PagedRequest, PagedResult } from '../models/common.models';
 import { CustomerModel, ReceiverModel } from '../models/customer.models';
 
 interface ValidationProblemResponse {
@@ -740,5 +740,74 @@ export class ApiService {
 
   getCustomerDocuments(customerId: number): Observable<ApiResponse<any[]>> {
     return this.get<any[]>(`api/documents/${customerId}`);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Pagination helpers
+  // ---------------------------------------------------------------------------
+
+  private buildPagedQuery(base: string, request: PagedRequest, extra?: Record<string, any>): string {
+    const params = new URLSearchParams();
+    params.set('page', String(request.page));
+    params.set('pageSize', String(request.pageSize));
+    if (request.sortBy) params.set('sortBy', request.sortBy);
+    if (request.sortDirection) params.set('sortDirection', request.sortDirection);
+    if (request.search) params.set('search', request.search);
+    if (extra) {
+      Object.entries(extra).forEach(([k, v]) => {
+        if (v !== null && v !== undefined && v !== '') params.set(k, String(v));
+      });
+    }
+    return `${base}?${params.toString()}`;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Paged endpoints
+  // ---------------------------------------------------------------------------
+
+  getCustomersPaged(request: PagedRequest): Observable<ApiResponse<PagedResult<any>>> {
+    return this.get<PagedResult<any>>(this.buildPagedQuery('api/admin/customers/paged', request));
+  }
+
+  getAgentsPaged(request: PagedRequest): Observable<ApiResponse<PagedResult<any>>> {
+    return this.get<PagedResult<any>>(this.buildPagedQuery('api/admin/agents/paged', request));
+  }
+
+  getTransactionsPaged(request: PagedRequest): Observable<ApiResponse<PagedResult<any>>> {
+    return this.get<PagedResult<any>>(this.buildPagedQuery('api/admin/transactions/paged', request));
+  }
+
+  getRatesPaged(request: PagedRequest): Observable<ApiResponse<PagedResult<any>>> {
+    return this.get<PagedResult<any>>(this.buildPagedQuery('api/admin/rates/paged', request));
+  }
+
+  getCommissionsPaged(request: PagedRequest): Observable<ApiResponse<PagedResult<any>>> {
+    return this.get<PagedResult<any>>(this.buildPagedQuery('api/admin/commissions/paged', request));
+  }
+
+  getAlertsPaged(request: PagedRequest, resolved?: boolean): Observable<ApiResponse<PagedResult<any>>> {
+    const extra: any = {};
+    if (resolved !== undefined) extra.resolved = resolved;
+    return this.get<PagedResult<any>>(this.buildPagedQuery('api/admin/compliance/alerts/paged', request, extra));
+  }
+
+  getReceiversPaged(request: PagedRequest): Observable<ApiResponse<PagedResult<any>>> {
+    return this.get<PagedResult<any>>(this.buildPagedQuery('api/admin/receivers/paged', request));
+  }
+
+  getCorridorsPaged(request: PagedRequest): Observable<ApiResponse<PagedResult<any>>> {
+    return this.get<PagedResult<any>>(this.buildPagedQuery('api/admin/routing/paged', request));
+  }
+
+  getAccountingSummariesPaged(request: PagedRequest): Observable<ApiResponse<PagedResult<any>>> {
+    return this.get<PagedResult<any>>(this.buildPagedQuery('api/admin/accounting/agents/paged', request));
+  }
+
+  getSetupFieldsPaged(category: string, request: PagedRequest): Observable<ApiResponse<PagedResult<any>>> {
+    return this.get<PagedResult<any>>(this.buildPagedQuery('api/admin/setup-fields/paged', request, { category }));
+  }
+
+  getAgentTransactionsPaged(request: PagedRequest): Observable<ApiResponse<PagedResult<any>>> {
+    return this.get<PagedResult<any>>(this.buildPagedQuery('api/agent/transactions/paged', request));
   }
 }

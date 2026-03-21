@@ -45,6 +45,12 @@
           <mat-icon>search</mat-icon>
           Generate
         </button>
+        <button mat-stroked-button (click)="exportReport('excel')" [disabled]="!reportData">
+          <mat-icon>download</mat-icon> Excel
+        </button>
+        <button mat-stroked-button (click)="exportReport('csv')" [disabled]="!reportData">
+          <mat-icon>download</mat-icon> CSV
+        </button>
       </div>
     </mat-card-content>
   </mat-card>

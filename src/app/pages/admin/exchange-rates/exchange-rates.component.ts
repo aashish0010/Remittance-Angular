@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatTableModule } from '@angular/material/table';
@@ -11,7 +11,11 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
+import { Subject } from 'rxjs';
+import { debounceTime, takeUntil } from 'rxjs/operators';
 import { ApiService } from '../../../core/services/api.service';
+import { ExportService } from '../../../core/services/export.service';
 import { AuthStateService } from '../../../core/services/auth-state.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { ExchangeRateModel } from '../../../core/models/exchange-rate.models';
@@ -41,20 +45,29 @@ function emptyForm(): RateForm {
   imports: [
     CommonModule, FormsModule, MatTableModule, MatButtonModule, MatIconModule,
     MatTooltipModule, MatChipsModule, MatFormFieldModule, MatInputModule,
-    MatSelectModule, MatCardModule, MatProgressSpinnerModule, DecimalPipe,
+    MatSelectModule, MatCardModule, MatProgressSpinnerModule, MatPaginatorModule,
+    DecimalPipe,
   ],
   templateUrl: './exchange-rates.component.html',
   styleUrl: './exchange-rates.component.scss',
 })
-export class ExchangeRatesComponent implements OnInit {
+export class ExchangeRatesComponent implements OnInit, OnDestroy {
   rates: ExchangeRateModel[] = [];
-  filteredRates: ExchangeRateModel[] = [];
   agents: AgentModel[] = [];
   countries: CountryInfo[] = [];
   currencies: string[] = [];
   displayedColumns = ['agentName', 'sourceCurrency', 'destinationCurrency', 'rate', 'margin', 'isActive', 'actions'];
   searchString = '';
   loading = true;
+
+  // Server-side pagination
+  pageIndex = 0;
+  pageSize = 20;
+  totalCount = 0;
+
+  // Server-side search with debounce
+  private searchSubject = new Subject<string>();
+  private destroy$ = new Subject<void>();
 
   // Detail popup
   showDetail = false;
@@ -70,6 +83,7 @@ export class ExchangeRatesComponent implements OnInit {
 
   constructor(
     private api: ApiService,
+    private exportService: ExportService,
     private auth: AuthStateService,
     private notify: NotificationService,
   ) {}
@@ -79,7 +93,21 @@ export class ExchangeRatesComponent implements OnInit {
     this.loadAgents();
     this.loadCountries();
     this.loadCurrencies();
+
+    this.searchSubject.pipe(
+      debounceTime(400),
+      takeUntil(this.destroy$),
+    ).subscribe(() => {
+      this.pageIndex = 0;
+      this.loadRates();
+    });
+
     this.loadRates();
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   // ---------------------------------------------------------------------------
@@ -87,21 +115,25 @@ export class ExchangeRatesComponent implements OnInit {
   // ---------------------------------------------------------------------------
   loadRates(): void {
     this.loading = true;
-    this.api.getRates().subscribe({
+    this.api.getRatesPaged({
+      page: this.pageIndex + 1,
+      pageSize: this.pageSize,
+      search: this.searchString,
+    }).subscribe({
       next: res => {
         if (res?.success && res.data) {
-          this.rates = res.data;
-          this.applyFilter();
+          this.rates = res.data.items ?? [];
+          this.totalCount = res.data.totalCount ?? 0;
         } else {
           this.rates = [];
-          this.filteredRates = [];
+          this.totalCount = 0;
           this.notify.error(res?.message || 'Failed to load rates.');
         }
         this.loading = false;
       },
       error: () => {
         this.rates = [];
-        this.filteredRates = [];
+        this.totalCount = 0;
         this.notify.error('Could not connect to server.');
         this.loading = false;
       },
@@ -128,16 +160,18 @@ export class ExchangeRatesComponent implements OnInit {
     });
   }
 
-  applyFilter(): void {
-    const s = this.searchString.toLowerCase();
-    this.filteredRates = !s
-      ? [...this.rates]
-      : this.rates.filter(r =>
-          r.agentName.toLowerCase().includes(s) ||
-          r.sourceCurrency.toLowerCase().includes(s) ||
-          r.destinationCurrency.toLowerCase().includes(s) ||
-          (r.country || '').toLowerCase().includes(s)
-        );
+  onSearchChange(): void {
+    this.searchSubject.next(this.searchString);
+  }
+
+  onPageChange(event: PageEvent): void {
+    this.pageIndex = event.pageIndex;
+    this.pageSize = event.pageSize;
+    this.loadRates();
+  }
+
+  exportData(format: 'excel' | 'csv'): void {
+    this.exportService.export('api/admin/rates/export', { search: this.searchString }, format);
   }
 
   // ---------------------------------------------------------------------------

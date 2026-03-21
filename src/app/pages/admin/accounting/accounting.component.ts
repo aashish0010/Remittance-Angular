@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule, DecimalPipe, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatTableModule } from '@angular/material/table';
@@ -8,10 +8,13 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
-
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { PageEvent, MatPaginatorModule } from '@angular/material/paginator';
+import { Subject } from 'rxjs';
+import { debounceTime, takeUntil } from 'rxjs/operators';
 import { ApiService } from '../../../core/services/api.service';
+import { ExportService } from '../../../core/services/export.service';
 import { AuthStateService } from '../../../core/services/auth-state.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { AgentAccountingSummary, AgentLimitAdjustmentModel, AgentCommissionModel } from '../../../core/models/agent.models';
@@ -51,18 +54,25 @@ function emptyCommissionSetupForm(): CommissionSetupForm {
     MatSelectModule,
     MatCardModule,
     MatProgressSpinnerModule,
+    MatPaginatorModule,
     DecimalPipe,
     DatePipe,
   ],
   templateUrl: './accounting.component.html',
   styleUrl: './accounting.component.scss',
 })
-export class AccountingComponent implements OnInit {
+export class AccountingComponent implements OnInit, OnDestroy {
   summaries: AgentAccountingSummary[] = [];
-  filteredSummaries: AgentAccountingSummary[] = [];
   displayedColumns = ['businessName', 'agentType', 'commission', 'effectiveLimit', 'available', 'status', 'actions'];
   searchString = '';
   loading = true;
+
+  // Server-side pagination
+  pageIndex = 0;
+  pageSize = 20;
+  totalCount = 0;
+  searchDebounce = new Subject<string>();
+  private destroy$ = new Subject<void>();
 
   // Detail popup
   showDetailPopup = false;
@@ -90,11 +100,22 @@ export class AccountingComponent implements OnInit {
     private api: ApiService,
     private auth: AuthStateService,
     private notify: NotificationService,
+    private exportService: ExportService,
   ) {}
 
   ngOnInit(): void {
     this.auth.loadFromSession();
+    this.searchDebounce.pipe(debounceTime(400), takeUntil(this.destroy$)).subscribe(s => {
+      this.searchString = s;
+      this.pageIndex = 0;
+      this.loadAccountingSummaries();
+    });
     this.loadAccountingSummaries();
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   // ---------------------------------------------------------------------------
@@ -102,35 +123,35 @@ export class AccountingComponent implements OnInit {
   // ---------------------------------------------------------------------------
   loadAccountingSummaries(): void {
     this.loading = true;
-    this.api.getAccountingSummaries().subscribe({
+    this.api.getAccountingSummariesPaged({ page: this.pageIndex + 1, pageSize: this.pageSize, search: this.searchString }).subscribe({
       next: res => {
         if (res?.success && res.data) {
-          this.summaries = res.data;
-          this.applyFilter();
+          this.summaries = res.data.items;
+          this.totalCount = res.data.totalCount;
         } else {
           this.summaries = [];
-          this.filteredSummaries = [];
+          this.totalCount = 0;
           this.notify.error(res?.message || 'Failed to load data.');
         }
         this.loading = false;
       },
       error: () => {
         this.summaries = [];
-        this.filteredSummaries = [];
+        this.totalCount = 0;
         this.notify.error('Could not connect to server.');
         this.loading = false;
       },
     });
   }
 
-  applyFilter(): void {
-    const s = this.searchString.toLowerCase();
-    this.filteredSummaries = !s
-      ? [...this.summaries]
-      : this.summaries.filter(a =>
-          a.businessName.toLowerCase().includes(s) ||
-          a.country.toLowerCase().includes(s)
-        );
+  onPageChange(event: PageEvent): void {
+    this.pageIndex = event.pageIndex;
+    this.pageSize = event.pageSize;
+    this.loadAccountingSummaries();
+  }
+
+  exportData(format: string): void {
+    this.exportService.export('api/admin/accounting/agents/export', { search: this.searchString }, format as any);
   }
 
   // ---------------------------------------------------------------------------

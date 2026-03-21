@@ -15,6 +15,7 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 
 import { ApiService } from '../../../../core/services/api.service';
+import { ExportService } from '../../../../core/services/export.service';
 import { NotificationService } from '../../../../core/services/notification.service';
 
 interface TransactionRow {
@@ -100,6 +101,7 @@ export class TransactionReportComponent implements OnInit {
   constructor(
     private api: ApiService,
     private notify: NotificationService,
+    private exportService: ExportService,
   ) {}
 
   ngOnInit(): void {
@@ -159,5 +161,14 @@ export class TransactionReportComponent implements OnInit {
         this.notify.error('Failed to load transaction report');
       },
     });
+  }
+
+  exportReport(format: string): void {
+    const params: any = {};
+    if (this.startDateObj) params.startDate = this.formatDate(this.startDateObj);
+    if (this.endDateObj) params.endDate = this.formatDate(this.endDateObj);
+    if (this.agentId) params.agentId = this.agentId;
+    if (this.status) params.status = this.status;
+    this.exportService.export('api/admin/reports/transactions/export', params, format as any);
   }
 }

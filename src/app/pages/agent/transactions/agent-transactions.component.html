@@ -8,7 +8,7 @@
         <mat-form-field appearance="outline" class="search-field">
           <mat-icon matPrefix>search</mat-icon>
           <mat-label>Search transactions...</mat-label>
-          <input matInput [(ngModel)]="search" (ngModelChange)="applyFilter()" />
+          <input matInput [(ngModel)]="search" (ngModelChange)="searchDebounce.next($event)" />
         </mat-form-field>
         <mat-form-field appearance="outline" class="status-filter">
           <mat-label>Status</mat-label>
@@ -22,6 +22,12 @@
           </mat-select>
         </mat-form-field>
         <span class="spacer"></span>
+        <button mat-stroked-button (click)="exportData('excel')">
+          <mat-icon>download</mat-icon> Excel
+        </button>
+        <button mat-stroked-button (click)="exportData('csv')">
+          <mat-icon>download</mat-icon> CSV
+        </button>
         <a mat-flat-button color="primary" routerLink="/agent/send">
           <mat-icon>add</mat-icon>
           New Transaction
@@ -35,7 +41,7 @@
 
       <!-- Table -->
       <div class="table-responsive" *ngIf="!loading">
-        <table mat-table [dataSource]="pagedTransactions" class="transactions-table">
+        <table mat-table [dataSource]="transactions" class="transactions-table">
           <!-- Reference Number -->
           <ng-container matColumnDef="referenceNumber">
             <th mat-header-cell *matHeaderCellDef>Reference</th>
@@ -134,17 +140,16 @@
         </table>
 
         <!-- Empty State -->
-        <div *ngIf="filteredTransactions.length === 0 && !loading" class="empty-text">
+        <div *ngIf="transactions.length === 0 && !loading" class="empty-text">
           No transactions found.
         </div>
       </div>
 
       <!-- Paginator -->
-      <mat-paginator *ngIf="filteredTransactions.length > 0"
-                     [length]="filteredTransactions.length"
+      <mat-paginator [length]="totalCount"
                      [pageSize]="pageSize"
                      [pageIndex]="pageIndex"
-                     [pageSizeOptions]="[5, 10, 25, 50]"
+                     [pageSizeOptions]="[10, 20, 50, 100]"
                      (page)="onPageChange($event)"
                      showFirstLastButtons>
       </mat-paginator>

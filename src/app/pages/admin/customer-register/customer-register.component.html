@@ -1,9 +1,17 @@
 <!-- Page Header -->
 <div class="page-header">
   <h2>Customer Registration</h2>
-  <button mat-raised-button color="primary" (click)="openCreatePopup()">
-    <mat-icon>person_add</mat-icon> Register Customer
-  </button>
+  <div class="page-header-actions">
+    <button mat-stroked-button (click)="exportData('excel')">
+      <mat-icon>download</mat-icon> Excel
+    </button>
+    <button mat-stroked-button (click)="exportData('csv')">
+      <mat-icon>download</mat-icon> CSV
+    </button>
+    <button mat-raised-button color="primary" (click)="openCreatePopup()">
+      <mat-icon>person_add</mat-icon> Register Customer
+    </button>
+  </div>
 </div>
 
 <!-- Loading -->
@@ -15,10 +23,10 @@
 <mat-card *ngIf="!loading" class="table-card">
   <mat-form-field appearance="outline" class="search-field">
     <mat-icon matPrefix>search</mat-icon>
-    <input matInput placeholder="Search customers..." [(ngModel)]="searchString" (ngModelChange)="applyFilter()" />
+    <input matInput placeholder="Search customers..." [(ngModel)]="searchString" (ngModelChange)="searchDebounce.next($event)" />
   </mat-form-field>
 
-  <table mat-table [dataSource]="filteredCustomers" class="data-table">
+  <table mat-table [dataSource]="customers" class="data-table">
     <!-- Full Name -->
     <ng-container matColumnDef="fullName">
       <th mat-header-cell *matHeaderCellDef>Full Name</th>
@@ -88,7 +96,11 @@
     <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
   </table>
 
-  <div *ngIf="!filteredCustomers.length && !loading" class="empty-state">
+  <mat-paginator [length]="totalCount" [pageSize]="pageSize" [pageIndex]="pageIndex"
+    [pageSizeOptions]="[10, 20, 50, 100]" (page)="onPageChange($event)" showFirstLastButtons>
+  </mat-paginator>
+
+  <div *ngIf="!customers.length && !loading" class="empty-state">
     No customers found.
   </div>
 </mat-card>

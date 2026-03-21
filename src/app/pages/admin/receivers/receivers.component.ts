@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatTableModule } from '@angular/material/table';
@@ -11,7 +11,11 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { PageEvent, MatPaginatorModule } from '@angular/material/paginator';
+import { Subject } from 'rxjs';
+import { debounceTime, takeUntil } from 'rxjs/operators';
 import { ApiService } from '../../../core/services/api.service';
+import { ExportService } from '../../../core/services/export.service';
 import { AuthStateService } from '../../../core/services/auth-state.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { ReceiverModel, CustomerModel } from '../../../core/models/customer.models';
@@ -42,18 +46,25 @@ function emptyForm(): ReceiverForm {
   imports: [
     CommonModule, FormsModule, MatTableModule, MatButtonModule, MatIconModule,
     MatTooltipModule, MatChipsModule, MatFormFieldModule, MatInputModule,
-    MatSelectModule, MatCardModule, MatProgressSpinnerModule, SearchableSelectDirective,
+    MatSelectModule, MatCardModule, MatProgressSpinnerModule, MatPaginatorModule,
+    SearchableSelectDirective,
   ],
   templateUrl: './receivers.component.html',
   styleUrl: './receivers.component.scss',
 })
-export class ReceiversComponent implements OnInit {
+export class ReceiversComponent implements OnInit, OnDestroy {
   receivers: ReceiverModel[] = [];
-  filteredReceivers: ReceiverModel[] = [];
   customers: CustomerModel[] = [];
   displayedColumns = ['customerName', 'fullName', 'phone', 'country', 'bankName', 'accountNumber', 'status', 'actions'];
   searchString = '';
   loading = true;
+
+  // Server-side pagination
+  pageIndex = 0;
+  pageSize = 20;
+  totalCount = 0;
+  searchDebounce = new Subject<string>();
+  private destroy$ = new Subject<void>();
 
   // Customer filter
   filterCustomerId: number | null = null;
@@ -76,12 +87,23 @@ export class ReceiversComponent implements OnInit {
     private api: ApiService,
     private auth: AuthStateService,
     private notify: NotificationService,
+    private exportService: ExportService,
   ) {}
 
   ngOnInit(): void {
     this.auth.loadFromSession();
+    this.searchDebounce.pipe(debounceTime(400), takeUntil(this.destroy$)).subscribe(s => {
+      this.searchString = s;
+      this.pageIndex = 0;
+      this.loadReceivers();
+    });
     this.loadCustomers();
     this.loadReceivers();
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   // ---------------------------------------------------------------------------
@@ -89,21 +111,21 @@ export class ReceiversComponent implements OnInit {
   // ---------------------------------------------------------------------------
   loadReceivers(): void {
     this.loading = true;
-    this.api.getReceivers().subscribe({
+    this.api.getReceiversPaged({ page: this.pageIndex + 1, pageSize: this.pageSize, search: this.searchString }).subscribe({
       next: res => {
         if (res?.success && res.data) {
-          this.receivers = res.data;
-          this.applyFilter();
+          this.receivers = res.data.items;
+          this.totalCount = res.data.totalCount;
         } else {
           this.receivers = [];
-          this.filteredReceivers = [];
+          this.totalCount = 0;
           this.notify.error(res?.message || 'Failed to load receivers.');
         }
         this.loading = false;
       },
       error: () => {
         this.receivers = [];
-        this.filteredReceivers = [];
+        this.totalCount = 0;
         this.notify.error('Could not connect to server.');
         this.loading = false;
       },
@@ -118,31 +140,19 @@ export class ReceiversComponent implements OnInit {
     });
   }
 
-  applyFilter(): void {
-    let list = this.receivers;
-
-    // Filter by customer
-    if (this.filterCustomerId) {
-      list = list.filter(r => r.customerId === this.filterCustomerId);
-    }
-
-    // Search text
-    const s = this.searchString.toLowerCase();
-    if (s) {
-      list = list.filter(r =>
-        r.fullName.toLowerCase().includes(s) ||
-        r.customerName.toLowerCase().includes(s) ||
-        r.phone.toLowerCase().includes(s) ||
-        r.country.toLowerCase().includes(s) ||
-        (r.bankName || '').toLowerCase().includes(s)
-      );
-    }
-
-    this.filteredReceivers = list;
+  filterByCustomer(): void {
+    this.pageIndex = 0;
+    this.loadReceivers();
   }
 
-  filterByCustomer(): void {
-    this.applyFilter();
+  onPageChange(event: PageEvent): void {
+    this.pageIndex = event.pageIndex;
+    this.pageSize = event.pageSize;
+    this.loadReceivers();
+  }
+
+  exportData(format: string): void {
+    this.exportService.export('api/admin/receivers/export', { search: this.searchString }, format as any);
   }
 
   // ---------------------------------------------------------------------------

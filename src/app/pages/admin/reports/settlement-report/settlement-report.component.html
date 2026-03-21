@@ -23,6 +23,12 @@
           <mat-icon>assessment</mat-icon>
           Generate
         </button>
+        <button mat-stroked-button (click)="exportReport('excel')" [disabled]="settlements.length === 0">
+          <mat-icon>download</mat-icon> Excel
+        </button>
+        <button mat-stroked-button (click)="exportReport('csv')" [disabled]="settlements.length === 0">
+          <mat-icon>download</mat-icon> CSV
+        </button>
       </div>
     </mat-card-content>
   </mat-card>

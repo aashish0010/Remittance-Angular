@@ -2,6 +2,12 @@
 <div class="page-header">
   <h2>Receiver Management</h2>
   <div class="header-actions">
+    <button mat-stroked-button (click)="exportData('excel')">
+      <mat-icon>download</mat-icon> Excel
+    </button>
+    <button mat-stroked-button (click)="exportData('csv')">
+      <mat-icon>download</mat-icon> CSV
+    </button>
     <button mat-raised-button (click)="openSearchPopup()">
       <mat-icon>search</mat-icon> Search Receiver
     </button>
@@ -29,11 +35,11 @@
 
     <mat-form-field appearance="outline" class="search-field">
       <mat-icon matPrefix>search</mat-icon>
-      <input matInput placeholder="Search receivers..." [(ngModel)]="searchString" (ngModelChange)="applyFilter()" />
+      <input matInput placeholder="Search receivers..." [(ngModel)]="searchString" (ngModelChange)="searchDebounce.next($event)" />
     </mat-form-field>
   </div>
 
-  <table mat-table [dataSource]="filteredReceivers" class="data-table">
+  <table mat-table [dataSource]="receivers" class="data-table">
     <!-- Customer Name -->
     <ng-container matColumnDef="customerName">
       <th mat-header-cell *matHeaderCellDef>Customer Name</th>
@@ -97,9 +103,13 @@
     <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
   </table>
 
-  <div *ngIf="!filteredReceivers.length && !loading" class="empty-state">
+  <div *ngIf="!receivers.length && !loading" class="empty-state">
     No receivers found.
   </div>
+
+  <mat-paginator [length]="totalCount" [pageSize]="pageSize" [pageIndex]="pageIndex"
+    [pageSizeOptions]="[10, 20, 50, 100]" (page)="onPageChange($event)" showFirstLastButtons>
+  </mat-paginator>
 </mat-card>
 
 <!-- ============================================================ -->

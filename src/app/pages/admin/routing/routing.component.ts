@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatTableModule } from '@angular/material/table';
@@ -10,8 +10,12 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { PageEvent, MatPaginatorModule } from '@angular/material/paginator';
+import { Subject } from 'rxjs';
+import { debounceTime, takeUntil } from 'rxjs/operators';
 import { SearchableSelectDirective } from '../../../shared/searchable-select.directive';
 import { ApiService } from '../../../core/services/api.service';
+import { ExportService } from '../../../core/services/export.service';
 import { AuthStateService } from '../../../core/services/auth-state.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { PaymentCorridorModel, CorridorPayoutPartnerModel } from '../../../core/models/routing.models';
@@ -54,20 +58,28 @@ function emptyPartnerForm(): PartnerForm {
     MatSelectModule,
     MatCardModule,
     MatProgressSpinnerModule,
+    MatPaginatorModule,
     SearchableSelectDirective,
   ],
   templateUrl: './routing.component.html',
   styleUrl: './routing.component.scss',
 })
-export class RoutingComponent implements OnInit {
+export class RoutingComponent implements OnInit, OnDestroy {
   corridors: PaymentCorridorModel[] = [];
-  filteredCorridors: PaymentCorridorModel[] = [];
   displayedColumns = [
     'sendingAgent', 'sourceCountry', 'sourceCurrency', 'destCountry',
     'destCurrency', 'partners', 'status', 'actions',
   ];
   searchString = '';
   loading = true;
+
+  // Server-side pagination
+  pageIndex = 0;
+  pageSize = 20;
+  totalCount = 0;
+  searchDebounce = new Subject<string>();
+  private destroy$ = new Subject<void>();
+
   // Reference data
   sendingAgents: AgentModel[] = [];
   payoutAgents: AgentModel[] = [];
@@ -100,13 +112,24 @@ export class RoutingComponent implements OnInit {
     private api: ApiService,
     private auth: AuthStateService,
     private notify: NotificationService,
+    private exportService: ExportService,
   ) {}
 
   ngOnInit(): void {
     this.auth.loadFromSession();
+    this.searchDebounce.pipe(debounceTime(400), takeUntil(this.destroy$)).subscribe(s => {
+      this.searchString = s;
+      this.pageIndex = 0;
+      this.loadCorridors();
+    });
     this.loadAgents();
     this.loadReferenceData();
     this.loadCorridors();
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   // ---------------------------------------------------------------------------
@@ -132,38 +155,35 @@ export class RoutingComponent implements OnInit {
   // ---------------------------------------------------------------------------
   loadCorridors(): void {
     this.loading = true;
-    this.api.getCorridors().subscribe({
+    this.api.getCorridorsPaged({ page: this.pageIndex + 1, pageSize: this.pageSize, search: this.searchString }).subscribe({
       next: res => {
         if (res?.success && res.data) {
-          this.corridors = res.data;
-          this.applyFilter();
+          this.corridors = res.data.items;
+          this.totalCount = res.data.totalCount;
         } else {
           this.corridors = [];
-          this.filteredCorridors = [];
+          this.totalCount = 0;
           this.notify.error(res?.message || 'Failed to load corridors.');
         }
         this.loading = false;
       },
       error: () => {
         this.corridors = [];
-        this.filteredCorridors = [];
+        this.totalCount = 0;
         this.notify.error('Could not connect to server.');
         this.loading = false;
       },
     });
   }
 
-  applyFilter(): void {
-    const s = this.searchString.toLowerCase();
-    this.filteredCorridors = !s
-      ? [...this.corridors]
-      : this.corridors.filter(c =>
-          (c.sendingAgentName || '').toLowerCase().includes(s) ||
-          c.sourceCountry.toLowerCase().includes(s) ||
-          c.destinationCountry.toLowerCase().includes(s) ||
-          c.sourceCurrency.toLowerCase().includes(s) ||
-          c.destinationCurrency.toLowerCase().includes(s)
-        );
+  onPageChange(event: PageEvent): void {
+    this.pageIndex = event.pageIndex;
+    this.pageSize = event.pageSize;
+    this.loadCorridors();
+  }
+
+  exportData(format: string): void {
+    this.exportService.export('api/admin/routing/export', { search: this.searchString }, format as any);
   }
 
   // ---------------------------------------------------------------------------
@@ -351,10 +371,10 @@ export class RoutingComponent implements OnInit {
   }
 
   private refreshPartnerCorridor(): void {
-    this.api.getCorridors().subscribe(r => {
+    this.api.getCorridorsPaged({ page: this.pageIndex + 1, pageSize: this.pageSize, search: this.searchString }).subscribe(r => {
       if (r?.success && r.data) {
-        this.corridors = r.data;
-        this.applyFilter();
+        this.corridors = r.data.items;
+        this.totalCount = r.data.totalCount;
         if (this.partnerCorridor) {
           this.partnerCorridor = this.corridors.find(c => c.id === this.partnerCorridor!.id) ?? null;
         }

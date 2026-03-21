@@ -1,9 +1,17 @@
 <!-- Page Header -->
 <div class="page-header">
   <h2>Exchange Rate Management</h2>
-  <button mat-raised-button color="primary" (click)="openCreatePopup()">
-    <mat-icon>add</mat-icon> Add Rate
-  </button>
+  <div class="header-actions">
+    <button mat-raised-button (click)="exportData('excel')">
+      <mat-icon>download</mat-icon> Excel
+    </button>
+    <button mat-raised-button (click)="exportData('csv')">
+      <mat-icon>download</mat-icon> CSV
+    </button>
+    <button mat-raised-button color="primary" (click)="openCreatePopup()">
+      <mat-icon>add</mat-icon> Add Rate
+    </button>
+  </div>
 </div>
 
 <!-- Loading -->
@@ -15,10 +23,10 @@
 <mat-card *ngIf="!loading" class="table-card">
   <mat-form-field appearance="outline" class="search-field">
     <mat-icon matPrefix>search</mat-icon>
-    <input matInput placeholder="Search rates..." [(ngModel)]="searchString" (ngModelChange)="applyFilter()" />
+    <input matInput placeholder="Search rates..." [(ngModel)]="searchString" (ngModelChange)="onSearchChange()" />
   </mat-form-field>
 
-  <table mat-table [dataSource]="filteredRates" class="data-table">
+  <table mat-table [dataSource]="rates" class="data-table">
     <!-- Payout Agent -->
     <ng-container matColumnDef="agentName">
       <th mat-header-cell *matHeaderCellDef>Payout Agent</th>
@@ -79,9 +87,18 @@
     <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
   </table>
 
-  <div *ngIf="!filteredRates.length && !loading" class="empty-state">
+  <div *ngIf="!rates.length && !loading" class="empty-state">
     No exchange rates found.
   </div>
+
+  <mat-paginator
+    [length]="totalCount"
+    [pageIndex]="pageIndex"
+    [pageSize]="pageSize"
+    [pageSizeOptions]="[10, 20, 50]"
+    (page)="onPageChange($event)"
+    showFirstLastButtons>
+  </mat-paginator>
 </mat-card>
 
 <!-- Detail Popup -->

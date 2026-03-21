@@ -12,6 +12,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { ApiService } from '../../../../core/services/api.service';
+import { ExportService } from '../../../../core/services/export.service';
 import { NotificationService } from '../../../../core/services/notification.service';
 
 @Component({
@@ -60,6 +61,7 @@ export class CommissionReportComponent implements OnInit {
   constructor(
     private api: ApiService,
     private notification: NotificationService,
+    private exportService: ExportService,
     private decimalPipe: DecimalPipe,
     private datePipe: DatePipe
   ) {}
@@ -123,5 +125,14 @@ export class CommissionReportComponent implements OnInit {
         this.notification.error('Failed to load commission report.');
       },
     });
+  }
+
+  exportReport(format: string): void {
+    const params: any = {
+      startDate: this.formatDate(this.startDateObj),
+      endDate: this.formatDate(this.endDateObj),
+    };
+    if (this.agentId) params.agentId = this.agentId;
+    this.exportService.export('api/admin/reports/commissions/export', params, format as any);
   }
 }

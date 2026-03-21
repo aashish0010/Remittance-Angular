@@ -11,6 +11,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { ApiService } from '../../../../core/services/api.service';
+import { ExportService } from '../../../../core/services/export.service';
 import { NotificationService } from '../../../../core/services/notification.service';
 
 interface Settlement {
@@ -52,6 +53,7 @@ interface Settlement {
 })
 export class SettlementReportComponent {
   private api = inject(ApiService);
+  private exportService = inject(ExportService);
   private notification = inject(NotificationService);
 
   startDateObj: Date | null = null;
@@ -108,5 +110,12 @@ export class SettlementReportComponent {
         this.notification.error('An error occurred while loading the report.');
       }
     });
+  }
+
+  exportReport(format: string): void {
+    const params: any = {};
+    if (this.startDateObj) params.startDate = this.formatDate(this.startDateObj);
+    if (this.endDateObj) params.endDate = this.formatDate(this.endDateObj);
+    this.exportService.export('api/admin/reports/settlement/export', params, format as any);
   }
 }

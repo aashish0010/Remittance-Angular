@@ -11,6 +11,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { ApiService } from '../../../../core/services/api.service';
+import { ExportService } from '../../../../core/services/export.service';
 import { NotificationService } from '../../../../core/services/notification.service';
 
 interface MonthlyBreakdown {
@@ -76,7 +77,8 @@ export class RevenueReportComponent {
 
   constructor(
     private api: ApiService,
-    private notification: NotificationService
+    private notification: NotificationService,
+    private exportService: ExportService,
   ) {}
 
   private formatDate(d: Date | null): string {
@@ -112,5 +114,12 @@ export class RevenueReportComponent {
   formatMonth(year: number, month: number): string {
     const date = new Date(year, month - 1);
     return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short' });
+  }
+
+  exportReport(format: string): void {
+    const params: any = {};
+    if (this.startDateObj) params.startDate = this.formatDate(this.startDateObj);
+    if (this.endDateObj) params.endDate = this.formatDate(this.endDateObj);
+    this.exportService.export('api/admin/reports/revenue/export', params, format as any);
   }
 }

@@ -1,8 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule, DecimalPipe, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatTableModule } from '@angular/material/table';
-import { MatPaginatorModule } from '@angular/material/paginator';
+import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatSortModule } from '@angular/material/sort';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -15,7 +15,10 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatDialogModule } from '@angular/material/dialog';
+import { Subject } from 'rxjs';
+import { debounceTime, takeUntil } from 'rxjs/operators';
 import { ApiService } from '../../../core/services/api.service';
+import { ExportService } from '../../../core/services/export.service';
 import { AuthStateService } from '../../../core/services/auth-state.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import {
@@ -96,13 +99,19 @@ function emptyEditForm(): EditAgentForm {
   templateUrl: './agent-management.component.html',
   styleUrl: './agent-management.component.scss',
 })
-export class AgentManagementComponent implements OnInit {
+export class AgentManagementComponent implements OnInit, OnDestroy {
   // Main table
   agents: AgentModel[] = [];
-  filteredAgents: AgentModel[] = [];
   displayedColumns = ['businessName', 'country', 'type', 'status', 'actions'];
   searchString = '';
   loading = true;
+
+  // Pagination
+  pageIndex = 0;
+  pageSize = 20;
+  totalCount = 0;
+  searchDebounce = new Subject<string>();
+  private destroy$ = new Subject<void>();
 
   // Reference data
   countries: CountryInfo[] = [];
@@ -193,12 +202,23 @@ export class AgentManagementComponent implements OnInit {
     private api: ApiService,
     private auth: AuthStateService,
     private notify: NotificationService,
+    private exportService: ExportService,
   ) {}
 
   ngOnInit(): void {
     this.auth.loadFromSession();
+    this.searchDebounce.pipe(debounceTime(400), takeUntil(this.destroy$)).subscribe(s => {
+      this.searchString = s;
+      this.pageIndex = 0;
+      this.loadAgents();
+    });
     this.loadReferenceData();
     this.loadAgents();
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   // ---------------------------------------------------------------------------
@@ -219,35 +239,35 @@ export class AgentManagementComponent implements OnInit {
   // ---------------------------------------------------------------------------
   loadAgents(): void {
     this.loading = true;
-    this.api.getAgents().subscribe({
+    this.api.getAgentsPaged({ page: this.pageIndex + 1, pageSize: this.pageSize, search: this.searchString }).subscribe({
       next: res => {
         if (res?.success && res.data) {
-          this.agents = res.data;
-          this.applyFilter();
+          this.agents = res.data.items;
+          this.totalCount = res.data.totalCount;
         } else {
           this.agents = [];
-          this.filteredAgents = [];
+          this.totalCount = 0;
           this.notify.error(res?.message || 'Failed to load agents.');
         }
         this.loading = false;
       },
       error: () => {
         this.agents = [];
-        this.filteredAgents = [];
+        this.totalCount = 0;
         this.notify.error('Could not connect to server.');
         this.loading = false;
       },
     });
   }
 
-  applyFilter(): void {
-    const s = this.searchString.toLowerCase();
-    this.filteredAgents = !s
-      ? [...this.agents]
-      : this.agents.filter(a =>
-          a.businessName.toLowerCase().includes(s) ||
-          a.fullName.toLowerCase().includes(s)
-        );
+  onPageChange(event: PageEvent): void {
+    this.pageIndex = event.pageIndex;
+    this.pageSize = event.pageSize;
+    this.loadAgents();
+  }
+
+  exportData(format: string): void {
+    this.exportService.export('api/admin/agents/export', { search: this.searchString }, format as any);
   }
 
   // ---------------------------------------------------------------------------

@@ -1,10 +1,10 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule, DecimalPipe, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterModule } from '@angular/router';
-import { MatTableModule, MatTableDataSource } from '@angular/material/table';
-import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
-import { MatSort, MatSortModule } from '@angular/material/sort';
+import { MatTableModule } from '@angular/material/table';
+import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
+import { MatSortModule } from '@angular/material/sort';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
@@ -14,7 +14,10 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatCardModule } from '@angular/material/card';
+import { Subject } from 'rxjs';
+import { debounceTime, takeUntil } from 'rxjs/operators';
 import { ApiService } from '../../../core/services/api.service';
+import { ExportService } from '../../../core/services/export.service';
 import { AuthStateService } from '../../../core/services/auth-state.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { TransactionResult } from '../../../core/models/transaction.models';
@@ -44,7 +47,7 @@ import { TransactionResult } from '../../../core/models/transaction.models';
   templateUrl: './admin-transactions.component.html',
   styleUrl: './admin-transactions.component.scss',
 })
-export class AdminTransactionsComponent implements OnInit {
+export class AdminTransactionsComponent implements OnInit, OnDestroy {
   displayedColumns: string[] = [
     'referenceNumber',
     'senderName',
@@ -58,18 +61,24 @@ export class AdminTransactionsComponent implements OnInit {
     'actions',
   ];
 
-  dataSource = new MatTableDataSource<TransactionResult>([]);
   transactions: TransactionResult[] = [];
   loading = true;
   searchText = '';
   statusFilter = 'All';
   selectedTransaction: TransactionResult | null = null;
 
-  @ViewChild(MatPaginator) paginator!: MatPaginator;
-  @ViewChild(MatSort) sort!: MatSort;
+  // Server-side pagination
+  pageIndex = 0;
+  pageSize = 20;
+  totalCount = 0;
+
+  // Server-side search with debounce
+  private searchSubject = new Subject<string>();
+  private destroy$ = new Subject<void>();
 
   constructor(
     private api: ApiService,
+    private exportService: ExportService,
     private auth: AuthStateService,
     private notify: NotificationService,
     private route: ActivatedRoute,
@@ -80,73 +89,79 @@ export class AdminTransactionsComponent implements OnInit {
     // Read status from query params (e.g. from dashboard click)
     const qStatus = this.route.snapshot.queryParamMap.get('status');
     if (qStatus) this.statusFilter = qStatus;
+
+    this.searchSubject.pipe(
+      debounceTime(400),
+      takeUntil(this.destroy$),
+    ).subscribe(() => {
+      this.pageIndex = 0;
+      this.loadTransactions();
+    });
+
     this.loadTransactions();
   }
 
-  ngAfterViewInit(): void {
-    this.dataSource.paginator = this.paginator;
-    this.dataSource.sort = this.sort;
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   loadTransactions(): void {
     this.loading = true;
-    this.api.getTransactions().subscribe({
+    const params: any = {
+      page: this.pageIndex + 1,
+      pageSize: this.pageSize,
+      search: this.searchText,
+    };
+    if (this.statusFilter && this.statusFilter !== 'All') {
+      params.status = this.statusFilter;
+    }
+    this.api.getTransactionsPaged(params).subscribe({
       next: (res) => {
         if (res?.success && res.data) {
-          this.transactions = res.data;
-          this.dataSource.data = res.data;
-          this.dataSource.filterPredicate = this.createFilter();
+          this.transactions = res.data.items ?? [];
+          this.totalCount = res.data.totalCount ?? 0;
         } else {
           this.transactions = [];
-          this.dataSource.data = [];
+          this.totalCount = 0;
           this.notify.error(res?.message || 'Failed to load transactions.');
         }
         this.loading = false;
       },
       error: () => {
         this.transactions = [];
-        this.dataSource.data = [];
+        this.totalCount = 0;
         this.notify.error('Could not connect to server.');
         this.loading = false;
       },
     });
   }
 
-  applyFilter(): void {
-    const filterValue = JSON.stringify({
-      text: this.searchText.trim().toLowerCase(),
-      status: this.statusFilter,
-    });
-    this.dataSource.filter = filterValue;
-
-    if (this.dataSource.paginator) {
-      this.dataSource.paginator.firstPage();
-    }
+  onSearchChange(): void {
+    this.searchSubject.next(this.searchText);
   }
 
-  private createFilter(): (data: TransactionResult, filter: string) => boolean {
-    return (data: TransactionResult, filter: string): boolean => {
-      const parsed = JSON.parse(filter);
-      const text = parsed.text as string;
-      const status = parsed.status as string;
+  onStatusChange(): void {
+    this.pageIndex = 0;
+    this.loadTransactions();
+  }
 
-      const matchesStatus = status === 'All' || data.status === status;
-      const matchesText =
-        !text ||
-        data.referenceNumber.toLowerCase().includes(text) ||
-        data.senderName.toLowerCase().includes(text) ||
-        (data.receiverName?.toLowerCase().includes(text) ?? false);
+  onPageChange(event: PageEvent): void {
+    this.pageIndex = event.pageIndex;
+    this.pageSize = event.pageSize;
+    this.loadTransactions();
+  }
 
-      return matchesStatus && matchesText;
-    };
+  exportData(format: 'excel' | 'csv'): void {
+    this.exportService.export('api/admin/transactions/export', { search: this.searchText }, format);
   }
 
   completeTransaction(txn: TransactionResult): void {
     this.api.completeTransaction(txn.id).subscribe({
       next: (res) => {
         if (res?.success) {
-          txn.status = 'Completed';
           this.notify.success(`Transaction ${txn.referenceNumber} completed.`);
+          this.loadTransactions();
         } else {
           this.notify.error(res?.message || 'Failed to complete transaction.');
         }
@@ -161,8 +176,8 @@ export class AdminTransactionsComponent implements OnInit {
     this.api.cancelTransaction(txn.id).subscribe({
       next: (res) => {
         if (res?.success) {
-          txn.status = 'Cancelled';
           this.notify.warn(`Transaction ${txn.referenceNumber} cancelled.`);
+          this.loadTransactions();
         } else {
           this.notify.error(res?.message || 'Failed to cancel transaction.');
         }

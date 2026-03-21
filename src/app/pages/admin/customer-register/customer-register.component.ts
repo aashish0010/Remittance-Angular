@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatTableModule } from '@angular/material/table';
@@ -13,8 +13,12 @@ import { MatCardModule } from '@angular/material/card';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { provideNativeDateAdapter } from '@angular/material/core';
+import { Subject } from 'rxjs';
+import { debounceTime, takeUntil } from 'rxjs/operators';
 import { ApiService } from '../../../core/services/api.service';
+import { ExportService } from '../../../core/services/export.service';
 import { AuthStateService } from '../../../core/services/auth-state.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { CustomerModel } from '../../../core/models/customer.models';
@@ -61,19 +65,25 @@ function emptyForm(): CustomerForm {
     CommonModule, FormsModule, MatTableModule, MatButtonModule, MatIconModule,
     MatTooltipModule, MatChipsModule, MatFormFieldModule, MatInputModule,
     MatSelectModule, MatCardModule, MatProgressSpinnerModule, MatTabsModule,
-    MatDatepickerModule, DatePipe, SearchableSelectDirective,
+    MatDatepickerModule, MatPaginatorModule, DatePipe, SearchableSelectDirective,
   ],
   providers: [provideNativeDateAdapter()],
   templateUrl: './customer-register.component.html',
   styleUrl: './customer-register.component.scss',
 })
-export class CustomerRegisterComponent implements OnInit {
+export class CustomerRegisterComponent implements OnInit, OnDestroy {
   customers: CustomerModel[] = [];
-  filteredCustomers: CustomerModel[] = [];
   displayedColumns = ['fullName', 'email', 'phone', 'country', 'kyc', 'createdAt', 'actions'];
   searchString = '';
   loading = true;
   countries: CountryInfo[] = [];
+
+  // Pagination
+  pageIndex = 0;
+  pageSize = 20;
+  totalCount = 0;
+  searchDebounce = new Subject<string>();
+  private destroy$ = new Subject<void>();
 
   // Detail popup
   showDetail = false;
@@ -106,13 +116,24 @@ export class CustomerRegisterComponent implements OnInit {
     private api: ApiService,
     private auth: AuthStateService,
     private notify: NotificationService,
+    private exportService: ExportService,
   ) {}
 
   ngOnInit(): void {
     this.auth.loadFromSession();
+    this.searchDebounce.pipe(debounceTime(400), takeUntil(this.destroy$)).subscribe(s => {
+      this.searchString = s;
+      this.pageIndex = 0;
+      this.loadCustomers();
+    });
     this.loadCustomers();
     this.loadCountries();
     this.loadDocumentTypeConfigs();
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   // ---------------------------------------------------------------------------
@@ -120,21 +141,21 @@ export class CustomerRegisterComponent implements OnInit {
   // ---------------------------------------------------------------------------
   loadCustomers(): void {
     this.loading = true;
-    this.api.getCustomers().subscribe({
+    this.api.getCustomersPaged({ page: this.pageIndex + 1, pageSize: this.pageSize, search: this.searchString }).subscribe({
       next: res => {
         if (res?.success && res.data) {
-          this.customers = res.data;
-          this.applyFilter();
+          this.customers = res.data.items;
+          this.totalCount = res.data.totalCount;
         } else {
           this.customers = [];
-          this.filteredCustomers = [];
+          this.totalCount = 0;
           this.notify.error(res?.message || 'Failed to load customers.');
         }
         this.loading = false;
       },
       error: () => {
         this.customers = [];
-        this.filteredCustomers = [];
+        this.totalCount = 0;
         this.notify.error('Could not connect to server.');
         this.loading = false;
       },
@@ -154,16 +175,14 @@ export class CustomerRegisterComponent implements OnInit {
     });
   }
 
-  applyFilter(): void {
-    const s = this.searchString.toLowerCase();
-    this.filteredCustomers = !s
-      ? [...this.customers]
-      : this.customers.filter(c =>
-          c.fullName.toLowerCase().includes(s) ||
-          (c.email || '').toLowerCase().includes(s) ||
-          (c.phone || '').toLowerCase().includes(s) ||
-          c.country.toLowerCase().includes(s)
-        );
+  onPageChange(event: PageEvent): void {
+    this.pageIndex = event.pageIndex;
+    this.pageSize = event.pageSize;
+    this.loadCustomers();
+  }
+
+  exportData(format: string): void {
+    this.exportService.export('api/admin/customers/export', { search: this.searchString }, format as any);
   }
 
   // ---------------------------------------------------------------------------

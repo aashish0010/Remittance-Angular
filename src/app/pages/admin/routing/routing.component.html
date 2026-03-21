@@ -1,9 +1,17 @@
 <!-- Page Header -->
 <div class="page-header">
   <h2>Payment Corridor Routing</h2>
-  <button mat-raised-button color="primary" (click)="openCreateCorridor()">
-    <mat-icon>add</mat-icon> Add Corridor
-  </button>
+  <div class="header-actions">
+    <button mat-stroked-button (click)="exportData('excel')">
+      <mat-icon>download</mat-icon> Excel
+    </button>
+    <button mat-stroked-button (click)="exportData('csv')">
+      <mat-icon>download</mat-icon> CSV
+    </button>
+    <button mat-raised-button color="primary" (click)="openCreateCorridor()">
+      <mat-icon>add</mat-icon> Add Corridor
+    </button>
+  </div>
 </div>
 
 <!-- Loading -->
@@ -15,12 +23,12 @@
 <mat-card *ngIf="!loading" class="table-card">
   <mat-form-field appearance="outline" class="search-field">
     <mat-icon matPrefix>search</mat-icon>
-    <input matInput placeholder="Search corridors..." [(ngModel)]="searchString" (ngModelChange)="applyFilter()" />
+    <input matInput placeholder="Search corridors..." [(ngModel)]="searchString" (ngModelChange)="searchDebounce.next($event)" />
   </mat-form-field>
 
   <!-- Desktop / Tablet: scrollable table -->
   <div class="table-scroll-wrapper">
-    <table mat-table [dataSource]="filteredCorridors" class="data-table">
+    <table mat-table [dataSource]="corridors" class="data-table">
       <ng-container matColumnDef="sendingAgent">
         <th mat-header-cell *matHeaderCellDef>Sending Agent</th>
         <td mat-cell *matCellDef="let c">{{ c.sendingAgentName || 'All' }}</td>
@@ -88,7 +96,7 @@
 
   <!-- Mobile: card layout -->
   <div class="mobile-cards">
-    <div *ngFor="let c of filteredCorridors" class="mobile-card">
+    <div *ngFor="let c of corridors" class="mobile-card">
       <div class="mobile-card-header">
         <span class="mobile-card-title">{{ c.sourceCountry }} &rarr; {{ c.destinationCountry }}</span>
         <span class="chip" [ngClass]="c.isActive ? 'chip-success' : 'chip-default'">
@@ -126,9 +134,13 @@
     </div>
   </div>
 
-  <div *ngIf="!filteredCorridors.length && !loading" class="empty-state">
+  <div *ngIf="!corridors.length && !loading" class="empty-state">
     No corridors found.
   </div>
+
+  <mat-paginator [length]="totalCount" [pageSize]="pageSize" [pageIndex]="pageIndex"
+    [pageSizeOptions]="[10, 20, 50, 100]" (page)="onPageChange($event)" showFirstLastButtons>
+  </mat-paginator>
 </mat-card>
 
 <!-- ============================================================ -->

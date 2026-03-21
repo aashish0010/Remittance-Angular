@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatTableModule } from '@angular/material/table';
@@ -11,7 +11,11 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
+import { Subject } from 'rxjs';
+import { debounceTime, takeUntil } from 'rxjs/operators';
 import { ApiService } from '../../../core/services/api.service';
+import { ExportService } from '../../../core/services/export.service';
 import { AuthStateService } from '../../../core/services/auth-state.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { CommissionRateModel } from '../../../core/models/commission.models';
@@ -69,21 +73,30 @@ function emptyForm(): CommissionForm {
     MatSlideToggleModule,
     MatCardModule,
     MatProgressSpinnerModule,
+    MatPaginatorModule,
     DecimalPipe,
     SearchableSelectDirective,
   ],
   templateUrl: './commissions.component.html',
   styleUrl: './commissions.component.scss',
 })
-export class CommissionsComponent implements OnInit {
+export class CommissionsComponent implements OnInit, OnDestroy {
   commissions: CommissionRateModel[] = [];
-  filteredCommissions: CommissionRateModel[] = [];
   displayedColumns = [
     'sendingAgent', 'payoutAgent', 'sourceCountry', 'destCountry',
     'currencyPair', 'amountRange', 'commission', 'status', 'actions',
   ];
   searchString = '';
   loading = true;
+
+  // Server-side pagination
+  pageIndex = 0;
+  pageSize = 20;
+  totalCount = 0;
+
+  // Server-side search with debounce
+  private searchSubject = new Subject<string>();
+  private destroy$ = new Subject<void>();
 
   // Reference data
   sendingAgents: AgentModel[] = [];
@@ -102,6 +115,7 @@ export class CommissionsComponent implements OnInit {
 
   constructor(
     private api: ApiService,
+    private exportService: ExportService,
     private auth: AuthStateService,
     private notify: NotificationService,
   ) {}
@@ -110,7 +124,21 @@ export class CommissionsComponent implements OnInit {
     this.auth.loadFromSession();
     this.loadAgents();
     this.loadReferenceData();
+
+    this.searchSubject.pipe(
+      debounceTime(400),
+      takeUntil(this.destroy$),
+    ).subscribe(() => {
+      this.pageIndex = 0;
+      this.loadCommissions();
+    });
+
     this.loadCommissions();
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   // ---------------------------------------------------------------------------
@@ -136,39 +164,43 @@ export class CommissionsComponent implements OnInit {
   // ---------------------------------------------------------------------------
   loadCommissions(): void {
     this.loading = true;
-    this.api.getCommissions().subscribe({
+    this.api.getCommissionsPaged({
+      page: this.pageIndex + 1,
+      pageSize: this.pageSize,
+      search: this.searchString,
+    }).subscribe({
       next: res => {
         if (res?.success && res.data) {
-          this.commissions = res.data;
-          this.applyFilter();
+          this.commissions = res.data.items ?? [];
+          this.totalCount = res.data.totalCount ?? 0;
         } else {
           this.commissions = [];
-          this.filteredCommissions = [];
+          this.totalCount = 0;
           this.notify.error(res?.message || 'Failed to load commissions.');
         }
         this.loading = false;
       },
       error: () => {
         this.commissions = [];
-        this.filteredCommissions = [];
+        this.totalCount = 0;
         this.notify.error('Could not connect to server.');
         this.loading = false;
       },
     });
   }
 
-  applyFilter(): void {
-    const s = this.searchString.toLowerCase();
-    this.filteredCommissions = !s
-      ? [...this.commissions]
-      : this.commissions.filter(c =>
-          (c.agentName || '').toLowerCase().includes(s) ||
-          (c.payoutAgentName || '').toLowerCase().includes(s) ||
-          (c.sourceCountry || '').toLowerCase().includes(s) ||
-          (c.destinationCountry || '').toLowerCase().includes(s) ||
-          (c.sourceCurrency || '').toLowerCase().includes(s) ||
-          (c.destinationCurrency || '').toLowerCase().includes(s)
-        );
+  onSearchChange(): void {
+    this.searchSubject.next(this.searchString);
+  }
+
+  onPageChange(event: PageEvent): void {
+    this.pageIndex = event.pageIndex;
+    this.pageSize = event.pageSize;
+    this.loadCommissions();
+  }
+
+  exportData(format: 'excel' | 'csv'): void {
+    this.exportService.export('api/admin/commissions/export', { search: this.searchString }, format);
   }
 
   // ---------------------------------------------------------------------------

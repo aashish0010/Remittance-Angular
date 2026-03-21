@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule, DecimalPipe, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatTableModule } from '@angular/material/table';
@@ -10,8 +10,11 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
+import { PageEvent, MatPaginatorModule } from '@angular/material/paginator';
+import { Subject } from 'rxjs';
+import { debounceTime, takeUntil } from 'rxjs/operators';
 import { ApiService } from '../../../core/services/api.service';
+import { ExportService } from '../../../core/services/export.service';
 import { AuthStateService } from '../../../core/services/auth-state.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { ComplianceAlertModel } from '../../../core/models/compliance.models';
@@ -38,9 +41,8 @@ import { ComplianceAlertModel } from '../../../core/models/compliance.models';
   templateUrl: './compliance.component.html',
   styleUrl: './compliance.component.scss',
 })
-export class ComplianceComponent implements OnInit {
+export class ComplianceComponent implements OnInit, OnDestroy {
   alerts: ComplianceAlertModel[] = [];
-  filteredAlerts: ComplianceAlertModel[] = [];
   displayedColumns = [
     'reference', 'sender', 'receiver', 'amount', 'alertType', 'txnStatus', 'alertStatus', 'created', 'actions',
   ];
@@ -49,12 +51,12 @@ export class ComplianceComponent implements OnInit {
 
   filterMode: 'all' | 'open' | 'resolved' | 'rejected' = 'all';
 
-  pageSize = 10;
+  // Server-side pagination
   pageIndex = 0;
-  get pagedAlerts(): ComplianceAlertModel[] {
-    const start = this.pageIndex * this.pageSize;
-    return this.filteredAlerts.slice(start, start + this.pageSize);
-  }
+  pageSize = 20;
+  totalCount = 0;
+  searchDebounce = new Subject<string>();
+  private destroy$ = new Subject<void>();
 
   showResolvePopup = false;
   resolveAlertTarget: ComplianceAlertModel | null = null;
@@ -70,72 +72,70 @@ export class ComplianceComponent implements OnInit {
     private api: ApiService,
     private auth: AuthStateService,
     private notify: NotificationService,
+    private exportService: ExportService,
   ) {}
 
   ngOnInit(): void {
     this.auth.loadFromSession();
+    this.searchDebounce.pipe(debounceTime(400), takeUntil(this.destroy$)).subscribe(s => {
+      this.searchText = s;
+      this.pageIndex = 0;
+      this.loadAlerts();
+    });
     this.loadAlerts();
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  private getResolvedParam(): boolean | undefined {
+    switch (this.filterMode) {
+      case 'open': return false;
+      case 'resolved': return true;
+      case 'rejected': return true;
+      default: return undefined;
+    }
   }
 
   loadAlerts(): void {
     this.loading = true;
-    this.api.getAlerts().subscribe({
+    const resolved = this.getResolvedParam();
+    this.api.getAlertsPaged({ page: this.pageIndex + 1, pageSize: this.pageSize, search: this.searchText }, resolved).subscribe({
       next: res => {
         if (res?.success && res.data) {
-          this.alerts = res.data;
-          this.applySearch();
+          this.alerts = res.data.items;
+          this.totalCount = res.data.totalCount;
         } else {
           this.alerts = [];
-          this.filteredAlerts = [];
+          this.totalCount = 0;
           this.notify.error(res?.message || 'Failed to load alerts.');
         }
         this.loading = false;
       },
       error: () => {
         this.alerts = [];
-        this.filteredAlerts = [];
+        this.totalCount = 0;
         this.notify.error('Could not connect to server.');
         this.loading = false;
       },
     });
   }
 
-  onFilterChange(): void { this.loadAlerts(); }
-
-  private _tabFiltered: ComplianceAlertModel[] = [];
-
-  applySearch(): void {
-    this._tabFiltered = this.getTabFiltered();
-    this.applySearchOnFiltered();
-  }
-
-  private getTabFiltered(): ComplianceAlertModel[] {
-    switch (this.filterMode) {
-      case 'open': return this.alerts.filter(a => !a.isResolved);
-      case 'resolved': return this.alerts.filter(a => a.isResolved && a.resolution !== 'Rejected');
-      case 'rejected': return this.alerts.filter(a => a.isResolved && a.resolution === 'Rejected');
-      default: return [...this.alerts];
-    }
-  }
-
-  private applySearchOnFiltered(): void {
-    const term = this.searchText.toLowerCase().trim();
-    if (!term) {
-      this.filteredAlerts = [...this._tabFiltered];
-    } else {
-      this.filteredAlerts = this._tabFiltered.filter(a =>
-        a.referenceNumber.toLowerCase().includes(term) ||
-        a.senderName.toLowerCase().includes(term) ||
-        a.receiverName?.toLowerCase().includes(term) ||
-        a.alertType.toLowerCase().includes(term)
-      );
-    }
+  onFilterChange(): void {
     this.pageIndex = 0;
+    this.loadAlerts();
   }
 
   onPageChange(event: PageEvent): void {
     this.pageSize = event.pageSize;
     this.pageIndex = event.pageIndex;
+    this.loadAlerts();
+  }
+
+  exportData(format: string): void {
+    this.exportService.export('api/admin/compliance/alerts/export', { search: this.searchText, resolved: this.getResolvedParam() }, format as any);
   }
 
   viewDetail(alert: ComplianceAlertModel): void { this.selectedAlert = alert; }
