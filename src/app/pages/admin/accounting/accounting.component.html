@@ -243,11 +243,11 @@
     <button mat-icon-button (click)="closeAdjustmentPopup()"><mat-icon>close</mat-icon></button>
   </div>
 
-  <div class="popup-toolbar">
+  <!-- <div class="popup-toolbar">
     <button mat-raised-button color="primary" (click)="openAdjustmentForm()">
       <mat-icon>add</mat-icon> Add Adjustment
     </button>
-  </div>
+  </div> -->
 
   <table *ngIf="adjustments.length" mat-table [dataSource]="adjustments" class="inner-table">
     <ng-container matColumnDef="amount">
