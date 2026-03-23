@@ -40,7 +40,7 @@ const ALL_NAV_ITEMS: NavItem[] = [
   { label: 'Static Values', icon: 'dataset', route: '/admin/static-values', section: 'System' },
   { label: 'Agent Statement', icon: 'account_balance', route: '/admin/reports/agent-statement', section: 'Reports' },
   { label: 'Transaction Report', icon: 'summarize', route: '/admin/reports/transactions', section: 'Reports' },
-  { label: 'Service Charge Report', icon: 'paid', route: '/admin/reports/commissions', section: 'Reports' },
+  { label: 'Commission Report', icon: 'paid', route: '/admin/reports/commissions', section: 'Reports' },
   { label: 'Revenue Report', icon: 'trending_up', route: '/admin/reports/revenue', section: 'Reports' },
   { label: 'Settlement Report', icon: 'handshake', route: '/admin/reports/settlement', section: 'Reports' },
   { label: 'Roles', icon: 'badge', route: '/admin/user-management/roles', section: 'User Management' },
@@ -86,7 +86,7 @@ export class AdminLayoutComponent implements OnInit, OnDestroy {
     private auth: AuthStateService,
     private api: ApiService,
     private router: Router,
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.isDarkMode = localStorage.getItem('darkMode') === 'true';

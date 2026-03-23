@@ -91,7 +91,7 @@ export class UsersComponent implements OnInit {
   loadRoles(): void {
     this.api.getRoles().subscribe(res => {
       if (res?.success && res.data) {
-        this.allRoles = (res.data as RoleOption[]).filter(r => r.roleType !== 'SystemAdmin');
+        this.allRoles = (res.data as RoleOption[]).filter(r => r.roleType !== 'SystemAdmin' && r.portal === 'Admin');
       }
     });
   }
