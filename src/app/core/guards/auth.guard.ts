@@ -17,9 +17,27 @@ export const authGuard: CanActivateFn = (route, state) => {
     const userRoles = authState.roles;
     const hasRequiredRole = requiredRoles.some(role => userRoles.includes(role));
     if (!hasRequiredRole) {
-      router.navigate(['/unauthorized']);
+      router.navigate(['/admin/dashboard']);
       return false;
     }
+  }
+
+  // Check menu-based access for admin routes
+  const url = state.url.split('?')[0]; // strip query params
+  if (url.startsWith('/admin/') && url !== '/admin/dashboard') {
+    // SystemAdmin can access everything
+    if (authState.isSystemAdmin) return true;
+
+    // If privileges are loaded, check access
+    const privileges = authState.privileges;
+    if (privileges.length > 0) {
+      const hasAccess = privileges.some(p => p.url && url.startsWith(p.url));
+      if (!hasAccess) {
+        router.navigate(['/admin/dashboard']);
+        return false;
+      }
+    }
+    // If no privileges loaded yet, allow (will be enforced by backend)
   }
 
   return true;

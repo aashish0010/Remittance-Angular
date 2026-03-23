@@ -1,6 +1,6 @@
 <!-- Page Header -->
 <div class="page-header">
-  <h2>Commission Configuration</h2>
+  <h2>Service Charge Configuration</h2>
   <div class="header-actions">
     <button mat-raised-button (click)="exportData('excel')">
       <mat-icon>download</mat-icon> Excel
@@ -9,7 +9,7 @@
       <mat-icon>download</mat-icon> CSV
     </button>
     <button mat-raised-button color="primary" (click)="openCreate()">
-      <mat-icon>add</mat-icon> Add Commission
+      <mat-icon>add</mat-icon> Add Service Charge
     </button>
   </div>
 </div>
@@ -65,7 +65,7 @@
 
     <!-- Commission (single column) -->
     <ng-container matColumnDef="commission">
-      <th mat-header-cell *matHeaderCellDef>Commission</th>
+      <th mat-header-cell *matHeaderCellDef>Service Charge</th>
       <td mat-cell *matCellDef="let c">
         <span *ngIf="c.commissionPercent > 0">{{ c.commissionPercent | number:'1.2-2' }}%</span>
         <span *ngIf="c.commissionPercent <= 0 && (c.flatFee || 0) > 0">{{ c.flatFee | number:'1.2-2' }} (Flat)</span>
@@ -115,12 +115,12 @@
 </mat-card>
 
 <!-- ============================================================ -->
-<!-- Create / Edit Commission Popup                                -->
+<!-- Create / Edit Service Charge Popup                                -->
 <!-- ============================================================ -->
 <div *ngIf="showPopup" class="overlay" (click)="closePopup()"></div>
 <div *ngIf="showPopup" class="popup popup-lg">
   <div class="popup-header">
-    <h3>{{ isEditing ? 'Edit Commission' : 'Create Commission' }}</h3>
+    <h3>{{ isEditing ? 'Edit Service Charge' : 'Create Service Charge' }}</h3>
     <button mat-icon-button (click)="closePopup()"><mat-icon>close</mat-icon></button>
   </div>
 
@@ -196,18 +196,18 @@
       <input matInput type="number" [(ngModel)]="form.maxAmount" />
     </mat-form-field>
 
-    <!-- Commission Type -->
+    <!-- Service Charge Type -->
     <mat-form-field appearance="outline">
-      <mat-label>Commission Type *</mat-label>
+      <mat-label>Service Charge Type *</mat-label>
       <mat-select [(ngModel)]="form.commissionType" required>
         <mat-option value="Percentage">Percentage</mat-option>
         <mat-option value="Flat">Flat Fee</mat-option>
       </mat-select>
     </mat-form-field>
 
-    <!-- Commission Percent (only when type is Percentage) -->
+    <!-- Service Charge Percent (only when type is Percentage) -->
     <mat-form-field appearance="outline" *ngIf="form.commissionType === 'Percentage'">
-      <mat-label>Commission Percent *</mat-label>
+      <mat-label>Service Charge Percent *</mat-label>
       <input matInput type="number" [(ngModel)]="form.commissionPercent" required />
     </mat-form-field>
 

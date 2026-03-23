@@ -717,6 +717,72 @@ export class ApiService {
   }
 
   // ---------------------------------------------------------------------------
+  // User Management
+  // ---------------------------------------------------------------------------
+
+  getRoles(): Observable<ApiResponse<any[]>> {
+    return this.get<any[]>('api/admin/user-management/roles');
+  }
+
+  getRole(id: number): Observable<ApiResponse<any>> {
+    return this.get<any>(`api/admin/user-management/roles/${id}`);
+  }
+
+  createRole(dto: any): Observable<ApiResponse<any>> {
+    return this.post<any>('api/admin/user-management/roles', dto);
+  }
+
+  updateRole(id: number, dto: any): Observable<ApiResponse<any>> {
+    return this.put<any>(`api/admin/user-management/roles/${id}`, dto);
+  }
+
+  deleteRole(id: number): Observable<ApiResponse<any>> {
+    return this.delete<any>(`api/admin/user-management/roles/${id}`);
+  }
+
+  getMenusForAssignment(portal?: string): Observable<ApiResponse<any[]>> {
+    const q = portal ? `?portal=${portal}` : '';
+    return this.get<any[]>(`api/admin/user-management/menus${q}`);
+  }
+
+  assignPermissions(roleId: number, permissionIds: number[]): Observable<ApiResponse<any>> {
+    return this.put<any>(`api/admin/user-management/roles/${roleId}/permissions`, { permissionIds });
+  }
+
+  getAdminUsers(params?: { search?: string; role?: string; isActive?: boolean }): Observable<ApiResponse<any[]>> {
+    const q = new URLSearchParams();
+    if (params?.search) q.set('search', params.search);
+    if (params?.role) q.set('role', params.role);
+    if (params?.isActive !== undefined) q.set('isActive', String(params.isActive));
+    const qs = q.toString();
+    return this.get<any[]>(`api/admin/user-management/users${qs ? '?' + qs : ''}`);
+  }
+
+  getAdminUser(id: string): Observable<ApiResponse<any>> {
+    return this.get<any>(`api/admin/user-management/users/${id}`);
+  }
+
+  createAdminUser(dto: any): Observable<ApiResponse<any>> {
+    return this.post<any>('api/admin/user-management/users', dto);
+  }
+
+  updateAdminUser(id: string, dto: any): Observable<ApiResponse<any>> {
+    return this.put<any>(`api/admin/user-management/users/${id}`, dto);
+  }
+
+  toggleUserStatus(id: string): Observable<ApiResponse<any>> {
+    return this.put<any>(`api/admin/user-management/users/${id}/toggle-status`);
+  }
+
+  deleteAdminUser(id: string): Observable<ApiResponse<any>> {
+    return this.delete<any>(`api/admin/user-management/users/${id}`);
+  }
+
+  getPrivileges(): Observable<ApiResponse<any[]>> {
+    return this.get<any[]>('api/auth/privileges');
+  }
+
+  // ---------------------------------------------------------------------------
   // Transaction Detail
   // ---------------------------------------------------------------------------
 

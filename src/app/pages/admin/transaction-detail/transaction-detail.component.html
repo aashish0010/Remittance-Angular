@@ -73,10 +73,10 @@
             <div class="detail-row"><span class="label">Exchange Rate</span><span class="value">1 {{ txn.sendCurrency }} = {{ txn.exchangeRateApplied | number:'1.4-4' }} {{ txn.receiveCurrency }}</span></div>
             <div class="detail-row"><span class="label">Receive Amount</span><span class="value amount-receive">{{ txn.receiveAmount | number:'1.2-2' }} {{ txn.receiveCurrency }}</span></div>
             <mat-divider></mat-divider>
-            <div class="detail-row"><span class="label">Total Commission</span><span class="value">{{ txn.totalCommission | number:'1.2-2' }} {{ txn.sendCurrency }}</span></div>
-            <div class="detail-row"><span class="label">Agent Commission</span><span class="value">{{ txn.agentCommission | number:'1.2-2' }}</span></div>
-            <div class="detail-row"><span class="label">Payout Agent Commission</span><span class="value">{{ txn.payoutAgentCommission | number:'1.2-2' }}</span></div>
-            <div class="detail-row"><span class="label">Company Commission</span><span class="value">{{ txn.companyCommission | number:'1.2-2' }}</span></div>
+            <div class="detail-row"><span class="label">Total Service Charge</span><span class="value">{{ txn.totalCommission | number:'1.2-2' }} {{ txn.sendCurrency }}</span></div>
+            <div class="detail-row"><span class="label">Agent Service Charge</span><span class="value">{{ txn.agentCommission | number:'1.2-2' }}</span></div>
+            <div class="detail-row"><span class="label">Payout Agent Service Charge</span><span class="value">{{ txn.payoutAgentCommission | number:'1.2-2' }}</span></div>
+            <div class="detail-row"><span class="label">Company Service Charge</span><span class="value">{{ txn.companyCommission | number:'1.2-2' }}</span></div>
           </div>
         </mat-card-content>
       </mat-card>

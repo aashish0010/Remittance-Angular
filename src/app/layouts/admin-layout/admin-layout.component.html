@@ -1,6 +1,6 @@
 <div class="layout-wrapper" [class.dark-mode]="isDarkMode">
 
-  <!-- ── Top Bar (outside sidenav-container) ── -->
+  <!-- ── Top Bar ── -->
   <mat-toolbar class="app-toolbar">
     <button mat-icon-button class="menu-btn" (click)="toggleDrawer()" aria-label="Toggle menu">
       <mat-icon>menu</mat-icon>
@@ -33,18 +33,18 @@
       <div class="toolbar-divider"></div>
 
       <button mat-button class="user-btn" [matMenuTriggerFor]="accountMenu">
-        <div class="user-avatar">A</div>
-        <span class="user-name">Admin</span>
+        <div class="user-avatar">{{ userInitial }}</div>
+        <span class="user-name">{{ userName }}</span>
         <mat-icon class="user-chevron">expand_more</mat-icon>
       </button>
     </div>
 
     <mat-menu #accountMenu="matMenu" class="user-menu">
       <div class="menu-user-info">
-        <div class="menu-avatar">A</div>
+        <div class="menu-avatar">{{ userInitial }}</div>
         <div>
-          <div class="menu-user-name">Administrator</div>
-          <div class="menu-user-role">Super Admin</div>
+          <div class="menu-user-name">{{ userName }}</div>
+          <div class="menu-user-role">{{ userRoleName }}</div>
         </div>
       </div>
       <mat-divider></mat-divider>
@@ -57,7 +57,7 @@
         <span>Settings</span>
       </button>
       <mat-divider></mat-divider>
-      <button mat-menu-item class="logout-item" routerLink="/">
+      <button mat-menu-item class="logout-item" (click)="logout()">
         <mat-icon>logout</mat-icon>
         <span>Sign Out</span>
       </button>
@@ -96,120 +96,32 @@
         <span>No pages found</span>
       </div>
 
+      <!-- Dynamic Navigation -->
       <nav class="nav-list" [style.display]="searchQuery ? 'none' : ''">
 
-        <!-- Dashboard -->
+        <!-- Dashboard (always first, no section) -->
         <a class="nav-item" routerLink="/admin/dashboard" routerLinkActive="nav-item--active">
           <span class="nav-icon"><mat-icon>dashboard</mat-icon></span>
           <span class="nav-label">Dashboard</span>
         </a>
 
-        <!-- Agent Management -->
-        <div class="nav-section">
-          <span class="nav-section-label">Agent Management</span>
-        </div>
-        <a class="nav-item nav-item--sub" routerLink="/admin/agents" routerLinkActive="nav-item--active">
-          <span class="nav-icon"><mat-icon>people_outline</mat-icon></span>
-          <span class="nav-label">Agents</span>
-        </a>
-        <a class="nav-item nav-item--sub" routerLink="/admin/setup" routerLinkActive="nav-item--active">
-          <span class="nav-icon"><mat-icon>tune</mat-icon></span>
-          <span class="nav-label">Setup</span>
-        </a>
-
-        <!-- Customers -->
-        <div class="nav-section">
-          <span class="nav-section-label">Customers</span>
-        </div>
-        <a class="nav-item nav-item--sub" routerLink="/admin/customer-register" routerLinkActive="nav-item--active">
-          <span class="nav-icon"><mat-icon>person_add_alt</mat-icon></span>
-          <span class="nav-label">Register</span>
-        </a>
-        <a class="nav-item nav-item--sub" routerLink="/admin/customer-report" routerLinkActive="nav-item--active">
-          <span class="nav-icon"><mat-icon>assessment</mat-icon></span>
-          <span class="nav-label">Report</span>
-        </a>
-
-        <!-- Operations -->
-        <div class="nav-section">
-          <span class="nav-section-label">Operations</span>
-        </div>
-        <a class="nav-item nav-item--sub" routerLink="/admin/receivers" routerLinkActive="nav-item--active">
-          <span class="nav-icon"><mat-icon>contact_phone</mat-icon></span>
-          <span class="nav-label">Receivers</span>
-        </a>
-        <a class="nav-item nav-item--sub" routerLink="/admin/rates" routerLinkActive="nav-item--active">
-          <span class="nav-icon"><mat-icon>currency_exchange</mat-icon></span>
-          <span class="nav-label">Exchange Rates</span>
-        </a>
-        <a class="nav-item nav-item--sub" routerLink="/admin/commissions" routerLinkActive="nav-item--active">
-          <span class="nav-icon"><mat-icon>payments</mat-icon></span>
-          <span class="nav-label">Commissions</span>
-        </a>
-        <a class="nav-item nav-item--sub" routerLink="/admin/routing" routerLinkActive="nav-item--active">
-          <span class="nav-icon"><mat-icon>alt_route</mat-icon></span>
-          <span class="nav-label">Routing</span>
-        </a>
-        <a class="nav-item nav-item--sub" routerLink="/admin/transactions" routerLinkActive="nav-item--active">
-          <span class="nav-icon"><mat-icon>receipt_long</mat-icon></span>
-          <span class="nav-label">Transactions</span>
-        </a>
-        <!-- <a class="nav-item nav-item--sub" routerLink="/admin/accounting" routerLinkActive="nav-item--active">
-          <span class="nav-icon"><mat-icon>account_balance</mat-icon></span>
-          <span class="nav-label">Accounting</span>
-        </a> -->
-
-        <!-- Compliance -->
-        <div class="nav-section">
-          <span class="nav-section-label">Compliance</span>
-        </div>
-        <a class="nav-item nav-item--sub" routerLink="/admin/compliance-setup" routerLinkActive="nav-item--active">
-          <span class="nav-icon"><mat-icon>tune</mat-icon></span>
-          <span class="nav-label">Setup</span>
-        </a>
-        <a class="nav-item nav-item--sub" routerLink="/admin/compliance" routerLinkActive="nav-item--active">
-          <span class="nav-icon"><mat-icon>security</mat-icon></span>
-          <span class="nav-label">Alerts</span>
-        </a>
-
-        <!-- System -->
-        <div class="nav-section">
-          <span class="nav-section-label">System</span>
-        </div>
-        <a class="nav-item nav-item--sub" routerLink="/admin/static-values" routerLinkActive="nav-item--active">
-          <span class="nav-icon"><mat-icon>dataset</mat-icon></span>
-          <span class="nav-label">Static Values</span>
-        </a>
-
-        <!-- Reports -->
-        <div class="nav-section">
-          <span class="nav-section-label">Reports</span>
-        </div>
-        <a class="nav-item nav-item--sub" routerLink="/admin/reports/agent-statement" routerLinkActive="nav-item--active">
-          <span class="nav-icon"><mat-icon>account_balance</mat-icon></span>
-          <span class="nav-label">Agent Statement</span>
-        </a>
-        <a class="nav-item nav-item--sub" routerLink="/admin/reports/transactions" routerLinkActive="nav-item--active">
-          <span class="nav-icon"><mat-icon>summarize</mat-icon></span>
-          <span class="nav-label">Transaction Report</span>
-        </a>
-        <a class="nav-item nav-item--sub" routerLink="/admin/reports/commissions" routerLinkActive="nav-item--active">
-          <span class="nav-icon"><mat-icon>paid</mat-icon></span>
-          <span class="nav-label">Commission Report</span>
-        </a>
-        <a class="nav-item nav-item--sub" routerLink="/admin/reports/revenue" routerLinkActive="nav-item--active">
-          <span class="nav-icon"><mat-icon>trending_up</mat-icon></span>
-          <span class="nav-label">Revenue Report</span>
-        </a>
-        <a class="nav-item nav-item--sub" routerLink="/admin/reports/settlement" routerLinkActive="nav-item--active">
-          <span class="nav-icon"><mat-icon>handshake</mat-icon></span>
-          <span class="nav-label">Settlement Report</span>
-        </a>
+        <!-- Dynamic sections based on user privileges -->
+        <ng-container *ngFor="let section of sections">
+          <div class="nav-section">
+            <span class="nav-section-label">{{ section }}</span>
+          </div>
+          <a *ngFor="let item of getItemsForSection(section)"
+            class="nav-item nav-item--sub"
+            [routerLink]="item.route" routerLinkActive="nav-item--active">
+            <span class="nav-icon"><mat-icon>{{ item.icon }}</mat-icon></span>
+            <span class="nav-label">{{ item.label }}</span>
+          </a>
+        </ng-container>
 
         <div class="nav-spacer"></div>
 
         <div class="nav-bottom">
-          <a class="nav-item nav-item--danger" routerLink="/">
+          <a class="nav-item nav-item--danger" (click)="logout()" style="cursor: pointer">
             <span class="nav-icon"><mat-icon>logout</mat-icon></span>
             <span class="nav-label">Sign Out</span>
           </a>

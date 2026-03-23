@@ -42,7 +42,7 @@
 
     <!-- Commission -->
     <ng-container matColumnDef="commission">
-      <th mat-header-cell *matHeaderCellDef>Commission</th>
+      <th mat-header-cell *matHeaderCellDef>Service Charge</th>
       <td mat-cell *matCellDef="let a">
         <ng-container *ngIf="a.commissionMode">
           <span class="chip" [ngClass]="a.commissionMode === 'Percentage' ? 'chip-info' : 'chip-warning'">
@@ -91,7 +91,7 @@
         <button *ngIf="a.agentType === 'SendingAgent'" mat-icon-button matTooltip="Adjust Limit" (click)="openAdjustments(a)">
           <mat-icon color="primary">tune</mat-icon>
         </button>
-        <button mat-icon-button matTooltip="Commission" (click)="openCommissionSetup(a)">
+        <button mat-icon-button matTooltip="Service Charge" (click)="openCommissionSetup(a)">
           <mat-icon class="text-tertiary">percent</mat-icon>
         </button>
         <button mat-icon-button matTooltip="History" (click)="openAdjustments(a)">
@@ -178,7 +178,7 @@
       <span>{{ detailAgent.activeAdjustments }}</span>
     </div>
     <div class="detail-item">
-      <span class="detail-label">Commission</span>
+      <span class="detail-label">Service Charge</span>
       <ng-container *ngIf="detailAgent.commissionMode">
         <span>{{ detailAgent.commissionMode === 'Percentage' ? (detailAgent.commissionValue | number:'1.2-2') + '%' : 'Flat ' + (detailAgent.commissionValue | number:'1.2-2') }}</span>
       </ng-container>
@@ -305,14 +305,14 @@
 <div *ngIf="showCommissionPopup" class="overlay" (click)="closeCommissionPopup()"></div>
 <div *ngIf="showCommissionPopup" class="popup popup-sm">
   <div class="popup-header">
-    <h3><mat-icon class="header-icon">percent</mat-icon> Agent Commission — {{ commissionAgent?.businessName }}</h3>
+    <h3><mat-icon class="header-icon">percent</mat-icon> Agent Service Charge — {{ commissionAgent?.businessName }}</h3>
     <button mat-icon-button (click)="closeCommissionPopup()"><mat-icon>close</mat-icon></button>
   </div>
 
   <div *ngIf="commissionFormError" class="form-error">{{ commissionFormError }}</div>
 
   <mat-form-field appearance="outline" class="full-width">
-    <mat-label>Commission Type *</mat-label>
+    <mat-label>Service Charge Type *</mat-label>
     <mat-select [(ngModel)]="commissionForm.commissionType">
       <mat-option value="Percentage">Percentage</mat-option>
       <mat-option value="Flat">Flat</mat-option>
@@ -320,7 +320,7 @@
   </mat-form-field>
 
   <mat-form-field appearance="outline" class="full-width">
-    <mat-label>{{ commissionForm.commissionType === 'Percentage' ? 'Commission Percentage (%)' : 'Flat Fee Amount' }}</mat-label>
+    <mat-label>{{ commissionForm.commissionType === 'Percentage' ? 'Service Charge Percentage (%)' : 'Flat Fee Amount' }}</mat-label>
     <input matInput type="number" [(ngModel)]="commissionForm.commissionValue" />
   </mat-form-field>
 

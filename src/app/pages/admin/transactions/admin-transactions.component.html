@@ -89,7 +89,7 @@
 
       <!-- Commission -->
       <ng-container matColumnDef="commission">
-        <th mat-header-cell *matHeaderCellDef>Commission</th>
+        <th mat-header-cell *matHeaderCellDef>Service Charge</th>
         <td mat-cell *matCellDef="let txn">{{ txn.totalCommission | number:'1.2-2' }}</td>
       </ng-container>
 
@@ -249,19 +249,19 @@
         <span class="detail-value">{{ selectedTransaction.exchangeRateApplied | number:'1.4-4' }}</span>
       </div>
       <div class="detail-item">
-        <span class="detail-label">Total Commission</span>
+        <span class="detail-label">Total Service Charge</span>
         <span class="detail-value">{{ selectedTransaction.totalCommission | number:'1.2-2' }}</span>
       </div>
       <div class="detail-item">
-        <span class="detail-label">Agent Commission</span>
+        <span class="detail-label">Agent Service Charge</span>
         <span class="detail-value">{{ selectedTransaction.agentCommission | number:'1.2-2' }}</span>
       </div>
       <div class="detail-item">
-        <span class="detail-label">Payout Agent Commission</span>
+        <span class="detail-label">Payout Agent Service Charge</span>
         <span class="detail-value">{{ selectedTransaction.payoutAgentCommission | number:'1.2-2' }}</span>
       </div>
       <div class="detail-item">
-        <span class="detail-label">Company Commission</span>
+        <span class="detail-label">Company Service Charge</span>
         <span class="detail-value">{{ selectedTransaction.companyCommission | number:'1.2-2' }}</span>
       </div>
       <div class="detail-item" *ngIf="selectedTransaction.paymentMethodName">

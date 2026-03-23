@@ -25,12 +25,12 @@
         </mat-card-content>
       </mat-card>
 
-      <!-- Commission Revenue -->
+      <!-- Service Charge Revenue -->
       <mat-card class="stat-card stat-card-green clickable-card" appearance="outlined" routerLink="/admin/reports/commissions">
         <mat-card-content>
           <div class="stat-card-inner">
             <div class="stat-card-text">
-              <span class="stat-label">Commission Revenue</span>
+              <span class="stat-label">Service Charge Revenue</span>
               <span class="stat-value">{{ formatCurrency(dashboard.totalCommissionRevenue) }}</span>
               <span class="stat-subtitle" [ngClass]="monthChangeClass(dashboard.commissionThisMonth, dashboard.commissionLastMonth)">
                 {{ monthChangeText(dashboard.commissionThisMonth, dashboard.commissionLastMonth) }} this month

@@ -156,6 +156,14 @@ export class LoginComponent {
   private setAuthAndNavigate(route: string): void {
     const d = this.storedLoginData;
     this.auth.setAuth(d.token, d.refreshToken, d.userId, d.fullName, d.email, d.roles);
+
+    // Load menu privileges in background
+    this.api.getPrivileges().subscribe(res => {
+      if (res?.success && res.data) {
+        this.auth.setPrivileges(res.data);
+      }
+    });
+
     this.router.navigate([route]);
   }
 }

@@ -37,6 +37,8 @@ export const routes: Routes = [
       { path: 'reports/commissions', loadComponent: () => import('./pages/admin/reports/commission-report/commission-report.component').then(m => m.CommissionReportComponent) },
       { path: 'reports/revenue', loadComponent: () => import('./pages/admin/reports/revenue-report/revenue-report.component').then(m => m.RevenueReportComponent) },
       { path: 'reports/settlement', loadComponent: () => import('./pages/admin/reports/settlement-report/settlement-report.component').then(m => m.SettlementReportComponent) },
+      { path: 'user-management/roles', loadComponent: () => import('./pages/admin/user-management/roles/roles.component').then(m => m.RolesComponent) },
+      { path: 'user-management/users', loadComponent: () => import('./pages/admin/user-management/users/users.component').then(m => m.UsersComponent) },
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
     ]
   },

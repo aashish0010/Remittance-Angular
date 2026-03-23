@@ -1,5 +1,5 @@
 <!-- Page Title -->
-<h2 class="page-title">Commission Report</h2>
+<h2 class="page-title">Service Charge Report</h2>
 
 <!-- Filters -->
 <mat-card class="filters-card">
@@ -78,7 +78,7 @@
 <!-- Agent Summaries Table -->
 <mat-card *ngIf="!loading && report" class="data-card">
   <mat-card-content>
-    <h3 class="section-title">Agent Commission Breakdown</h3>
+    <h3 class="section-title">Agent Service Charge Breakdown</h3>
 
     <div class="table-responsive">
       <table mat-table [dataSource]="report.agentSummaries" class="report-table">
@@ -94,14 +94,14 @@
         </ng-container>
 
         <ng-container matColumnDef="sendingCommission">
-          <th mat-header-cell *matHeaderCellDef class="text-right">Sending Commission</th>
+          <th mat-header-cell *matHeaderCellDef class="text-right">Sending Service Charge</th>
           <td mat-cell *matCellDef="let row" class="text-right mono-text text-teal">
             {{ row.sendingCommission | number:'1.2-2' }}
           </td>
         </ng-container>
 
         <ng-container matColumnDef="payoutCommission">
-          <th mat-header-cell *matHeaderCellDef class="text-right">Payout Commission</th>
+          <th mat-header-cell *matHeaderCellDef class="text-right">Payout Service Charge</th>
           <td mat-cell *matCellDef="let row" class="text-right mono-text text-teal">
             {{ row.payoutCommission | number:'1.2-2' }}
           </td>

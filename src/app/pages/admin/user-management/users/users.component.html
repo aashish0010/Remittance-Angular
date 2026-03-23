@@ -1,0 +1,147 @@
+<div class="page-container">
+  <div class="page-header">
+    <div>
+      <h1>Users</h1>
+      <p class="subtitle">Manage admin panel users and role assignments</p>
+    </div>
+    <button mat-flat-button color="primary" (click)="openCreate()" *ngIf="!showForm">
+      <mat-icon>person_add</mat-icon> New User
+    </button>
+  </div>
+
+  <!-- ── Filters ── -->
+  <mat-card *ngIf="!showForm" class="filter-card">
+    <div class="filter-row">
+      <mat-form-field appearance="outline" class="filter-field">
+        <mat-label>Search</mat-label>
+        <input matInput [(ngModel)]="searchQuery" placeholder="Name, email or phone" (keyup.enter)="applyFilters()" />
+        <mat-icon matSuffix>search</mat-icon>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="filter-field">
+        <mat-label>Role</mat-label>
+        <mat-select [(ngModel)]="filterRole">
+          <mat-option value="">All Roles</mat-option>
+          <mat-option *ngFor="let r of allRoles" [value]="r.name">{{ r.name }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="filter-field">
+        <mat-label>Status</mat-label>
+        <mat-select [(ngModel)]="filterStatus">
+          <mat-option value="">All</mat-option>
+          <mat-option value="active">Active</mat-option>
+          <mat-option value="inactive">Inactive</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <button mat-flat-button color="primary" (click)="applyFilters()">Filter</button>
+      <button mat-button (click)="clearFilters()">Clear</button>
+    </div>
+  </mat-card>
+
+  <!-- ── User Form ── -->
+  <mat-card *ngIf="showForm" class="form-card">
+    <mat-card-header>
+      <mat-card-title>{{ editingId ? 'Edit User' : 'Create User' }}</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div class="form-grid">
+        <mat-form-field appearance="outline">
+          <mat-label>Full Name</mat-label>
+          <input matInput [(ngModel)]="formFullName" required />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Email</mat-label>
+          <input matInput [(ngModel)]="formEmail" type="email" required />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Phone Number</mat-label>
+          <input matInput [(ngModel)]="formPhone" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>{{ editingId ? 'New Password (leave blank to keep)' : 'Password' }}</mat-label>
+          <input matInput [(ngModel)]="formPassword" type="password" [required]="!editingId" />
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Roles</mat-label>
+          <mat-select [(ngModel)]="formRoleIds" multiple>
+            <mat-option *ngFor="let r of allRoles" [value]="r.id">
+              {{ r.name }} ({{ r.portal }})
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-slide-toggle [(ngModel)]="formIsActive" color="primary">Active</mat-slide-toggle>
+      </div>
+    </mat-card-content>
+    <mat-card-actions align="end">
+      <button mat-button (click)="cancelForm()">Cancel</button>
+      <button mat-flat-button color="primary" (click)="saveUser()"
+        [disabled]="!formFullName.trim() || !formEmail.trim() || (!editingId && !formPassword.trim())">
+        {{ editingId ? 'Update' : 'Create' }}
+      </button>
+    </mat-card-actions>
+  </mat-card>
+
+  <!-- ── Users Table ── -->
+  <mat-card *ngIf="!showForm" class="table-card">
+    <div class="user-table">
+      <div class="user-row user-row--header">
+        <span class="col-name">User</span>
+        <span class="col-email">Email</span>
+        <span class="col-phone">Phone</span>
+        <span class="col-roles">Roles</span>
+        <span class="col-status">Status</span>
+        <span class="col-date">Created</span>
+        <span class="col-actions">Actions</span>
+      </div>
+
+      <div *ngIf="loading" class="loading-row">
+        <mat-progress-spinner mode="indeterminate" diameter="32"></mat-progress-spinner>
+      </div>
+
+      <div class="user-row" *ngFor="let user of users" [class.user-row--inactive]="!user.isActive">
+        <span class="col-name">
+          <div class="user-avatar">{{ user.fullName.charAt(0).toUpperCase() }}</div>
+          <div>
+            <strong>{{ user.fullName }}</strong>
+          </div>
+        </span>
+        <span class="col-email">{{ user.email }}</span>
+        <span class="col-phone">{{ user.phoneNumber || '-' }}</span>
+        <span class="col-roles">
+          <span class="role-chip" *ngFor="let r of user.roles"
+            [class]="'portal-' + r.portal.toLowerCase()">{{ r.name }}</span>
+        </span>
+        <span class="col-status">
+          <span class="status-dot" [class.active]="user.isActive"></span>
+          {{ user.isActive ? 'Active' : 'Inactive' }}
+        </span>
+        <span class="col-date">{{ user.createdAt | date:'mediumDate' }}</span>
+        <span class="col-actions">
+          <ng-container *ngIf="!isSystemAdmin(user)">
+            <button mat-icon-button matTooltip="Edit" (click)="openEdit(user)">
+              <mat-icon>edit</mat-icon>
+            </button>
+            <button mat-icon-button [matTooltip]="user.isActive ? 'Deactivate' : 'Activate'" (click)="toggleStatus(user)">
+              <mat-icon>{{ user.isActive ? 'block' : 'check_circle' }}</mat-icon>
+            </button>
+            <button mat-icon-button matTooltip="Delete" color="warn" (click)="deleteUser(user)">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </ng-container>
+          <span *ngIf="isSystemAdmin(user)" class="system-badge">Super Admin</span>
+        </span>
+      </div>
+
+      <div *ngIf="!loading && users.length === 0" class="empty-row">
+        No users found.
+      </div>
+    </div>
+  </mat-card>
+</div>
