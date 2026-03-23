@@ -1,7 +1,102 @@
 <div class="setup-fields-page">
-  <h2 class="page-title">Static Values</h2>
+  <h2 class="page-title">{{ pageTitle }}</h2>
 
-  <mat-card appearance="outlined">
+  <!-- STATIC VALUES MODE: System Settings only -->
+  <mat-card appearance="outlined" *ngIf="mode === 'static'">
+    <div class="tab-content">
+      <div class="tab-toolbar">
+        <button mat-raised-button color="primary" (click)="startAddSetting()" *ngIf="!addingSetting">
+          <mat-icon>add</mat-icon> Add Setting
+        </button>
+      </div>
+
+      <div *ngIf="loadingSettings" class="loading-row"><mat-spinner diameter="32"></mat-spinner></div>
+
+      <!-- Add New Row -->
+      <div class="value-row value-row--add" *ngIf="addingSetting">
+        <div class="value-row__form">
+          <mat-form-field appearance="outline">
+            <mat-label>Key</mat-label>
+            <mat-select [(ngModel)]="settingForm.key" (ngModelChange)="onSettingKeySelected($event)">
+              <mat-option *ngFor="let k of availableSettingKeys" [value]="k">{{ k }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Value</mat-label>
+            <input matInput [(ngModel)]="settingForm.value">
+          </mat-form-field>
+          <mat-form-field appearance="outline">
+            <mat-label>Description</mat-label>
+            <input matInput [(ngModel)]="settingForm.description">
+          </mat-form-field>
+        </div>
+        <div class="value-row__actions">
+          <button mat-raised-button color="primary" (click)="saveSetting()" [disabled]="savingSetting">Save</button>
+          <button mat-button (click)="cancelSettingEdit()">Cancel</button>
+        </div>
+      </div>
+
+      <!-- Rows List -->
+      <div class="value-list" *ngIf="!loadingSettings && systemSettings.length > 0">
+        <div class="value-row value-row--header">
+          <span class="col-name">Key</span>
+          <span class="col-code">Value</span>
+          <span class="col-desc">Description</span>
+          <span class="col-actions">Actions</span>
+        </div>
+
+        <div *ngFor="let row of systemSettings" class="value-row" [class.value-row--editing]="editingSettingId === row.id">
+
+          <ng-container *ngIf="editingSettingId !== row.id && !isConfirmingDelete('setting', row.id)">
+            <span class="col-name">{{ row.key }}</span>
+            <span class="col-code">{{ row.value }}</span>
+            <span class="col-desc">{{ row.description || '-' }}</span>
+            <span class="col-actions">
+              <button mat-icon-button matTooltip="Edit" (click)="startEditSetting(row)"><mat-icon>edit</mat-icon></button>
+              <button mat-icon-button matTooltip="Delete" color="warn" (click)="confirmDeleteSetting(row)"><mat-icon>delete</mat-icon></button>
+            </span>
+          </ng-container>
+
+          <ng-container *ngIf="editingSettingId === row.id">
+            <div class="value-row__form">
+              <mat-form-field appearance="outline">
+                <mat-label>Key</mat-label>
+                <input matInput [value]="settingForm.key" disabled>
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Value</mat-label>
+                <input matInput [(ngModel)]="settingForm.value">
+              </mat-form-field>
+              <mat-form-field appearance="outline">
+                <mat-label>Description</mat-label>
+                <input matInput [(ngModel)]="settingForm.description">
+              </mat-form-field>
+            </div>
+            <div class="value-row__actions">
+              <button mat-raised-button color="primary" (click)="saveSetting()" [disabled]="savingSetting">Save</button>
+              <button mat-button (click)="cancelSettingEdit()">Cancel</button>
+            </div>
+          </ng-container>
+
+          <ng-container *ngIf="isConfirmingDelete('setting', row.id)">
+            <span class="col-name">{{ row.key }}</span>
+            <span class="confirm-text">Delete this setting?</span>
+            <span class="col-actions">
+              <button mat-raised-button color="warn" (click)="executeDelete()">Yes</button>
+              <button mat-button (click)="cancelDelete()">No</button>
+            </span>
+          </ng-container>
+        </div>
+      </div>
+
+      <div *ngIf="!loadingSettings && systemSettings.length === 0 && !addingSetting" class="empty-text">
+        No settings configured.
+      </div>
+    </div>
+  </mat-card>
+
+  <!-- SETUP MODE: Setup Fields + Document Types -->
+  <mat-card appearance="outlined" *ngIf="mode === 'setup'">
     <mat-tab-group (selectedIndexChange)="onTabChange($event)" [selectedIndex]="activeTabIndex" animationDuration="200ms">
 
       <!-- Setup Field Tabs (0-5) -->
@@ -226,100 +321,6 @@
 
           <div *ngIf="!loadingDocTypes && documentTypes.length === 0 && !addingDocType" class="empty-text">
             No document types configured.
-          </div>
-        </div>
-      </mat-tab>
-
-      <!-- System Settings Tab (index 7) -->
-      <mat-tab label="Settings">
-        <div class="tab-content">
-          <div class="tab-toolbar">
-            <button mat-raised-button color="primary" (click)="startAddSetting()" *ngIf="!addingSetting">
-              <mat-icon>add</mat-icon> Add Setting
-            </button>
-          </div>
-
-          <div *ngIf="loadingSettings" class="loading-row"><mat-spinner diameter="32"></mat-spinner></div>
-
-          <!-- Add New Row -->
-          <div class="value-row value-row--add" *ngIf="addingSetting">
-            <div class="value-row__form">
-              <mat-form-field appearance="outline">
-                <mat-label>Key</mat-label>
-                <mat-select [(ngModel)]="settingForm.key" (ngModelChange)="onSettingKeySelected($event)">
-                  <mat-option *ngFor="let k of availableSettingKeys" [value]="k">{{ k }}</mat-option>
-                </mat-select>
-              </mat-form-field>
-              <mat-form-field appearance="outline">
-                <mat-label>Value</mat-label>
-                <input matInput [(ngModel)]="settingForm.value">
-              </mat-form-field>
-              <mat-form-field appearance="outline">
-                <mat-label>Description</mat-label>
-                <input matInput [(ngModel)]="settingForm.description">
-              </mat-form-field>
-            </div>
-            <div class="value-row__actions">
-              <button mat-raised-button color="primary" (click)="saveSetting()" [disabled]="savingSetting">Save</button>
-              <button mat-button (click)="cancelSettingEdit()">Cancel</button>
-            </div>
-          </div>
-
-          <!-- Rows List -->
-          <div class="value-list" *ngIf="!loadingSettings && systemSettings.length > 0">
-            <div class="value-row value-row--header">
-              <span class="col-name">Key</span>
-              <span class="col-code">Value</span>
-              <span class="col-desc">Description</span>
-              <span class="col-actions">Actions</span>
-            </div>
-
-            <div *ngFor="let row of systemSettings" class="value-row" [class.value-row--editing]="editingSettingId === row.id">
-
-              <ng-container *ngIf="editingSettingId !== row.id && !isConfirmingDelete('setting', row.id)">
-                <span class="col-name">{{ row.key }}</span>
-                <span class="col-code">{{ row.value }}</span>
-                <span class="col-desc">{{ row.description || '-' }}</span>
-                <span class="col-actions">
-                  <button mat-icon-button matTooltip="Edit" (click)="startEditSetting(row)"><mat-icon>edit</mat-icon></button>
-                  <button mat-icon-button matTooltip="Delete" color="warn" (click)="confirmDeleteSetting(row)"><mat-icon>delete</mat-icon></button>
-                </span>
-              </ng-container>
-
-              <ng-container *ngIf="editingSettingId === row.id">
-                <div class="value-row__form">
-                  <mat-form-field appearance="outline">
-                    <mat-label>Key</mat-label>
-                    <input matInput [value]="settingForm.key" disabled>
-                  </mat-form-field>
-                  <mat-form-field appearance="outline">
-                    <mat-label>Value</mat-label>
-                    <input matInput [(ngModel)]="settingForm.value">
-                  </mat-form-field>
-                  <mat-form-field appearance="outline">
-                    <mat-label>Description</mat-label>
-                    <input matInput [(ngModel)]="settingForm.description">
-                  </mat-form-field>
-                </div>
-                <div class="value-row__actions">
-                  <button mat-raised-button color="primary" (click)="saveSetting()" [disabled]="savingSetting">Save</button>
-                  <button mat-button (click)="cancelSettingEdit()">Cancel</button>
-                </div>
-              </ng-container>
-
-              <ng-container *ngIf="isConfirmingDelete('setting', row.id)">
-                <span class="col-name">{{ row.key }}</span>
-                <span class="confirm-text">Delete this setting?</span>
-                <span class="col-actions">
-                  <button mat-raised-button color="warn" (click)="executeDelete()">Yes</button>
-                  <button mat-button (click)="cancelDelete()">No</button>
-                </span>
-              </ng-container>
-            </div>
-          </div>
-
-          <div *ngIf="!loadingSettings && systemSettings.length === 0 && !addingSetting" class="empty-text">
-            No settings configured.
           </div>
         </div>
       </mat-tab>

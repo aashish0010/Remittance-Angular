@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -104,6 +105,10 @@ function emptySystemSetting(): SystemSettingModel {
 })
 export class SetupFieldsComponent implements OnInit {
 
+  // Mode: 'setup' shows setup fields + doc types, 'static' shows system settings
+  mode: 'setup' | 'static' = 'setup';
+  pageTitle = 'Setup';
+
   // Tab definitions
   setupTabs = SETUP_TABS;
   activeTabIndex = 0;
@@ -162,9 +167,21 @@ export class SetupFieldsComponent implements OnInit {
   constructor(
     private api: ApiService,
     private notify: NotificationService,
+    private route: ActivatedRoute,
   ) {}
 
   ngOnInit(): void {
+    // Determine mode from route path
+    const path = this.route.snapshot.routeConfig?.path || '';
+    if (path === 'static-values') {
+      this.mode = 'static';
+      this.pageTitle = 'Static Values';
+      this.activeTabIndex = 0; // First (and only) tab in static mode is System Settings
+    } else {
+      this.mode = 'setup';
+      this.pageTitle = 'Setup';
+      this.activeTabIndex = 0;
+    }
     this.loadCurrentTabData();
   }
 
@@ -179,12 +196,14 @@ export class SetupFieldsComponent implements OnInit {
   }
 
   private loadCurrentTabData(): void {
-    if (this.activeTabIndex <= 5) {
-      this.loadSetupFields(this.setupTabs[this.activeTabIndex].category);
-    } else if (this.activeTabIndex === 6) {
-      this.loadDocumentTypes();
-    } else if (this.activeTabIndex === 7) {
+    if (this.mode === 'static') {
       this.loadSystemSettings();
+    } else {
+      if (this.activeTabIndex <= 5) {
+        this.loadSetupFields(this.setupTabs[this.activeTabIndex].category);
+      } else if (this.activeTabIndex === 6) {
+        this.loadDocumentTypes();
+      }
     }
   }
 

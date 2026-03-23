@@ -27,7 +27,8 @@ interface NavItem {
 const ALL_NAV_ITEMS: NavItem[] = [
   { label: 'Dashboard', icon: 'dashboard', route: '/admin/dashboard' },
   { label: 'Agents', icon: 'people_outline', route: '/admin/agents', section: 'Agent Management' },
-  { label: 'Setup', icon: 'tune', route: '/admin/setup', section: 'Agent Management' },
+
+  { label: 'Setup', icon: 'tune', route: '/admin/accounting', section: 'Agent Management' },
   { label: 'Register', icon: 'person_add_alt', route: '/admin/customer-register', section: 'Customers' },
   { label: 'Report', icon: 'assessment', route: '/admin/customer-report', section: 'Customers' },
   { label: 'Receivers', icon: 'contact_phone', route: '/admin/receivers', section: 'Operations' },
