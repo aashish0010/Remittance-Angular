@@ -18,11 +18,13 @@
 
 <!-- Search + Table -->
 <mat-card *ngIf="!loading" class="table-card">
-  <mat-form-field appearance="outline" class="search-field">
-    <mat-icon matPrefix>search</mat-icon>
-    <input matInput placeholder="Search agents..." [(ngModel)]="searchString"
-      (ngModelChange)="searchDebounce.next($event)" />
-  </mat-form-field>
+  <div class="table-toolbar">
+    <mat-form-field appearance="outline" class="search-field">
+      <mat-icon matPrefix>search</mat-icon>
+      <input matInput placeholder="Search agents..." [(ngModel)]="searchString"
+        (ngModelChange)="searchDebounce.next($event)" />
+    </mat-form-field>
+  </div>
 
   <table mat-table [dataSource]="summaries" class="data-table">
     <!-- Agent -->
@@ -97,9 +99,9 @@
         <button mat-icon-button matTooltip="Commission" (click)="openCommissionSetup(a)">
           <mat-icon class="text-tertiary">percent</mat-icon>
         </button>
-        <button mat-icon-button matTooltip="History" (click)="openAdjustments(a)">
+        <!-- <button mat-icon-button matTooltip="History" (click)="openAdjustments(a)">
           <mat-icon class="text-info">history</mat-icon>
-        </button>
+        </button> -->
       </td>
     </ng-container>
 
@@ -208,7 +210,7 @@
     <input matInput type="number" [(ngModel)]="adjustmentForm.amount" />
   </mat-form-field>
 
-  <mat-form-field appearance="outline" class="full-width">
+  <mat-form-field appearance="outline" class="full-width mt-5">
     <mat-label>Duration</mat-label>
     <mat-select [(ngModel)]="adjustmentForm.durationDays">
       <mat-option [value]="null">Permanent</mat-option>
@@ -243,11 +245,11 @@
     <button mat-icon-button (click)="closeAdjustmentPopup()"><mat-icon>close</mat-icon></button>
   </div>
 
-  <!-- <div class="popup-toolbar">
+  <div class="popup-toolbar">
     <button mat-raised-button color="primary" (click)="openAdjustmentForm()">
       <mat-icon>add</mat-icon> Add Adjustment
     </button>
-  </div> -->
+  </div>
 
   <table *ngIf="adjustments.length" mat-table [dataSource]="adjustments" class="inner-table">
     <ng-container matColumnDef="amount">
