@@ -20,7 +20,8 @@
 <mat-card *ngIf="!loading" class="table-card">
   <mat-form-field appearance="outline" class="search-field">
     <mat-icon matPrefix>search</mat-icon>
-    <input matInput placeholder="Search agents..." [(ngModel)]="searchString" (ngModelChange)="searchDebounce.next($event)" />
+    <input matInput placeholder="Search agents..." [(ngModel)]="searchString"
+      (ngModelChange)="searchDebounce.next($event)" />
   </mat-form-field>
 
   <table mat-table [dataSource]="summaries" class="data-table">
@@ -46,7 +47,8 @@
       <td mat-cell *matCellDef="let a">
         <ng-container *ngIf="a.commissionMode">
           <span class="chip" [ngClass]="a.commissionMode === 'Percentage' ? 'chip-info' : 'chip-warning'">
-            {{ a.commissionMode === 'Percentage' ? (a.commissionValue | number:'1.2-2') + '%' : 'Flat ' + (a.commissionValue | number:'1.2-2') }}
+            {{ a.commissionMode === 'Percentage' ? (a.commissionValue | number:'1.2-2') + '%' : 'Flat ' +
+            (a.commissionValue | number:'1.2-2') }}
           </span>
         </ng-container>
         <span *ngIf="!a.commissionMode" class="text-muted">Not set</span>
@@ -88,10 +90,11 @@
         <button mat-icon-button matTooltip="View Details" (click)="viewDetail(a)">
           <mat-icon>visibility</mat-icon>
         </button>
-        <button *ngIf="a.agentType === 'SendingAgent'" mat-icon-button matTooltip="Adjust Limit" (click)="openAdjustments(a)">
+        <button *ngIf="a.agentType === 'SendingAgent'" mat-icon-button matTooltip="Adjust Limit"
+          (click)="openAdjustments(a)">
           <mat-icon color="primary">tune</mat-icon>
         </button>
-        <button mat-icon-button matTooltip="Service Charge" (click)="openCommissionSetup(a)">
+        <button mat-icon-button matTooltip="Commission" (click)="openCommissionSetup(a)">
           <mat-icon class="text-tertiary">percent</mat-icon>
         </button>
         <button mat-icon-button matTooltip="History" (click)="openAdjustments(a)">
@@ -180,7 +183,8 @@
     <div class="detail-item">
       <span class="detail-label">Service Charge</span>
       <ng-container *ngIf="detailAgent.commissionMode">
-        <span>{{ detailAgent.commissionMode === 'Percentage' ? (detailAgent.commissionValue | number:'1.2-2') + '%' : 'Flat ' + (detailAgent.commissionValue | number:'1.2-2') }}</span>
+        <span>{{ detailAgent.commissionMode === 'Percentage' ? (detailAgent.commissionValue | number:'1.2-2') + '%' :
+          'Flat ' + (detailAgent.commissionValue | number:'1.2-2') }}</span>
       </ng-container>
       <span *ngIf="!detailAgent.commissionMode" class="text-muted">Not set</span>
     </div>
@@ -262,7 +266,8 @@
 
     <ng-container matColumnDef="to">
       <th mat-header-cell *matHeaderCellDef>To</th>
-      <td mat-cell *matCellDef="let adj">{{ adj.effectiveTo ? (adj.effectiveTo | date:'yyyy-MM-dd') : 'Permanent' }}</td>
+      <td mat-cell *matCellDef="let adj">{{ adj.effectiveTo ? (adj.effectiveTo | date:'yyyy-MM-dd') : 'Permanent' }}
+      </td>
     </ng-container>
 
     <ng-container matColumnDef="notes">
@@ -273,7 +278,8 @@
     <ng-container matColumnDef="active">
       <th mat-header-cell *matHeaderCellDef>Active</th>
       <td mat-cell *matCellDef="let adj">
-        <span class="chip" [ngClass]="adj.isActive ? 'chip-success' : 'chip-default'">{{ adj.isActive ? 'Active' : 'Inactive' }}</span>
+        <span class="chip" [ngClass]="adj.isActive ? 'chip-success' : 'chip-default'">{{ adj.isActive ? 'Active' :
+          'Inactive' }}</span>
       </td>
     </ng-container>
 
@@ -320,7 +326,8 @@
   </mat-form-field>
 
   <mat-form-field appearance="outline" class="full-width">
-    <mat-label>{{ commissionForm.commissionType === 'Percentage' ? 'Service Charge Percentage (%)' : 'Flat Fee Amount' }}</mat-label>
+    <mat-label>{{ commissionForm.commissionType === 'Percentage' ? 'Service Charge Percentage (%)' : 'Flat Fee Amount'
+      }}</mat-label>
     <input matInput type="number" [(ngModel)]="commissionForm.commissionValue" />
   </mat-form-field>
 
