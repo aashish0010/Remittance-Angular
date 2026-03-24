@@ -39,6 +39,7 @@ const ALL_NAV_ITEMS: NavItem[] = [
   { label: 'Transactions', icon: 'receipt_long', route: '/admin/transactions', section: 'Operations' },
   { label: 'Setup', icon: 'tune', route: '/admin/compliance-setup', section: 'Compliance' },
   { label: 'Alerts', icon: 'security', route: '/admin/compliance', section: 'Compliance' },
+  { label: 'Sanctions', icon: 'gavel', route: '/admin/sanctions', section: 'Compliance' },
   { label: 'Static Values', icon: 'dataset', route: '/admin/static-values', section: 'System' },
   { label: 'Agent Statement', icon: 'account_balance', route: '/admin/reports/agent-statement', section: 'Reports' },
   { label: 'Transaction Report', icon: 'summarize', route: '/admin/reports/transactions', section: 'Reports' },

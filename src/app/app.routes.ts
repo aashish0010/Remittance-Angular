@@ -31,6 +31,7 @@ export const routes: Routes = [
       { path: 'accounting', loadComponent: () => import('./pages/admin/accounting/accounting.component').then(m => m.AccountingComponent) },
       { path: 'compliance', loadComponent: () => import('./pages/admin/compliance/compliance.component').then(m => m.ComplianceComponent) },
       { path: 'compliance-setup', loadComponent: () => import('./pages/admin/compliance-setup/compliance-setup.component').then(m => m.ComplianceSetupComponent) },
+      { path: 'sanctions', loadComponent: () => import('./pages/admin/sanctions/sanctions.component').then(m => m.SanctionsComponent) },
       { path: 'reports/agent-statement', loadComponent: () => import('./pages/admin/reports/agent-statement/agent-statement.component').then(m => m.AgentStatementComponent) },
       { path: 'reports/transactions', loadComponent: () => import('./pages/admin/reports/transaction-report/transaction-report.component').then(m => m.TransactionReportComponent) },
       { path: 'reports/commissions', loadComponent: () => import('./pages/admin/reports/commission-report/commission-report.component').then(m => m.CommissionReportComponent) },

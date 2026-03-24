@@ -892,4 +892,73 @@ export class ApiService {
   getAgentTransactionsPaged(request: PagedRequest): Observable<ApiResponse<PagedResult<any>>> {
     return this.get<PagedResult<any>>(this.buildPagedQuery('api/agent/transactions/paged', request));
   }
+
+  // ---------------------------------------------------------------------------
+  // Sanctions Management
+  // ---------------------------------------------------------------------------
+
+  getSanctionsDashboard(): Observable<ApiResponse<any>> {
+    return this.get<any>('api/admin/sanctions/dashboard');
+  }
+
+  // Sanction Entries
+  getSanctionEntries(): Observable<ApiResponse<any[]>> {
+    return this.get<any[]>('api/admin/sanctions/entries');
+  }
+
+  getSanctionEntriesPaged(request: PagedRequest): Observable<ApiResponse<PagedResult<any>>> {
+    return this.get<PagedResult<any>>(this.buildPagedQuery('api/admin/sanctions/entries/paged', request));
+  }
+
+  createSanctionEntry(data: any): Observable<ApiResponse<any>> {
+    return this.post<any>('api/admin/sanctions/entries', data);
+  }
+
+  updateSanctionEntry(id: number, data: any): Observable<ApiResponse<any>> {
+    return this.put<any>(`api/admin/sanctions/entries/${id}`, data);
+  }
+
+  deleteSanctionEntry(id: number): Observable<ApiResponse<any>> {
+    return this.delete<any>(`api/admin/sanctions/entries/${id}`);
+  }
+
+  toggleSanctionEntry(id: number): Observable<ApiResponse<any>> {
+    return this.put<any>(`api/admin/sanctions/entries/${id}/toggle`);
+  }
+
+  // Sanctioned Countries
+  getSanctionedCountries(): Observable<ApiResponse<any[]>> {
+    return this.get<any[]>('api/admin/sanctions/countries');
+  }
+
+  createSanctionedCountry(data: any): Observable<ApiResponse<any>> {
+    return this.post<any>('api/admin/sanctions/countries', data);
+  }
+
+  updateSanctionedCountry(id: number, data: any): Observable<ApiResponse<any>> {
+    return this.put<any>(`api/admin/sanctions/countries/${id}`, data);
+  }
+
+  deleteSanctionedCountry(id: number): Observable<ApiResponse<any>> {
+    return this.delete<any>(`api/admin/sanctions/countries/${id}`);
+  }
+
+  toggleSanctionedCountry(id: number): Observable<ApiResponse<any>> {
+    return this.put<any>(`api/admin/sanctions/countries/${id}/toggle`);
+  }
+
+  // Screening Results
+  getScreeningResultsPaged(request: PagedRequest): Observable<ApiResponse<PagedResult<any>>> {
+    return this.get<PagedResult<any>>(this.buildPagedQuery('api/admin/sanctions/screenings/paged', request));
+  }
+
+  reviewScreeningResult(id: number, data: any): Observable<ApiResponse<any>> {
+    return this.put<any>(`api/admin/sanctions/screenings/${id}/review`, data);
+  }
+
+  exportSanctionEntries(format: string = 'excel'): Observable<Blob> {
+    return this.http.get(`${this.baseUrl}/api/admin/sanctions/entries/export?format=${format}`, {
+      responseType: 'blob'
+    });
+  }
 }

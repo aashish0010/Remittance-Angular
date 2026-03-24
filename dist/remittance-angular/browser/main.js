@@ -12,7 +12,7 @@ import {
   Router,
   RouterOutlet,
   provideRouter
-} from "./chunk-ZMWNDU6W.js";
+} from "./chunk-32GPHBG7.js";
 import {
   EventBus,
   FilterMatchMode,
@@ -34,11 +34,11 @@ import {
   toKebabCase,
   toTokenKey,
   uuid
-} from "./chunk-BEKM3RIS.js";
+} from "./chunk-P4ZST5AN.js";
 import {
   AuthStateService,
   environment
-} from "./chunk-MKKXXFYO.js";
+} from "./chunk-GPY2JV2J.js";
 import {
   CommonModule,
   DOCUMENT,
@@ -54,7 +54,7 @@ import {
   isPlatformServer,
   provideHttpClient,
   withInterceptors
-} from "./chunk-DBW47J2B.js";
+} from "./chunk-MZ37WZKD.js";
 import {
   ANIMATION_MODULE_TYPE,
   BehaviorSubject,
@@ -142,7 +142,7 @@ import {
   ɵɵtextInterpolate,
   ɵɵtextInterpolate1,
   ɵɵviewQuery
-} from "./chunk-J3ROLHMS.js";
+} from "./chunk-BKSYICRS.js";
 
 // node_modules/@angular/animations/fesm2022/animations.mjs
 var AnimationBuilder = class _AnimationBuilder {
@@ -3804,7 +3804,7 @@ var AsyncAnimationRendererFactory = class _AsyncAnimationRendererFactory {
    * @internal
    */
   loadImpl() {
-    const loadFn = () => this.moduleImpl ?? import("./chunk-S5KFA2J3.js").then((m) => m);
+    const loadFn = () => this.moduleImpl ?? import("./chunk-4BCWOCFY.js").then((m) => m);
     let moduleImplPromise;
     if (this.loadingSchedulerFn) {
       moduleImplPromise = this.loadingSchedulerFn(loadFn);
@@ -4045,63 +4045,64 @@ var routes = [
   // Login (uses LoginLayout)
   {
     path: "auth",
-    loadComponent: () => import("./chunk-5G2NVD4I.js").then((m) => m.LoginLayoutComponent),
+    loadComponent: () => import("./chunk-SOC7BOPI.js").then((m) => m.LoginLayoutComponent),
     children: [
-      { path: "login", loadComponent: () => import("./chunk-KXUO57PE.js").then((m) => m.LoginComponent) },
+      { path: "login", loadComponent: () => import("./chunk-AWX7ITXI.js").then((m) => m.LoginComponent) },
       { path: "", redirectTo: "login", pathMatch: "full" }
     ]
   },
   // Admin Portal
   {
     path: "admin",
-    loadComponent: () => import("./chunk-7WTIJI6T.js").then((m) => m.AdminLayoutComponent),
+    loadComponent: () => import("./chunk-OWMM6ERH.js").then((m) => m.AdminLayoutComponent),
     canActivate: [authGuard],
     children: [
-      { path: "dashboard", loadComponent: () => import("./chunk-PPOPRPJZ.js").then((m) => m.AdminDashboardComponent) },
-      { path: "agents", loadComponent: () => import("./chunk-JTV7ZDZM.js").then((m) => m.AgentManagementComponent) },
-      { path: "static-values", loadComponent: () => import("./chunk-DWYT5MVT.js").then((m) => m.SetupFieldsComponent) },
-      { path: "transactions", loadComponent: () => import("./chunk-GSO6LZN4.js").then((m) => m.AdminTransactionsComponent) },
-      { path: "transactions/:id", loadComponent: () => import("./chunk-FHZXJQGU.js").then((m) => m.TransactionDetailComponent) },
-      { path: "customer-register", loadComponent: () => import("./chunk-5XCGNAJK.js").then((m) => m.CustomerRegisterComponent) },
-      { path: "customer-report", loadComponent: () => import("./chunk-FOUDD4DE.js").then((m) => m.CustomerReportComponent) },
-      { path: "receivers", loadComponent: () => import("./chunk-XRO2Q6KD.js").then((m) => m.ReceiversComponent) },
-      { path: "rates", loadComponent: () => import("./chunk-2NJRRDSZ.js").then((m) => m.ExchangeRatesComponent) },
-      { path: "commissions", loadComponent: () => import("./chunk-ALSDME3J.js").then((m) => m.CommissionsComponent) },
-      { path: "routing", loadComponent: () => import("./chunk-FQ5NL2VS.js").then((m) => m.RoutingComponent) },
-      { path: "accounting", loadComponent: () => import("./chunk-WBBU6CKH.js").then((m) => m.AccountingComponent) },
-      { path: "compliance", loadComponent: () => import("./chunk-EUUUO73Y.js").then((m) => m.ComplianceComponent) },
-      { path: "compliance-setup", loadComponent: () => import("./chunk-EVHQC5QX.js").then((m) => m.ComplianceSetupComponent) },
-      { path: "reports/agent-statement", loadComponent: () => import("./chunk-AYQ3MEPA.js").then((m) => m.AgentStatementComponent) },
-      { path: "reports/transactions", loadComponent: () => import("./chunk-AH65SCXZ.js").then((m) => m.TransactionReportComponent) },
-      { path: "reports/commissions", loadComponent: () => import("./chunk-I46TG6FA.js").then((m) => m.CommissionReportComponent) },
-      { path: "reports/revenue", loadComponent: () => import("./chunk-HFAXYMQO.js").then((m) => m.RevenueReportComponent) },
-      { path: "reports/settlement", loadComponent: () => import("./chunk-HJ4CVL6J.js").then((m) => m.SettlementReportComponent) },
-      { path: "user-management/roles", loadComponent: () => import("./chunk-UBLTEU7D.js").then((m) => m.RolesComponent) },
-      { path: "user-management/users", loadComponent: () => import("./chunk-U2TRGHT6.js").then((m) => m.UsersComponent) },
+      { path: "dashboard", loadComponent: () => import("./chunk-GRH6TTQQ.js").then((m) => m.AdminDashboardComponent) },
+      { path: "agents", loadComponent: () => import("./chunk-6C7WCLV6.js").then((m) => m.AgentManagementComponent) },
+      { path: "static-values", loadComponent: () => import("./chunk-7MWCZTLD.js").then((m) => m.SetupFieldsComponent) },
+      { path: "transactions", loadComponent: () => import("./chunk-7REJZIYL.js").then((m) => m.AdminTransactionsComponent) },
+      { path: "transactions/:id", loadComponent: () => import("./chunk-2MG37NR4.js").then((m) => m.TransactionDetailComponent) },
+      { path: "customer-register", loadComponent: () => import("./chunk-6DCJKO7H.js").then((m) => m.CustomerRegisterComponent) },
+      { path: "customer-report", loadComponent: () => import("./chunk-LVIGQ5P3.js").then((m) => m.CustomerReportComponent) },
+      { path: "receivers", loadComponent: () => import("./chunk-PHS2VVNP.js").then((m) => m.ReceiversComponent) },
+      { path: "rates", loadComponent: () => import("./chunk-QHD6KKJC.js").then((m) => m.ExchangeRatesComponent) },
+      { path: "commissions", loadComponent: () => import("./chunk-QPJEHA7C.js").then((m) => m.CommissionsComponent) },
+      { path: "routing", loadComponent: () => import("./chunk-XS4VYRFD.js").then((m) => m.RoutingComponent) },
+      { path: "accounting", loadComponent: () => import("./chunk-NURRMU2S.js").then((m) => m.AccountingComponent) },
+      { path: "compliance", loadComponent: () => import("./chunk-C4OIUUB2.js").then((m) => m.ComplianceComponent) },
+      { path: "compliance-setup", loadComponent: () => import("./chunk-3GWR7EAQ.js").then((m) => m.ComplianceSetupComponent) },
+      { path: "sanctions", loadComponent: () => import("./chunk-74KSMEOU.js").then((m) => m.SanctionsComponent) },
+      { path: "reports/agent-statement", loadComponent: () => import("./chunk-YXJVJBKA.js").then((m) => m.AgentStatementComponent) },
+      { path: "reports/transactions", loadComponent: () => import("./chunk-UVMXG7V2.js").then((m) => m.TransactionReportComponent) },
+      { path: "reports/commissions", loadComponent: () => import("./chunk-W43DUNYG.js").then((m) => m.CommissionReportComponent) },
+      { path: "reports/revenue", loadComponent: () => import("./chunk-YAESLNKK.js").then((m) => m.RevenueReportComponent) },
+      { path: "reports/settlement", loadComponent: () => import("./chunk-EGGBKBEF.js").then((m) => m.SettlementReportComponent) },
+      { path: "user-management/roles", loadComponent: () => import("./chunk-TQIO4KLP.js").then((m) => m.RolesComponent) },
+      { path: "user-management/users", loadComponent: () => import("./chunk-E3TYZ4PK.js").then((m) => m.UsersComponent) },
       { path: "", redirectTo: "dashboard", pathMatch: "full" }
     ]
   },
   // Agent Portal
   {
     path: "agent",
-    loadComponent: () => import("./chunk-JI2E4BXD.js").then((m) => m.AgentLayoutComponent),
+    loadComponent: () => import("./chunk-KLVUGFQI.js").then((m) => m.AgentLayoutComponent),
     canActivate: [authGuard],
     children: [
-      { path: "dashboard", loadComponent: () => import("./chunk-HHPUSQXB.js").then((m) => m.AgentDashboardComponent) },
-      { path: "send", loadComponent: () => import("./chunk-7LMF2YN2.js").then((m) => m.SendMoneyComponent) },
-      { path: "transactions", loadComponent: () => import("./chunk-TMGGC2LH.js").then((m) => m.AgentTransactionsComponent) },
+      { path: "dashboard", loadComponent: () => import("./chunk-56P52TTE.js").then((m) => m.AgentDashboardComponent) },
+      { path: "send", loadComponent: () => import("./chunk-HLJVPHFO.js").then((m) => m.SendMoneyComponent) },
+      { path: "transactions", loadComponent: () => import("./chunk-X5WE3VWA.js").then((m) => m.AgentTransactionsComponent) },
       { path: "", redirectTo: "dashboard", pathMatch: "full" }
     ]
   },
   // Customer Portal
   {
     path: "customer",
-    loadComponent: () => import("./chunk-3GO7KHYR.js").then((m) => m.CustomerLayoutComponent),
+    loadComponent: () => import("./chunk-RZCP7OCA.js").then((m) => m.CustomerLayoutComponent),
     canActivate: [authGuard],
     children: [
-      { path: "dashboard", loadComponent: () => import("./chunk-SQWI2C67.js").then((m) => m.CustomerDashboardComponent) },
-      { path: "send", loadComponent: () => import("./chunk-LQJO7ZY4.js").then((m) => m.CustomerSendComponent) },
-      { path: "transactions", loadComponent: () => import("./chunk-UCOOUUH2.js").then((m) => m.CustomerTransactionsComponent) },
+      { path: "dashboard", loadComponent: () => import("./chunk-C73A3V2I.js").then((m) => m.CustomerDashboardComponent) },
+      { path: "send", loadComponent: () => import("./chunk-VHXUKJHG.js").then((m) => m.CustomerSendComponent) },
+      { path: "transactions", loadComponent: () => import("./chunk-WCJUIGXP.js").then((m) => m.CustomerTransactionsComponent) },
       { path: "", redirectTo: "dashboard", pathMatch: "full" }
     ]
   },

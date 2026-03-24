@@ -1,0 +1,424 @@
+<div class="sanctions-page">
+  <h2 class="page-title">Sanctions Management</h2>
+
+  <!-- Dashboard Cards -->
+  <div class="dashboard-cards">
+    <mat-card class="stat-card">
+      <div class="card-inner">
+        <div class="stat-icon entries"><mat-icon>person_search</mat-icon></div>
+        <div class="stat-info">
+          <span class="stat-value">{{ dashboard.activeSanctionEntries || 0 }}</span>
+          <span class="stat-label">Sanctioned Persons</span>
+        </div>
+      </div>
+    </mat-card>
+    <mat-card class="stat-card">
+      <div class="card-inner">
+        <div class="stat-icon countries"><mat-icon>public_off</mat-icon></div>
+        <div class="stat-info">
+          <span class="stat-value">{{ dashboard.activeSanctionedCountries || 0 }}</span>
+          <span class="stat-label">Sanctioned Countries</span>
+        </div>
+      </div>
+    </mat-card>
+    <mat-card class="stat-card">
+      <div class="card-inner">
+        <div class="stat-icon screenings"><mat-icon>verified_user</mat-icon></div>
+        <div class="stat-info">
+          <span class="stat-value">{{ dashboard.totalScreenings || 0 }}</span>
+          <span class="stat-label">Total Screenings</span>
+        </div>
+      </div>
+    </mat-card>
+    <mat-card class="stat-card warn">
+      <div class="card-inner">
+        <div class="stat-icon pending"><mat-icon>warning</mat-icon></div>
+        <div class="stat-info">
+          <span class="stat-value">{{ dashboard.pendingReview || 0 }}</span>
+          <span class="stat-label">Pending Review</span>
+        </div>
+      </div>
+    </mat-card>
+  </div>
+
+  <!-- Tabs -->
+  <mat-tab-group (selectedIndexChange)="onTabChange($event)" [selectedIndex]="activeTab">
+
+    <!-- Tab 1: Sanctioned Persons/Entities -->
+    <mat-tab label="Sanctioned Persons">
+      <div class="tab-content">
+        <div class="tab-toolbar">
+          <mat-form-field appearance="outline" class="search-field">
+            <mat-icon matPrefix>search</mat-icon>
+            <input matInput placeholder="Search entries..." [(ngModel)]="entriesSearch" (ngModelChange)="onEntriesSearch()">
+          </mat-form-field>
+          <div class="toolbar-actions">
+            <button mat-stroked-button (click)="exportEntries('excel')">
+              <mat-icon>download</mat-icon> Export
+            </button>
+            <button mat-flat-button color="primary" (click)="openEntryForm()">
+              <mat-icon>add</mat-icon> Add Entry
+            </button>
+          </div>
+        </div>
+
+        <div class="table-container">
+          <mat-spinner *ngIf="loadingEntries" diameter="36" class="center-spinner"></mat-spinner>
+          <table mat-table [dataSource]="entries" *ngIf="!loadingEntries">
+            <ng-container matColumnDef="name">
+              <th mat-header-cell *matHeaderCellDef>Name</th>
+              <td mat-cell *matCellDef="let row">
+                <strong>{{ row.name }}</strong>
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="entryType">
+              <th mat-header-cell *matHeaderCellDef>Type</th>
+              <td mat-cell *matCellDef="let row">
+                <span class="chip type-chip">{{ row.entryType }}</span>
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="listSource">
+              <th mat-header-cell *matHeaderCellDef>Source</th>
+              <td mat-cell *matCellDef="let row">{{ row.listSource }}</td>
+            </ng-container>
+            <ng-container matColumnDef="aliases">
+              <th mat-header-cell *matHeaderCellDef>Aliases</th>
+              <td mat-cell *matCellDef="let row">
+                <span class="aliases-text">{{ row.aliases || '-' }}</span>
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="nationality">
+              <th mat-header-cell *matHeaderCellDef>Nationality</th>
+              <td mat-cell *matCellDef="let row">{{ row.nationality || '-' }}</td>
+            </ng-container>
+            <ng-container matColumnDef="isActive">
+              <th mat-header-cell *matHeaderCellDef>Status</th>
+              <td mat-cell *matCellDef="let row">
+                <span class="chip" [class.active]="row.isActive" [class.inactive]="!row.isActive">
+                  {{ row.isActive ? 'Active' : 'Inactive' }}
+                </span>
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="createdAt">
+              <th mat-header-cell *matHeaderCellDef>Added</th>
+              <td mat-cell *matCellDef="let row">{{ row.createdAt | date:'mediumDate' }}</td>
+            </ng-container>
+            <ng-container matColumnDef="actions">
+              <th mat-header-cell *matHeaderCellDef>Actions</th>
+              <td mat-cell *matCellDef="let row">
+                <button mat-icon-button matTooltip="Edit" (click)="openEntryForm(row)">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button mat-icon-button [matTooltip]="row.isActive ? 'Deactivate' : 'Activate'" (click)="toggleEntry(row)">
+                  <mat-icon>{{ row.isActive ? 'toggle_on' : 'toggle_off' }}</mat-icon>
+                </button>
+                <button mat-icon-button matTooltip="Delete" color="warn" (click)="deleteEntry(row)">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </td>
+            </ng-container>
+            <tr mat-header-row *matHeaderRowDef="entryColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: entryColumns;"></tr>
+          </table>
+          <div *ngIf="!loadingEntries && entries.length === 0" class="empty-state">
+            <mat-icon>person_search</mat-icon>
+            <p>No sanction entries found</p>
+          </div>
+        </div>
+        <mat-paginator
+          [length]="entriesTotalCount"
+          [pageSize]="entriesPageSize"
+          [pageIndex]="entriesPage - 1"
+          [pageSizeOptions]="[10, 20, 50]"
+          (page)="onEntriesPage($event)"
+          showFirstLastButtons>
+        </mat-paginator>
+      </div>
+    </mat-tab>
+
+    <!-- Tab 2: Sanctioned Countries -->
+    <mat-tab label="Sanctioned Countries">
+      <div class="tab-content">
+        <div class="tab-toolbar">
+          <div></div>
+          <button mat-flat-button color="primary" (click)="openCountryForm()">
+            <mat-icon>add</mat-icon> Add Country
+          </button>
+        </div>
+
+        <div class="table-container">
+          <mat-spinner *ngIf="loadingCountries" diameter="36" class="center-spinner"></mat-spinner>
+          <table mat-table [dataSource]="countries" *ngIf="!loadingCountries">
+            <ng-container matColumnDef="countryCode">
+              <th mat-header-cell *matHeaderCellDef>Code</th>
+              <td mat-cell *matCellDef="let row">
+                <strong>{{ row.countryCode }}</strong>
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="countryName">
+              <th mat-header-cell *matHeaderCellDef>Country</th>
+              <td mat-cell *matCellDef="let row">{{ row.countryName }}</td>
+            </ng-container>
+            <ng-container matColumnDef="sanctionType">
+              <th mat-header-cell *matHeaderCellDef>Sanction Type</th>
+              <td mat-cell *matCellDef="let row">
+                <span class="chip" [class.full-sanction]="row.sanctionType === 'Full'" [class.partial-sanction]="row.sanctionType === 'Partial'">
+                  {{ row.sanctionType }}
+                </span>
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="riskLevel">
+              <th mat-header-cell *matHeaderCellDef>Risk Level</th>
+              <td mat-cell *matCellDef="let row">
+                <span class="chip risk-chip"
+                  [class.risk-blocked]="row.riskLevel === 'Blocked'"
+                  [class.risk-high]="row.riskLevel === 'High'"
+                  [class.risk-medium]="row.riskLevel === 'Medium'"
+                  [class.risk-low]="row.riskLevel === 'Low'"
+                  [matTooltip]="getRiskLevelDescription(row.riskLevel)">
+                  {{ row.riskLevel }}
+                </span>
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="listSource">
+              <th mat-header-cell *matHeaderCellDef>Source</th>
+              <td mat-cell *matCellDef="let row">{{ row.listSource }}</td>
+            </ng-container>
+            <ng-container matColumnDef="isActive">
+              <th mat-header-cell *matHeaderCellDef>Status</th>
+              <td mat-cell *matCellDef="let row">
+                <span class="chip" [class.active]="row.isActive" [class.inactive]="!row.isActive">
+                  {{ row.isActive ? 'Active' : 'Inactive' }}
+                </span>
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="createdAt">
+              <th mat-header-cell *matHeaderCellDef>Added</th>
+              <td mat-cell *matCellDef="let row">{{ row.createdAt | date:'mediumDate' }}</td>
+            </ng-container>
+            <ng-container matColumnDef="actions">
+              <th mat-header-cell *matHeaderCellDef>Actions</th>
+              <td mat-cell *matCellDef="let row">
+                <button mat-icon-button matTooltip="Edit" (click)="openCountryForm(row)">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button mat-icon-button [matTooltip]="row.isActive ? 'Deactivate' : 'Activate'" (click)="toggleCountry(row)">
+                  <mat-icon>{{ row.isActive ? 'toggle_on' : 'toggle_off' }}</mat-icon>
+                </button>
+                <button mat-icon-button matTooltip="Delete" color="warn" (click)="deleteCountry(row)">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </td>
+            </ng-container>
+            <tr mat-header-row *matHeaderRowDef="countryColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: countryColumns;"></tr>
+          </table>
+          <div *ngIf="!loadingCountries && countries.length === 0" class="empty-state">
+            <mat-icon>public_off</mat-icon>
+            <p>No sanctioned countries configured</p>
+          </div>
+        </div>
+      </div>
+    </mat-tab>
+
+    <!-- Tab 3: Screening Results -->
+    <mat-tab label="Screening Results">
+      <div class="tab-content">
+        <div class="tab-toolbar">
+          <mat-form-field appearance="outline" class="search-field">
+            <mat-icon matPrefix>search</mat-icon>
+            <input matInput placeholder="Search screenings..." [(ngModel)]="screeningsSearch" (ngModelChange)="onScreeningsSearch()">
+          </mat-form-field>
+        </div>
+
+        <div class="table-container">
+          <mat-spinner *ngIf="loadingScreenings" diameter="36" class="center-spinner"></mat-spinner>
+          <table mat-table [dataSource]="screenings" *ngIf="!loadingScreenings">
+            <ng-container matColumnDef="screenedName">
+              <th mat-header-cell *matHeaderCellDef>Screened Name</th>
+              <td mat-cell *matCellDef="let row">{{ row.screenedName }}</td>
+            </ng-container>
+            <ng-container matColumnDef="screenedType">
+              <th mat-header-cell *matHeaderCellDef>Type</th>
+              <td mat-cell *matCellDef="let row">
+                <span class="chip type-chip">{{ row.screenedType }}</span>
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="status">
+              <th mat-header-cell *matHeaderCellDef>Status</th>
+              <td mat-cell *matCellDef="let row">
+                <span class="chip status-chip"
+                  [class.status-clear]="row.status === 'Clear'"
+                  [class.status-potential]="row.status === 'PotentialMatch'"
+                  [class.status-confirmed]="row.status === 'ConfirmedMatch'"
+                  [class.status-false]="row.status === 'FalsePositive'">
+                  {{ row.status }}
+                </span>
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="matchedName">
+              <th mat-header-cell *matHeaderCellDef>Matched Against</th>
+              <td mat-cell *matCellDef="let row">{{ row.matchedName || '-' }}</td>
+            </ng-container>
+            <ng-container matColumnDef="matchScore">
+              <th mat-header-cell *matHeaderCellDef>Score</th>
+              <td mat-cell *matCellDef="let row">
+                <span *ngIf="row.matchScore" class="score" [class.high-score]="row.matchScore >= 0.8">
+                  {{ getScorePercent(row.matchScore) }}
+                </span>
+                <span *ngIf="!row.matchScore">-</span>
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="transactionId">
+              <th mat-header-cell *matHeaderCellDef>Transaction</th>
+              <td mat-cell *matCellDef="let row">{{ row.transactionId || '-' }}</td>
+            </ng-container>
+            <ng-container matColumnDef="createdAt">
+              <th mat-header-cell *matHeaderCellDef>Date</th>
+              <td mat-cell *matCellDef="let row">{{ row.createdAt | date:'short' }}</td>
+            </ng-container>
+            <ng-container matColumnDef="actions">
+              <th mat-header-cell *matHeaderCellDef>Actions</th>
+              <td mat-cell *matCellDef="let row">
+                <button mat-icon-button matTooltip="Review" (click)="openReviewForm(row)"
+                  *ngIf="row.status === 'PotentialMatch' && !row.reviewedBy">
+                  <mat-icon>rate_review</mat-icon>
+                </button>
+                <span *ngIf="row.reviewedBy" class="reviewed-badge" [matTooltip]="'Reviewed by ' + row.reviewedBy + (row.reviewNotes ? ': ' + row.reviewNotes : '')">
+                  <mat-icon>check_circle</mat-icon>
+                </span>
+              </td>
+            </ng-container>
+            <tr mat-header-row *matHeaderRowDef="screeningColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: screeningColumns;"
+              [class.match-row]="row.status === 'PotentialMatch' || row.status === 'ConfirmedMatch'"></tr>
+          </table>
+          <div *ngIf="!loadingScreenings && screenings.length === 0" class="empty-state">
+            <mat-icon>verified_user</mat-icon>
+            <p>No screening results yet</p>
+          </div>
+        </div>
+        <mat-paginator
+          [length]="screeningsTotalCount"
+          [pageSize]="screeningsPageSize"
+          [pageIndex]="screeningsPage - 1"
+          [pageSizeOptions]="[10, 20, 50]"
+          (page)="onScreeningsPage($event)"
+          showFirstLastButtons>
+        </mat-paginator>
+      </div>
+    </mat-tab>
+  </mat-tab-group>
+</div>
+
+<!-- Entry Form Dialog -->
+<div class="dialog-overlay" *ngIf="showEntryForm" (click)="closeEntryForm()">
+  <div class="dialog-content" (click)="$event.stopPropagation()">
+    <h3>{{ editingEntry ? 'Edit' : 'Add' }} Sanction Entry</h3>
+    <div class="form-grid">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Name *</mat-label>
+        <input matInput [(ngModel)]="entryForm.name" placeholder="Full name or organization">
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Entry Type</mat-label>
+        <mat-select [(ngModel)]="entryForm.entryType">
+          <mat-option *ngFor="let t of entryTypes" [value]="t">{{ t }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>List Source</mat-label>
+        <mat-select [(ngModel)]="entryForm.listSource">
+          <mat-option *ngFor="let s of listSources" [value]="s">{{ s }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Aliases (comma-separated)</mat-label>
+        <input matInput [(ngModel)]="entryForm.aliases" placeholder="e.g. AKA Name 1, AKA Name 2">
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Nationality</mat-label>
+        <input matInput [(ngModel)]="entryForm.nationality">
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Remarks</mat-label>
+        <textarea matInput [(ngModel)]="entryForm.remarks" rows="2"></textarea>
+      </mat-form-field>
+    </div>
+    <div class="dialog-actions">
+      <button mat-stroked-button (click)="closeEntryForm()">Cancel</button>
+      <button mat-flat-button color="primary" (click)="saveEntry()">{{ editingEntry ? 'Update' : 'Create' }}</button>
+    </div>
+  </div>
+</div>
+
+<!-- Country Form Dialog -->
+<div class="dialog-overlay" *ngIf="showCountryForm" (click)="closeCountryForm()">
+  <div class="dialog-content" (click)="$event.stopPropagation()">
+    <h3>{{ editingCountry ? 'Edit' : 'Add' }} Sanctioned Country</h3>
+    <div class="form-grid">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Select Country *</mat-label>
+        <mat-select [(ngModel)]="countryForm.countryName" (ngModelChange)="onCountrySelected($event)"
+          [disabled]="!!editingCountry">
+          <mat-option *ngFor="let c of referenceCountries" [value]="c.name">{{ c.name }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Sanction Type</mat-label>
+        <mat-select [(ngModel)]="countryForm.sanctionType">
+          <mat-option *ngFor="let t of sanctionTypes" [value]="t">{{ t }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>Risk Level</mat-label>
+        <mat-select [(ngModel)]="countryForm.riskLevel">
+          <mat-option *ngFor="let r of riskLevels" [value]="r">{{ r }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field appearance="outline">
+        <mat-label>List Source</mat-label>
+        <mat-select [(ngModel)]="countryForm.listSource">
+          <mat-option *ngFor="let s of listSources" [value]="s">{{ s }}</mat-option>
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Remarks</mat-label>
+        <textarea matInput [(ngModel)]="countryForm.remarks" rows="2"></textarea>
+      </mat-form-field>
+    </div>
+    <div class="dialog-actions">
+      <button mat-stroked-button (click)="closeCountryForm()">Cancel</button>
+      <button mat-flat-button color="primary" (click)="saveCountry()">{{ editingCountry ? 'Update' : 'Add' }}</button>
+    </div>
+  </div>
+</div>
+
+<!-- Review Form Dialog -->
+<div class="dialog-overlay" *ngIf="showReviewForm" (click)="closeReviewForm()">
+  <div class="dialog-content review-dialog" (click)="$event.stopPropagation()">
+    <h3>Review Screening Match</h3>
+    <div class="review-info" *ngIf="reviewingScreening">
+      <p><strong>Screened:</strong> {{ reviewingScreening.screenedName }} ({{ reviewingScreening.screenedType }})</p>
+      <p><strong>Matched:</strong> {{ reviewingScreening.matchedName }} ({{ reviewingScreening.matchedListSource }})</p>
+      <p><strong>Score:</strong> {{ getScorePercent(reviewingScreening.matchScore) }}</p>
+    </div>
+    <div class="form-grid">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Decision</mat-label>
+        <mat-select [(ngModel)]="reviewForm.status">
+          <mat-option value="ConfirmedMatch">Confirmed Match</mat-option>
+          <mat-option value="FalsePositive">False Positive</mat-option>
+        </mat-select>
+      </mat-form-field>
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Review Notes</mat-label>
+        <textarea matInput [(ngModel)]="reviewForm.reviewNotes" rows="3" placeholder="Reason for decision..."></textarea>
+      </mat-form-field>
+    </div>
+    <div class="dialog-actions">
+      <button mat-stroked-button (click)="closeReviewForm()">Cancel</button>
+      <button mat-flat-button color="primary" (click)="submitReview()">Submit Review</button>
+    </div>
+  </div>
+</div>
