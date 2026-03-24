@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["src/app/pages/admin/commissions/commissions.component.scss"],
+  "sourcesContent": ["// Commissions – component-specific only (shared styles in global styles.scss)\r\n// .alert-banner, .data-table, .toggle-container → styles.scss\r\n\r\n.data-table {\r\n  th.mat-mdc-header-cell { white-space: nowrap; }\r\n}\r\n"],
+  "mappings": ";AAIE,CAAA,WAAA,EAAA,CAAA;AAAyB,eAAA;;",
+  "names": []
+}

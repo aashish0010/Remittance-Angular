@@ -111,6 +111,22 @@ export class ApiService {
   }
 
   // ---------------------------------------------------------------------------
+  // Transaction PIN
+  // ---------------------------------------------------------------------------
+
+  getTransactionPinStatus(): Observable<ApiResponse<boolean>> {
+    return this.get<boolean>('api/auth/transaction-pin/status');
+  }
+
+  setTransactionPin(pin: string): Observable<ApiResponse<string>> {
+    return this.post<string>('api/auth/transaction-pin/set', { pin });
+  }
+
+  verifyTransactionPin(pin: string): Observable<ApiResponse<boolean>> {
+    return this.post<boolean>('api/auth/transaction-pin/verify', { pin });
+  }
+
+  // ---------------------------------------------------------------------------
   // Agents
   // ---------------------------------------------------------------------------
 

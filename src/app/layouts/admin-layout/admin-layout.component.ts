@@ -15,6 +15,7 @@ import { MatInputModule } from '@angular/material/input';
 import { Subscription } from 'rxjs';
 import { AuthStateService } from '../../core/services/auth-state.service';
 import { ApiService } from '../../core/services/api.service';
+import { IdleTimeoutService } from '../../core/services/idle-timeout.service';
 
 interface NavItem {
   label: string;
@@ -87,9 +88,13 @@ export class AdminLayoutComponent implements OnInit, OnDestroy {
     private auth: AuthStateService,
     private api: ApiService,
     private router: Router,
+    public idleTimeout: IdleTimeoutService,
   ) { }
 
   ngOnInit(): void {
+    // Start session idle timeout tracking
+    this.idleTimeout.start();
+
     this.isDarkMode = localStorage.getItem('darkMode') === 'true';
     this.applyBodyClass();
     this.filteredNavItems = [];
@@ -117,6 +122,7 @@ export class AdminLayoutComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.sub?.unsubscribe();
+    this.idleTimeout.stop();
   }
 
   private buildNavItems(roles: string[], privileges: any[]): void {
@@ -180,6 +186,7 @@ export class AdminLayoutComponent implements OnInit, OnDestroy {
   }
 
   logout(): void {
+    this.idleTimeout.stop();
     this.auth.logout();
     this.router.navigate(['/auth/login']);
   }

@@ -62,6 +62,14 @@ export class SendMoneyComponent implements OnInit {
   submitting = false;
   successResult: TransactionResult | null = null;
 
+  // Transaction PIN
+  showPinDialog = false;
+  pinMode: 'set' | 'verify' = 'verify';
+  pinInput = '';
+  pinConfirm = '';
+  pinError = '';
+  pinLoading = false;
+
   // Agent profile & balance
   agentProfile: AgentModel | null = null;
   agentBalanceZero = false;
@@ -691,6 +699,107 @@ export class SendMoneyComponent implements OnInit {
   submitTransaction(): void {
     if (!this.selectedCustomer || !this.selectedReceiver || !this.selectedPartner) {
       this.notify.error('Missing required data.');
+      return;
+    }
+
+    // Check PIN status before proceeding
+    this.submitting = true;
+    this.api.getTransactionPinStatus().subscribe({
+      next: (res: any) => {
+        this.submitting = false;
+        const hasPin = res?.data?.hasPin ?? res?.hasPin ?? false;
+        if (!hasPin) {
+          // No PIN set — prompt to create one
+          this.pinMode = 'set';
+          this.pinInput = '';
+          this.pinConfirm = '';
+          this.pinError = '';
+          this.showPinDialog = true;
+        } else {
+          // PIN exists — prompt to verify
+          this.pinMode = 'verify';
+          this.pinInput = '';
+          this.pinError = '';
+          this.showPinDialog = true;
+        }
+      },
+      error: () => {
+        this.submitting = false;
+        this.notify.error('Failed to check PIN status. Please try again.');
+      },
+    });
+  }
+
+  onPinSubmit(): void {
+    this.pinError = '';
+
+    if (this.pinMode === 'set') {
+      if (!this.pinInput || this.pinInput.length < 4 || this.pinInput.length > 6) {
+        this.pinError = 'PIN must be 4–6 digits.';
+        return;
+      }
+      if (!/^\d+$/.test(this.pinInput)) {
+        this.pinError = 'PIN must contain only digits.';
+        return;
+      }
+      if (this.pinInput !== this.pinConfirm) {
+        this.pinError = 'PINs do not match.';
+        return;
+      }
+      this.pinLoading = true;
+      this.api.setTransactionPin(this.pinInput).subscribe({
+        next: (res: any) => {
+          this.pinLoading = false;
+          if (res?.success) {
+            this.notify.success('Transaction PIN set successfully.');
+            // Now verify the PIN
+            this.pinMode = 'verify';
+            this.pinInput = '';
+            this.pinError = '';
+          } else {
+            this.pinError = res?.message || 'Failed to set PIN.';
+          }
+        },
+        error: (err: any) => {
+          this.pinLoading = false;
+          this.pinError = err?.error?.message || 'Failed to set PIN.';
+        },
+      });
+    } else {
+      // Verify mode
+      if (!this.pinInput || this.pinInput.length < 4 || this.pinInput.length > 6) {
+        this.pinError = 'Enter your 4–6 digit PIN.';
+        return;
+      }
+      this.pinLoading = true;
+      this.api.verifyTransactionPin(this.pinInput).subscribe({
+        next: (res: any) => {
+          this.pinLoading = false;
+          if (res?.success) {
+            this.showPinDialog = false;
+            this.pinInput = '';
+            this.executeSendTransaction();
+          } else {
+            this.pinError = res?.message || 'Invalid PIN.';
+          }
+        },
+        error: (err: any) => {
+          this.pinLoading = false;
+          this.pinError = err?.error?.message || 'Invalid PIN. Please try again.';
+        },
+      });
+    }
+  }
+
+  closePinDialog(): void {
+    this.showPinDialog = false;
+    this.pinInput = '';
+    this.pinConfirm = '';
+    this.pinError = '';
+  }
+
+  private executeSendTransaction(): void {
+    if (!this.selectedCustomer || !this.selectedReceiver || !this.selectedPartner) {
       return;
     }
 

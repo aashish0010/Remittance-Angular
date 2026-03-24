@@ -462,3 +462,75 @@ $sidebar-section: #9ca3af;
   .brand-sub, .user-name { display: none; }
   .content-wrapper { padding: 16px; }
 }
+
+// ─────────────────────────────────────────────
+// Session Timeout Warning Overlay
+// ─────────────────────────────────────────────
+.timeout-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+}
+
+.timeout-dialog {
+  background: #fff;
+  border-radius: 16px;
+  padding: 32px 40px;
+  max-width: 420px;
+  width: 90%;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.3s ease;
+
+  .timeout-icon {
+    margin-bottom: 16px;
+    mat-icon {
+      font-size: 48px;
+      width: 48px;
+      height: 48px;
+      color: #f59e0b;
+    }
+  }
+
+  h3 {
+    margin: 0 0 8px;
+    font-size: 20px;
+    font-weight: 600;
+    color: #111827;
+  }
+
+  p {
+    margin: 0 0 24px;
+    font-size: 14px;
+    color: #6b7280;
+    line-height: 1.5;
+
+    strong {
+      color: #ef4444;
+      font-size: 18px;
+    }
+  }
+
+  .timeout-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+  }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+// Dark mode timeout dialog
+.dark-mode .timeout-dialog {
+  background: #1e293b;
+  h3 { color: #e2e8f0; }
+  p { color: #94a3b8; }
+}

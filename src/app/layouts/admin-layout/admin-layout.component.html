@@ -139,4 +139,23 @@
 
   </mat-sidenav-container>
 
+  <!-- Session Timeout Warning Overlay -->
+  <div class="timeout-overlay" *ngIf="idleTimeout.showWarning">
+    <div class="timeout-dialog">
+      <div class="timeout-icon">
+        <mat-icon>timer_off</mat-icon>
+      </div>
+      <h3>Session Timeout Warning</h3>
+      <p>Your session will expire in <strong>{{ idleTimeout.remainingSeconds }}</strong> seconds due to inactivity.</p>
+      <div class="timeout-actions">
+        <button mat-raised-button color="primary" (click)="idleTimeout.extendSession()">
+          Stay Logged In
+        </button>
+        <button mat-stroked-button (click)="logout()">
+          Sign Out
+        </button>
+      </div>
+    </div>
+  </div>
+
 </div>

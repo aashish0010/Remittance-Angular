@@ -712,6 +712,56 @@
 </div>
 
 <!-- ======================================================================= -->
+<!-- Transaction PIN Dialog                                                  -->
+<!-- ======================================================================= -->
+<div *ngIf="showPinDialog" class="pin-overlay" (click)="closePinDialog()"></div>
+<div *ngIf="showPinDialog" class="pin-dialog">
+  <div class="pin-dialog-header">
+    <h3>
+      <mat-icon>{{ pinMode === 'set' ? 'lock' : 'vpn_key' }}</mat-icon>
+      {{ pinMode === 'set' ? 'Set Transaction PIN' : 'Enter Transaction PIN' }}
+    </h3>
+    <button mat-icon-button (click)="closePinDialog()"><mat-icon>close</mat-icon></button>
+  </div>
+
+  <div class="pin-dialog-body">
+    <p *ngIf="pinMode === 'set'" class="pin-hint">
+      Create a 4–6 digit PIN to authorize transactions. You'll need this PIN every time you send money.
+    </p>
+    <p *ngIf="pinMode === 'verify'" class="pin-hint">
+      Enter your transaction PIN to confirm this transfer.
+    </p>
+
+    <div *ngIf="pinError" class="pin-error">
+      <mat-icon>error</mat-icon> {{ pinError }}
+    </div>
+
+    <mat-form-field appearance="outline" class="pin-field">
+      <mat-label>{{ pinMode === 'set' ? 'New PIN' : 'Transaction PIN' }}</mat-label>
+      <input matInput type="password" [(ngModel)]="pinInput" maxlength="6"
+        placeholder="Enter PIN" autocomplete="off" (keydown.enter)="onPinSubmit()" />
+      <mat-icon matPrefix>lock</mat-icon>
+    </mat-form-field>
+
+    <mat-form-field *ngIf="pinMode === 'set'" appearance="outline" class="pin-field">
+      <mat-label>Confirm PIN</mat-label>
+      <input matInput type="password" [(ngModel)]="pinConfirm" maxlength="6"
+        placeholder="Confirm PIN" autocomplete="off" (keydown.enter)="onPinSubmit()" />
+      <mat-icon matPrefix>lock</mat-icon>
+    </mat-form-field>
+  </div>
+
+  <div class="pin-dialog-actions">
+    <button mat-stroked-button (click)="closePinDialog()">Cancel</button>
+    <button mat-flat-button color="primary" (click)="onPinSubmit()" [disabled]="pinLoading">
+      <mat-spinner *ngIf="pinLoading" diameter="18" class="btn-spinner"></mat-spinner>
+      <mat-icon *ngIf="!pinLoading">{{ pinMode === 'set' ? 'lock' : 'send' }}</mat-icon>
+      {{ pinMode === 'set' ? 'Set PIN' : 'Confirm & Send' }}
+    </button>
+  </div>
+</div>
+
+<!-- ======================================================================= -->
 <!-- Branch Search Popup                                                     -->
 <!-- ======================================================================= -->
 <div *ngIf="showBranchPopup" class="branch-overlay" (click)="closeBranchPopup()"></div>

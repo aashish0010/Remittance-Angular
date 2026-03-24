@@ -1261,3 +1261,139 @@ $radius: 12px;
     font-size: 1.25rem;
   }
 }
+
+// ---------------------------------------------------------------------------
+// Transaction PIN Dialog
+// ---------------------------------------------------------------------------
+.pin-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  animation: fadeIn 0.2s ease;
+}
+
+.pin-dialog {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #fff;
+  border-radius: $radius;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  z-index: 1001;
+  width: 400px;
+  max-width: 90vw;
+  animation: slideUp 0.25s ease;
+
+  .pin-dialog-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 24px 12px;
+    border-bottom: 1px solid $border;
+
+    h3 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: $primary;
+
+      mat-icon {
+        font-size: 22px;
+        width: 22px;
+        height: 22px;
+      }
+    }
+  }
+
+  .pin-dialog-body {
+    padding: 20px 24px;
+
+    .pin-hint {
+      font-size: 13px;
+      color: $text-secondary;
+      margin: 0 0 16px;
+      line-height: 1.5;
+    }
+
+    .pin-error {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      background: $danger-bg;
+      color: $danger;
+      border-radius: 8px;
+      font-size: 13px;
+      margin-bottom: 16px;
+
+      mat-icon {
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+      }
+    }
+
+    .pin-field {
+      width: 100%;
+    }
+  }
+
+  .pin-dialog-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    padding: 12px 24px 20px;
+
+    button {
+      min-width: 120px;
+    }
+
+    .btn-spinner {
+      display: inline-block;
+      margin-right: 8px;
+    }
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -45%);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+}
+
+// Dark mode support
+:host-context(.dark-mode) {
+  .pin-dialog {
+    background: #1e293b;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+
+    .pin-dialog-header {
+      border-bottom-color: rgba(255, 255, 255, 0.08);
+
+      h3 { color: #93b4ff; }
+    }
+
+    .pin-dialog-body {
+      .pin-hint { color: rgba(255, 255, 255, 0.6); }
+      .pin-error { background: rgba(211, 47, 47, 0.15); color: #ff6b6b; }
+    }
+  }
+}
