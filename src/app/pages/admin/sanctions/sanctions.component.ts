@@ -1,19 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subject, takeUntil } from 'rxjs';
-import { MatTableModule } from '@angular/material/table';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatTabsModule } from '@angular/material/tabs';
-import { MatCardModule } from '@angular/material/card';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
-import { MatChipsModule } from '@angular/material/chips';
-import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ApiService } from '../../../core/services/api.service';
 import { NotificationService } from '../../../core/services/notification.service';
 
@@ -21,10 +9,7 @@ import { NotificationService } from '../../../core/services/notification.service
   selector: 'app-sanctions',
   standalone: true,
   imports: [
-    CommonModule, FormsModule,
-    MatTableModule, MatButtonModule, MatIconModule, MatTabsModule,
-    MatCardModule, MatFormFieldModule, MatInputModule, MatSelectModule,
-    MatChipsModule, MatTooltipModule, MatPaginatorModule, MatProgressSpinnerModule,
+    CommonModule, FormsModule, DatePipe,
   ],
   templateUrl: './sanctions.component.html',
   styleUrl: './sanctions.component.scss',
@@ -169,7 +154,7 @@ export class SanctionsComponent implements OnInit, OnDestroy {
     }, 400);
   }
 
-  onEntriesPage(event: PageEvent): void {
+  onEntriesPage(event: { pageIndex: number; pageSize: number }): void {
     this.entriesPage = event.pageIndex + 1;
     this.entriesPageSize = event.pageSize;
     this.loadEntries();
@@ -360,7 +345,7 @@ export class SanctionsComponent implements OnInit, OnDestroy {
     }, 400);
   }
 
-  onScreeningsPage(event: PageEvent): void {
+  onScreeningsPage(event: { pageIndex: number; pageSize: number }): void {
     this.screeningsPage = event.pageIndex + 1;
     this.screeningsPageSize = event.pageSize;
     this.loadScreenings();
@@ -435,4 +420,13 @@ export class SanctionsComponent implements OnInit, OnDestroy {
   onTabChange(index: number): void {
     this.activeTab = index;
   }
+
+  get entriesTotalPages(): number {
+    return Math.ceil(this.entriesTotalCount / this.entriesPageSize) || 1;
+  }
+
+  get screeningsTotalPages(): number {
+    return Math.ceil(this.screeningsTotalCount / this.screeningsPageSize) || 1;
+  }
 }
+

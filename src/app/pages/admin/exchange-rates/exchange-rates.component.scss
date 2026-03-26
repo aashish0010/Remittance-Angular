@@ -1,2 +1,3 @@
-// Exchange Rates – component-specific only (shared styles in global styles.scss)
-// .alert-banner, .data-table, .toggle-container → styles.scss
+:host {
+  display: block;
+}

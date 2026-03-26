@@ -1,16 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule, DecimalPipe, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { MatTableModule } from '@angular/material/table';
-import { MatButtonModule } from '@angular/material/button';
-import { MatButtonToggleModule } from '@angular/material/button-toggle';
-import { MatIconModule } from '@angular/material/icon';
-import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatCardModule } from '@angular/material/card';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { PageEvent, MatPaginatorModule } from '@angular/material/paginator';
 import { Subject } from 'rxjs';
 import { debounceTime, takeUntil } from 'rxjs/operators';
 import { ApiService } from '../../../core/services/api.service';
@@ -25,16 +15,6 @@ import { ComplianceAlertModel } from '../../../core/models/compliance.models';
   imports: [
     CommonModule,
     FormsModule,
-    MatTableModule,
-    MatButtonModule,
-    MatButtonToggleModule,
-    MatIconModule,
-    MatTooltipModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatCardModule,
-    MatProgressSpinnerModule,
-    MatPaginatorModule,
     DecimalPipe,
     DatePipe,
   ],
@@ -63,6 +43,8 @@ export class ComplianceComponent implements OnInit, OnDestroy {
   resolutionText = '';
 
   selectedAlert: ComplianceAlertModel | null = null;
+
+  Math = Math;
 
   get openCount(): number { return this.alerts.filter(a => !a.isResolved).length; }
   get resolvedCount(): number { return this.alerts.filter(a => a.isResolved && a.resolution !== 'Rejected').length; }
@@ -128,7 +110,7 @@ export class ComplianceComponent implements OnInit, OnDestroy {
     this.loadAlerts();
   }
 
-  onPageChange(event: PageEvent): void {
+  onPageChange(event: { pageSize: number; pageIndex: number }): void {
     this.pageSize = event.pageSize;
     this.pageIndex = event.pageIndex;
     this.loadAlerts();

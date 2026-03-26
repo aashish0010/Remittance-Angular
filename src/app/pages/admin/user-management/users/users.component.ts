@@ -1,18 +1,6 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { MatCardModule } from '@angular/material/card';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
-import { MatCheckboxModule } from '@angular/material/checkbox';
-import { MatChipsModule } from '@angular/material/chips';
-import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatSlideToggleModule } from '@angular/material/slide-toggle';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatDividerModule } from '@angular/material/divider';
 import { ApiService } from '../../../../core/services/api.service';
 
 interface UserItem {
@@ -37,10 +25,7 @@ interface RoleOption {
   selector: 'app-users',
   standalone: true,
   imports: [
-    CommonModule, FormsModule, MatCardModule, MatButtonModule, MatIconModule,
-    MatFormFieldModule, MatInputModule, MatSelectModule, MatCheckboxModule,
-    MatChipsModule, MatTooltipModule, MatSlideToggleModule, MatProgressSpinnerModule,
-    MatDividerModule,
+    CommonModule, FormsModule, DatePipe,
   ],
   templateUrl: './users.component.html',
   styleUrls: ['./users.component.scss'],
@@ -180,6 +165,16 @@ export class UsersComponent implements OnInit {
 
   isSystemAdmin(user: UserItem): boolean {
     return user.roles.some(r => r.name === 'SystemAdmin');
+  }
+
+  toggleRole(roleId: number): void {
+    const idx = this.formRoleIds.indexOf(roleId);
+    if (idx >= 0) this.formRoleIds.splice(idx, 1);
+    else this.formRoleIds.push(roleId);
+  }
+
+  isRoleSelected(roleId: number): boolean {
+    return this.formRoleIds.includes(roleId);
   }
 
   getRoleNames(user: UserItem): string {

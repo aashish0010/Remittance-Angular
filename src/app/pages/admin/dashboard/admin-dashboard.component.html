@@ -1,280 +1,378 @@
-<div class="admin-dashboard">
-  <h2 class="page-title">Admin Dashboard</h2>
+<!-- Admin Dashboard -->
+<div class="space-y-6">
 
-  <!-- Loading Spinner -->
-  <div *ngIf="loading" class="loading-container">
-    <mat-spinner diameter="48"></mat-spinner>
+  <!-- Page Header -->
+  <div>
+    <h2 class="text-2xl font-bold text-surface-900 dark:text-surface-50">Dashboard</h2>
+    <p class="mt-1 text-sm text-surface-500 dark:text-surface-400">{{ getGreeting() }}! Here's your overview.</p>
   </div>
 
-  <ng-container *ngIf="dashboard">
-    <!-- ---- Summary Cards ---- -->
-    <div class="stat-cards-grid">
-      <!-- Total Transactions -->
-      <mat-card class="stat-card stat-card-blue clickable-card" appearance="outlined" routerLink="/admin/transactions">
-        <mat-card-content>
-          <div class="stat-card-inner">
-            <div class="stat-card-text">
-              <span class="stat-label">Total Transactions</span>
-              <span class="stat-value">{{ dashboard.totalTransactions | number }}</span>
-              <span class="stat-subtitle" [ngClass]="monthChangeClass(dashboard.transactionsThisMonth, dashboard.transactionsLastMonth)">
-                {{ monthChangeText(dashboard.transactionsThisMonth, dashboard.transactionsLastMonth) }} this month
-              </span>
-            </div>
-            <mat-icon class="stat-icon stat-icon-blue">receipt_long</mat-icon>
-          </div>
-        </mat-card-content>
-      </mat-card>
-
-      <!-- Service Charge Revenue -->
-      <mat-card class="stat-card stat-card-green clickable-card" appearance="outlined" routerLink="/admin/reports/commissions">
-        <mat-card-content>
-          <div class="stat-card-inner">
-            <div class="stat-card-text">
-              <span class="stat-label">Service Charge Revenue</span>
-              <span class="stat-value">{{ formatCurrency(dashboard.totalCommissionRevenue) }}</span>
-              <span class="stat-subtitle" [ngClass]="monthChangeClass(dashboard.commissionThisMonth, dashboard.commissionLastMonth)">
-                {{ monthChangeText(dashboard.commissionThisMonth, dashboard.commissionLastMonth) }} this month
-              </span>
-            </div>
-            <mat-icon class="stat-icon stat-icon-green">trending_up</mat-icon>
-          </div>
-        </mat-card-content>
-      </mat-card>
-
-      <!-- Active Agents -->
-      <mat-card class="stat-card stat-card-orange clickable-card" appearance="outlined" routerLink="/admin/agents">
-        <mat-card-content>
-          <div class="stat-card-inner">
-            <div class="stat-card-text">
-              <span class="stat-label">Active Agents</span>
-              <span class="stat-value">{{ dashboard.activeAgents }}</span>
-              <span class="stat-subtitle" *ngIf="dashboard.pendingAgents > 0" style="color: #1976d2;">
-                {{ dashboard.pendingAgents }} pending approval
-              </span>
-              <span class="stat-subtitle change-positive" *ngIf="dashboard.pendingAgents === 0">
-                No pending approvals
-              </span>
-            </div>
-            <mat-icon class="stat-icon stat-icon-orange">people</mat-icon>
-          </div>
-        </mat-card-content>
-      </mat-card>
-
-      <!-- Compliance Alerts -->
-      <mat-card class="stat-card stat-card-purple clickable-card" appearance="outlined" routerLink="/admin/compliance">
-        <mat-card-content>
-          <div class="stat-card-inner">
-            <div class="stat-card-text">
-              <span class="stat-label">Compliance Alerts</span>
-              <span class="stat-value">{{ dashboard.unresolvedAlerts }}</span>
-              <span class="stat-subtitle" *ngIf="dashboard.unresolvedAlerts > 0" style="color: #ed6c02;">
-                Requires attention
-              </span>
-              <span class="stat-subtitle change-positive" *ngIf="dashboard.unresolvedAlerts === 0">
-                All clear
-              </span>
-            </div>
-            <mat-icon class="stat-icon stat-icon-warning">warning</mat-icon>
-          </div>
-        </mat-card-content>
-      </mat-card>
-    </div>
-
-    <!-- ---- Secondary Stats Row ---- -->
-    <div class="stat-cards-grid secondary-stats">
-      <mat-card class="secondary-card" appearance="outlined">
-        <mat-card-content>
-          <div class="stat-card-inner">
-            <div class="stat-card-text">
-              <span class="stat-label">Total Volume</span>
-              <span class="stat-value secondary-value">{{ formatCurrency(dashboard.totalVolume) }}</span>
-            </div>
-            <mat-icon class="stat-icon-sm stat-icon-blue">account_balance</mat-icon>
-          </div>
-        </mat-card-content>
-      </mat-card>
-
-      <mat-card class="secondary-card" appearance="outlined">
-        <mat-card-content>
-          <div class="stat-card-inner">
-            <div class="stat-card-text">
-              <span class="stat-label">Customers</span>
-              <span class="stat-value secondary-value">{{ dashboard.totalCustomers | number }}</span>
-            </div>
-            <mat-icon class="stat-icon-sm" style="color: #757575;">person_add</mat-icon>
-          </div>
-        </mat-card-content>
-      </mat-card>
-
-      <mat-card class="secondary-card" appearance="outlined">
-        <mat-card-content>
-          <div class="stat-card-inner">
-            <div class="stat-card-text">
-              <span class="stat-label">Active Corridors</span>
-              <span class="stat-value secondary-value">{{ dashboard.activeCorridors }}</span>
-            </div>
-            <mat-icon class="stat-icon-sm" style="color: #9c27b0;">alt_route</mat-icon>
-          </div>
-        </mat-card-content>
-      </mat-card>
-
-      <mat-card class="secondary-card" appearance="outlined">
-        <mat-card-content>
-          <div class="stat-card-inner">
-            <div class="stat-card-text">
-              <span class="stat-label">This Month Volume</span>
-              <span class="stat-value secondary-value">{{ formatCurrency(dashboard.volumeThisMonth) }}</span>
-            </div>
-            <mat-icon class="stat-icon-sm stat-icon-blue">calendar_month</mat-icon>
-          </div>
-        </mat-card-content>
-      </mat-card>
-    </div>
-
-    <!-- ---- Transaction Status Breakdown ---- -->
-    <mat-card class="status-breakdown-card" appearance="outlined">
-      <mat-card-content>
-        <h3 class="section-title">Transaction Status Overview</h3>
-        <div class="status-chips-row">
-          <a class="status-chip-item clickable-chip" routerLink="/admin/transactions" [queryParams]="{status: 'Pending'}">
-            <span class="status-chip status-pending">{{ dashboard.pendingTransactions }}</span>
-            <span class="status-chip-label">Pending</span>
-          </a>
-          <a class="status-chip-item clickable-chip" routerLink="/admin/transactions" [queryParams]="{status: 'Processing'}">
-            <span class="status-chip status-processing">{{ dashboard.processingTransactions }}</span>
-            <span class="status-chip-label">Processing</span>
-          </a>
-          <a class="status-chip-item clickable-chip" routerLink="/admin/transactions" [queryParams]="{status: 'Completed'}">
-            <span class="status-chip status-completed">{{ dashboard.completedTransactions }}</span>
-            <span class="status-chip-label">Completed</span>
-          </a>
-          <a class="status-chip-item clickable-chip" routerLink="/admin/transactions" [queryParams]="{status: 'OnHold'}">
-            <span class="status-chip status-onhold">{{ dashboard.onHoldTransactions }}</span>
-            <span class="status-chip-label">On Hold</span>
-          </a>
-          <a class="status-chip-item clickable-chip" routerLink="/admin/transactions" [queryParams]="{status: 'Cancelled'}">
-            <span class="status-chip status-cancelled">{{ dashboard.cancelledTransactions }}</span>
-            <span class="status-chip-label">Cancelled</span>
-          </a>
-          <a class="status-chip-item clickable-chip" routerLink="/admin/transactions" [queryParams]="{status: 'Failed'}">
-            <span class="status-chip status-failed">{{ dashboard.failedTransactions }}</span>
-            <span class="status-chip-label">Failed</span>
-          </a>
+  <!-- Loading Skeleton -->
+  <ng-container *ngIf="loading">
+    <!-- Stat card skeletons -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+      <div *ngFor="let i of [1,2,3,4]"
+           class="rounded-2xl border border-surface-200 dark:border-surface-700 bg-white dark:bg-surface-800 p-5">
+        <div class="space-y-3 animate-pulse">
+          <div class="h-3 w-24 rounded bg-surface-200 dark:bg-surface-700"></div>
+          <div class="h-8 w-20 rounded bg-surface-200 dark:bg-surface-700"></div>
+          <div class="h-3 w-32 rounded bg-surface-200 dark:bg-surface-700"></div>
         </div>
-      </mat-card-content>
-    </mat-card>
-
-    <!-- ---- Recent Transactions + Exchange Rates / Quick Actions ---- -->
-    <div class="bottom-grid">
-      <!-- Recent Transactions -->
-      <mat-card class="bottom-left-card" appearance="outlined">
-        <mat-card-content>
-          <h3 class="section-title">Recent Transactions</h3>
-
-          <div *ngIf="dashboard.recentTransactions.length === 0" class="empty-text">
-            No transactions yet.
-          </div>
-
-          <div class="table-responsive" *ngIf="dashboard.recentTransactions.length > 0">
-            <table mat-table [dataSource]="dashboard.recentTransactions" class="transactions-table">
-              <!-- Reference -->
-              <ng-container matColumnDef="referenceNumber">
-                <th mat-header-cell *matHeaderCellDef>Reference</th>
-                <td mat-cell *matCellDef="let txn">
-                  <span class="mono-text">{{ txn.referenceNumber }}</span>
-                </td>
-              </ng-container>
-
-              <!-- Sender -->
-              <ng-container matColumnDef="senderName">
-                <th mat-header-cell *matHeaderCellDef>Sender</th>
-                <td mat-cell *matCellDef="let txn">{{ txn.senderName }}</td>
-              </ng-container>
-
-              <!-- Receiver -->
-              <ng-container matColumnDef="receiverName">
-                <th mat-header-cell *matHeaderCellDef>Receiver</th>
-                <td mat-cell *matCellDef="let txn">{{ txn.receiverName }}</td>
-              </ng-container>
-
-              <!-- Amount -->
-              <ng-container matColumnDef="amount">
-                <th mat-header-cell *matHeaderCellDef>Amount</th>
-                <td mat-cell *matCellDef="let txn">
-                  {{ txn.sendAmount | number:'1.2-2' }} {{ txn.sendCurrency }}
-                </td>
-              </ng-container>
-
-              <!-- Status -->
-              <ng-container matColumnDef="status">
-                <th mat-header-cell *matHeaderCellDef>Status</th>
-                <td mat-cell *matCellDef="let txn">
-                  <span class="status-chip" [ngClass]="getStatusClass(txn.status)">
-                    {{ txn.status }}
-                  </span>
-                </td>
-              </ng-container>
-
-              <!-- Date -->
-              <ng-container matColumnDef="createdAt">
-                <th mat-header-cell *matHeaderCellDef>Date</th>
-                <td mat-cell *matCellDef="let txn">
-                  {{ txn.createdAt | date:'MMM dd, HH:mm' }}
-                </td>
-              </ng-container>
-
-              <tr mat-header-row *matHeaderRowDef="transactionColumns"></tr>
-              <tr mat-row *matRowDef="let row; columns: transactionColumns;" class="clickable-row" [routerLink]="['/admin/transactions', row.id]"></tr>
-            </table>
-          </div>
-        </mat-card-content>
-      </mat-card>
-
-      <!-- Right column -->
-      <div class="bottom-right-column">
-        <!-- Active Exchange Rates -->
-        <mat-card class="exchange-rates-card" appearance="outlined">
-          <mat-card-content>
-            <h3 class="section-title">Active Exchange Rates</h3>
-
-            <div *ngIf="dashboard.activeExchangeRates.length === 0" class="empty-text">
-              No active rates configured.
-            </div>
-
-            <div class="rates-list" *ngIf="dashboard.activeExchangeRates.length > 0">
-              <div class="rate-item" *ngFor="let rate of dashboard.activeExchangeRates">
-                <span class="rate-pair"><strong>{{ rate.sourceCurrency }} &rarr; {{ rate.destinationCurrency }}</strong></span>
-                <span class="rate-value">{{ rate.rate | number:'1.2-2' }}</span>
-              </div>
-            </div>
-          </mat-card-content>
-        </mat-card>
-
-        <!-- Quick Actions -->
-        <mat-card class="quick-actions-card" appearance="outlined">
-          <mat-card-content>
-            <h3 class="section-title">Quick Actions</h3>
-            <div class="quick-actions-list">
-              <a mat-stroked-button color="primary" routerLink="/admin/rates" class="quick-action-btn">
-                <mat-icon>currency_exchange</mat-icon>
-                Update Rates
-              </a>
-              <a mat-stroked-button routerLink="/admin/agents" class="quick-action-btn">
-                <mat-icon>person_add</mat-icon>
-                Add New Agent
-              </a>
-              <a mat-stroked-button color="warn" routerLink="/admin/compliance" class="quick-action-btn">
-                <mat-icon>security</mat-icon>
-                View Alerts
-              </a>
-              <a mat-stroked-button routerLink="/admin/routing" class="quick-action-btn">
-                <mat-icon>alt_route</mat-icon>
-                Manage Routing
-              </a>
-            </div>
-          </mat-card-content>
-        </mat-card>
       </div>
     </div>
+    <!-- Chart skeletons -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div *ngFor="let i of [1,2]"
+           class="rounded-2xl border border-surface-200 dark:border-surface-700 bg-white dark:bg-surface-800 p-6 animate-pulse">
+        <div class="h-4 w-40 rounded bg-surface-200 dark:bg-surface-700 mb-4"></div>
+        <div class="h-56 rounded-xl bg-surface-200 dark:bg-surface-700"></div>
+      </div>
+    </div>
+  </ng-container>
+
+  <ng-container *ngIf="!loading && dashboard">
+
+    <!-- ── Primary Stat Cards ── -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+
+      <!-- Total Transactions -->
+      <a routerLink="/admin/transactions"
+         class="group rounded-2xl border border-surface-200 dark:border-surface-700 bg-white dark:bg-surface-800 p-5
+                border-l-4 !border-l-brand-600 cursor-pointer
+                shadow-soft hover:shadow-elevated transition-all duration-200 hover:-translate-y-0.5">
+        <div class="flex items-center justify-between">
+          <div class="space-y-1">
+            <p class="text-sm font-medium text-surface-500 dark:text-surface-400">Total Transactions</p>
+            <p class="text-3xl font-bold text-surface-900 dark:text-surface-50">{{ dashboard.totalTransactions | number }}</p>
+            <p class="text-xs font-medium"
+               [ngClass]="monthChangeClass(dashboard.transactionsThisMonth, dashboard.transactionsLastMonth)">
+              {{ monthChangeText(dashboard.transactionsThisMonth, dashboard.transactionsLastMonth) }} this month
+            </p>
+          </div>
+          <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-brand-50 dark:bg-brand-950 text-brand-600 dark:text-brand-400">
+            <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15a2.25 2.25 0 0 1 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25Z"/></svg>
+          </div>
+        </div>
+      </a>
+
+      <!-- Service Charge Revenue -->
+      <a routerLink="/admin/reports/commissions"
+         class="group rounded-2xl border border-surface-200 dark:border-surface-700 bg-white dark:bg-surface-800 p-5
+                border-l-4 !border-l-success-600 cursor-pointer
+                shadow-soft hover:shadow-elevated transition-all duration-200 hover:-translate-y-0.5">
+        <div class="flex items-center justify-between">
+          <div class="space-y-1">
+            <p class="text-sm font-medium text-surface-500 dark:text-surface-400">Service Charge Revenue</p>
+            <p class="text-3xl font-bold text-surface-900 dark:text-surface-50">{{ formatCurrency(dashboard.totalCommissionRevenue) }}</p>
+            <p class="text-xs font-medium"
+               [ngClass]="monthChangeClass(dashboard.commissionThisMonth, dashboard.commissionLastMonth)">
+              {{ monthChangeText(dashboard.commissionThisMonth, dashboard.commissionLastMonth) }} this month
+            </p>
+          </div>
+          <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-success-50 dark:bg-success-700/20 text-success-600 dark:text-success-400">
+            <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18 9 11.25l4.306 4.306a11.95 11.95 0 0 1 5.814-5.518l2.74-1.22m0 0-5.94-2.281m5.94 2.28-2.28 5.941"/></svg>
+          </div>
+        </div>
+      </a>
+
+      <!-- Active Agents -->
+      <a routerLink="/admin/agents"
+         class="group rounded-2xl border border-surface-200 dark:border-surface-700 bg-white dark:bg-surface-800 p-5
+                border-l-4 !border-l-warning-600 cursor-pointer
+                shadow-soft hover:shadow-elevated transition-all duration-200 hover:-translate-y-0.5">
+        <div class="flex items-center justify-between">
+          <div class="space-y-1">
+            <p class="text-sm font-medium text-surface-500 dark:text-surface-400">Active Agents</p>
+            <p class="text-3xl font-bold text-surface-900 dark:text-surface-50">{{ dashboard.activeAgents }}</p>
+            <p *ngIf="dashboard.pendingAgents > 0" class="text-xs font-medium text-brand-600 dark:text-brand-400">
+              {{ dashboard.pendingAgents }} pending approval
+            </p>
+            <p *ngIf="dashboard.pendingAgents === 0" class="text-xs font-medium text-success-600">
+              No pending approvals
+            </p>
+          </div>
+          <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-warning-50 dark:bg-warning-700/20 text-warning-600 dark:text-warning-400">
+            <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z"/></svg>
+          </div>
+        </div>
+      </a>
+
+      <!-- Compliance Alerts -->
+      <a routerLink="/admin/compliance"
+         class="group rounded-2xl border border-surface-200 dark:border-surface-700 bg-white dark:bg-surface-800 p-5
+                border-l-4 !border-l-danger-600 cursor-pointer
+                shadow-soft hover:shadow-elevated transition-all duration-200 hover:-translate-y-0.5">
+        <div class="flex items-center justify-between">
+          <div class="space-y-1">
+            <p class="text-sm font-medium text-surface-500 dark:text-surface-400">Compliance Alerts</p>
+            <p class="text-3xl font-bold text-surface-900 dark:text-surface-50">{{ dashboard.unresolvedAlerts }}</p>
+            <p *ngIf="dashboard.unresolvedAlerts > 0" class="text-xs font-medium text-danger-600">
+              Requires attention
+            </p>
+            <p *ngIf="dashboard.unresolvedAlerts === 0" class="text-xs font-medium text-success-600">
+              All clear
+            </p>
+          </div>
+          <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-danger-50 dark:bg-danger-700/20 text-danger-600 dark:text-danger-400">
+            <svg class="h-6 w-6" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/></svg>
+          </div>
+        </div>
+      </a>
+    </div>
+
+    <!-- ── Secondary Stat Cards ── -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+      <div class="rounded-2xl border border-surface-200 dark:border-surface-700 bg-white dark:bg-surface-800 p-4
+                  shadow-soft hover:shadow-card transition-shadow duration-200">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm text-surface-500 dark:text-surface-400">Total Volume</p>
+            <p class="text-xl font-bold text-surface-900 dark:text-surface-50">{{ formatCurrency(dashboard.totalVolume) }}</p>
+          </div>
+          <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-50 dark:bg-brand-950 text-brand-600 dark:text-brand-400">
+            <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 21v-8.25M15.75 21v-8.25M8.25 21v-8.25M3 9l9-6 9 6m-1.5 12V10.332A48.36 48.36 0 0 0 12 9.75c-2.551 0-5.056.2-7.5.582V21"/></svg>
+          </div>
+        </div>
+      </div>
+      <div class="rounded-2xl border border-surface-200 dark:border-surface-700 bg-white dark:bg-surface-800 p-4
+                  shadow-soft hover:shadow-card transition-shadow duration-200">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm text-surface-500 dark:text-surface-400">Customers</p>
+            <p class="text-xl font-bold text-surface-900 dark:text-surface-50">{{ dashboard.totalCustomers | number }}</p>
+          </div>
+          <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-surface-100 dark:bg-surface-700 text-surface-500">
+            <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.766Z"/></svg>
+          </div>
+        </div>
+      </div>
+      <div class="rounded-2xl border border-surface-200 dark:border-surface-700 bg-white dark:bg-surface-800 p-4
+                  shadow-soft hover:shadow-card transition-shadow duration-200">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm text-surface-500 dark:text-surface-400">Active Corridors</p>
+            <p class="text-xl font-bold text-surface-900 dark:text-surface-50">{{ dashboard.activeCorridors }}</p>
+          </div>
+          <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-50 dark:bg-brand-950 text-brand-600 dark:text-brand-400">
+            <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 21 3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5"/></svg>
+          </div>
+        </div>
+      </div>
+      <div class="rounded-2xl border border-surface-200 dark:border-surface-700 bg-white dark:bg-surface-800 p-4
+                  shadow-soft hover:shadow-card transition-shadow duration-200">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm text-surface-500 dark:text-surface-400">This Month Volume</p>
+            <p class="text-xl font-bold text-surface-900 dark:text-surface-50">{{ formatCurrency(dashboard.volumeThisMonth) }}</p>
+          </div>
+          <div class="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-50 dark:bg-brand-950 text-brand-600 dark:text-brand-400">
+            <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5"/></svg>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Transaction Status Overview ── -->
+    <div class="rounded-2xl border border-surface-200 dark:border-surface-700 bg-white dark:bg-surface-800 p-6 shadow-soft">
+      <h3 class="text-lg font-semibold text-surface-900 dark:text-surface-50 mb-4">Transaction Status Overview</h3>
+      <div class="flex flex-wrap gap-4">
+        <a routerLink="/admin/transactions" [queryParams]="{status: 'Pending'}"
+           class="flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-surface-50 dark:hover:bg-surface-700 transition-colors cursor-pointer no-underline">
+          <span class="inline-flex items-center justify-center min-w-[2.5rem] px-3 py-1 rounded-full text-sm font-semibold bg-warning-500 text-white">
+            {{ dashboard.pendingTransactions }}
+          </span>
+          <span class="text-sm text-surface-600 dark:text-surface-400">Pending</span>
+        </a>
+        <a routerLink="/admin/transactions" [queryParams]="{status: 'Processing'}"
+           class="flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-surface-50 dark:hover:bg-surface-700 transition-colors cursor-pointer no-underline">
+          <span class="inline-flex items-center justify-center min-w-[2.5rem] px-3 py-1 rounded-full text-sm font-semibold bg-brand-500 text-white">
+            {{ dashboard.processingTransactions }}
+          </span>
+          <span class="text-sm text-surface-600 dark:text-surface-400">Processing</span>
+        </a>
+        <a routerLink="/admin/transactions" [queryParams]="{status: 'Completed'}"
+           class="flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-surface-50 dark:hover:bg-surface-700 transition-colors cursor-pointer no-underline">
+          <span class="inline-flex items-center justify-center min-w-[2.5rem] px-3 py-1 rounded-full text-sm font-semibold bg-success-500 text-white">
+            {{ dashboard.completedTransactions }}
+          </span>
+          <span class="text-sm text-surface-600 dark:text-surface-400">Completed</span>
+        </a>
+        <a routerLink="/admin/transactions" [queryParams]="{status: 'OnHold'}"
+           class="flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-surface-50 dark:hover:bg-surface-700 transition-colors cursor-pointer no-underline">
+          <span class="inline-flex items-center justify-center min-w-[2.5rem] px-3 py-1 rounded-full text-sm font-semibold bg-surface-500 text-white">
+            {{ dashboard.onHoldTransactions }}
+          </span>
+          <span class="text-sm text-surface-600 dark:text-surface-400">On Hold</span>
+        </a>
+        <a routerLink="/admin/transactions" [queryParams]="{status: 'Cancelled'}"
+           class="flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-surface-50 dark:hover:bg-surface-700 transition-colors cursor-pointer no-underline">
+          <span class="inline-flex items-center justify-center min-w-[2.5rem] px-3 py-1 rounded-full text-sm font-semibold bg-surface-400 text-white">
+            {{ dashboard.cancelledTransactions }}
+          </span>
+          <span class="text-sm text-surface-600 dark:text-surface-400">Cancelled</span>
+        </a>
+        <a routerLink="/admin/transactions" [queryParams]="{status: 'Failed'}"
+           class="flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-surface-50 dark:hover:bg-surface-700 transition-colors cursor-pointer no-underline">
+          <span class="inline-flex items-center justify-center min-w-[2.5rem] px-3 py-1 rounded-full text-sm font-semibold bg-danger-500 text-white">
+            {{ dashboard.failedTransactions }}
+          </span>
+          <span class="text-sm text-surface-600 dark:text-surface-400">Failed</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- ── Charts Section ── -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <!-- Transaction Volume Chart -->
+      <div class="rounded-2xl border border-surface-200 dark:border-surface-700 bg-white dark:bg-surface-800 p-6 shadow-soft">
+        <h3 class="text-lg font-semibold text-surface-900 dark:text-surface-50 mb-4">Transaction Volume</h3>
+        <div class="h-64" echarts [options]="volumeChartOptions" class="w-full h-64"></div>
+      </div>
+
+      <!-- Revenue Breakdown Chart -->
+      <div class="rounded-2xl border border-surface-200 dark:border-surface-700 bg-white dark:bg-surface-800 p-6 shadow-soft">
+        <h3 class="text-lg font-semibold text-surface-900 dark:text-surface-50 mb-4">Revenue Breakdown</h3>
+        <div class="h-64" echarts [options]="revenueChartOptions" class="w-full h-64"></div>
+      </div>
+    </div>
+
+    <!-- ── Bottom Grid: Transactions + Right Column ── -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+      <!-- Recent Transactions (2/3) -->
+      <div class="lg:col-span-2 rounded-2xl border border-surface-200 dark:border-surface-700 bg-white dark:bg-surface-800 p-6 shadow-soft">
+        <h3 class="text-lg font-semibold text-surface-900 dark:text-surface-50 mb-4">Recent Transactions</h3>
+
+        <div *ngIf="dashboard.recentTransactions.length === 0" class="text-sm text-surface-500 dark:text-surface-400 py-8 text-center">
+          No transactions yet.
+        </div>
+
+        <div *ngIf="dashboard.recentTransactions.length > 0" class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead>
+              @for (headerGroup of table.getHeaderGroups(); track headerGroup.id) {
+                <tr class="border-b border-surface-200 dark:border-surface-700">
+                  @for (header of headerGroup.headers; track header.id) {
+                    <th class="px-3 py-3 text-left text-xs font-semibold text-surface-500 dark:text-surface-400 uppercase tracking-wider
+                               bg-surface-50 dark:bg-surface-800/50 cursor-pointer select-none hover:text-surface-700 dark:hover:text-surface-300 transition-colors"
+                        (click)="header.column.getToggleSortingHandler()?.($event)">
+                      <div class="flex items-center gap-1.5">
+                        <ng-container
+                          *flexRender="header.column.columnDef.header; props: header.getContext(); let headerText">
+                          {{ headerText }}
+                        </ng-container>
+                        <span class="text-surface-400 dark:text-surface-500 text-2xs">{{ getSortIcon(header.column.id) }}</span>
+                      </div>
+                    </th>
+                  }
+                </tr>
+              }
+            </thead>
+            <tbody>
+              @for (row of table.getRowModel().rows; track row.id) {
+                <tr class="border-b border-surface-100 dark:border-surface-700/50 cursor-pointer
+                           hover:bg-surface-50 dark:hover:bg-surface-700/30 transition-colors"
+                    [routerLink]="['/admin/transactions', row.original.referenceNumber]">
+                  @for (cell of row.getVisibleCells(); track cell.id) {
+                    <td class="px-3 py-3 whitespace-nowrap">
+                      <!-- Reference Number -->
+                      <ng-container *ngIf="cell.column.id === 'referenceNumber'">
+                        <span class="font-mono text-xs text-surface-700 dark:text-surface-300">
+                          <ng-container
+                            *flexRender="cell.column.columnDef.cell; props: cell.getContext(); let cellValue">
+                            {{ cellValue }}
+                          </ng-container>
+                        </span>
+                      </ng-container>
+                      <!-- Status -->
+                      <ng-container *ngIf="cell.column.id === 'status'">
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium"
+                              [ngClass]="getStatusClass('' + cell.getValue())">
+                          <ng-container
+                            *flexRender="cell.column.columnDef.cell; props: cell.getContext(); let cellValue">
+                            {{ cellValue }}
+                          </ng-container>
+                        </span>
+                      </ng-container>
+                      <!-- Default cells -->
+                      <ng-container *ngIf="cell.column.id !== 'referenceNumber' && cell.column.id !== 'status'">
+                        <span class="text-surface-700 dark:text-surface-300">
+                          <ng-container
+                            *flexRender="cell.column.columnDef.cell; props: cell.getContext(); let cellValue">
+                            {{ cellValue }}
+                          </ng-container>
+                        </span>
+                      </ng-container>
+                    </td>
+                  }
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Right Column (1/3) -->
+      <div class="space-y-6">
+
+        <!-- Active Exchange Rates -->
+        <div class="rounded-2xl border border-surface-200 dark:border-surface-700 bg-white dark:bg-surface-800 p-6 shadow-soft">
+          <h3 class="text-lg font-semibold text-surface-900 dark:text-surface-50 mb-4">Active Exchange Rates</h3>
+
+          <div *ngIf="dashboard.activeExchangeRates.length === 0" class="text-sm text-surface-500 dark:text-surface-400">
+            No active rates configured.
+          </div>
+
+          <div *ngIf="dashboard.activeExchangeRates.length > 0" class="divide-y divide-surface-100 dark:divide-surface-700">
+            <div *ngFor="let rate of dashboard.activeExchangeRates"
+                 class="flex items-center justify-between py-3">
+              <span class="text-sm font-medium text-surface-700 dark:text-surface-300">
+                {{ rate.sourceCurrency }} &rarr; {{ rate.destinationCurrency }}
+              </span>
+              <span class="text-sm font-semibold text-success-600 dark:text-success-400 font-mono">
+                {{ rate.rate | number:'1.2-4' }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="rounded-2xl border border-surface-200 dark:border-surface-700 bg-white dark:bg-surface-800 p-6 shadow-soft">
+          <h3 class="text-lg font-semibold text-surface-900 dark:text-surface-50 mb-4">Quick Actions</h3>
+          <div class="space-y-2">
+            <a routerLink="/admin/rates"
+               class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium
+                      text-brand-700 dark:text-brand-300 bg-brand-50 dark:bg-brand-950
+                      hover:bg-brand-100 dark:hover:bg-brand-900 transition-colors no-underline">
+              <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+              Update Rates
+            </a>
+            <a routerLink="/admin/agents"
+               class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium
+                      text-surface-700 dark:text-surface-300 bg-surface-50 dark:bg-surface-700
+                      hover:bg-surface-100 dark:hover:bg-surface-600 transition-colors no-underline">
+              <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.766Z"/></svg>
+              Add New Agent
+            </a>
+            <a routerLink="/admin/compliance"
+               class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium
+                      text-danger-700 dark:text-danger-400 bg-danger-50 dark:bg-danger-700/20
+                      hover:bg-danger-100 dark:hover:bg-danger-700/30 transition-colors no-underline">
+              <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z"/></svg>
+              View Alerts
+            </a>
+            <a routerLink="/admin/routing"
+               class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium
+                      text-surface-700 dark:text-surface-300 bg-surface-50 dark:bg-surface-700
+                      hover:bg-surface-100 dark:hover:bg-surface-600 transition-colors no-underline">
+              <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 21 3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5"/></svg>
+              Manage Routing
+            </a>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
   </ng-container>
 </div>

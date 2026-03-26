@@ -1,15 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { MatTableModule } from '@angular/material/table';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatChipsModule } from '@angular/material/chips';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatCardModule } from '@angular/material/card';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { ApiService } from '../../../core/services/api.service';
 import { AuthStateService } from '../../../core/services/auth-state.service';
 import { NotificationService } from '../../../core/services/notification.service';
@@ -19,9 +10,7 @@ import { CustomerModel } from '../../../core/models/customer.models';
   selector: 'app-customer-report',
   standalone: true,
   imports: [
-    CommonModule, FormsModule, MatTableModule, MatButtonModule, MatIconModule,
-    MatTooltipModule, MatChipsModule, MatFormFieldModule, MatInputModule,
-    MatCardModule, MatProgressSpinnerModule, DatePipe,
+    CommonModule, FormsModule, DatePipe,
   ],
   templateUrl: './customer-report.component.html',
   styleUrl: './customer-report.component.scss',

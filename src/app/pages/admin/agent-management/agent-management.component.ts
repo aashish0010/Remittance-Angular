@@ -1,20 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule, DecimalPipe, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { MatTableModule } from '@angular/material/table';
-import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
-import { MatSortModule } from '@angular/material/sort';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatChipsModule } from '@angular/material/chips';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
-import { MatCheckboxModule } from '@angular/material/checkbox';
-import { MatCardModule } from '@angular/material/card';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatDialogModule } from '@angular/material/dialog';
 import { Subject } from 'rxjs';
 import { debounceTime, takeUntil } from 'rxjs/operators';
 import { ApiService } from '../../../core/services/api.service';
@@ -32,7 +18,6 @@ import {
   UpdateLocationUserRequest,
 } from '../../../core/models/agent.models';
 import { CountryInfo } from '../../../core/models/common.models';
-import { SearchableSelectDirective } from '../../../shared/searchable-select.directive';
 
 // ---------------------------------------------------------------------------
 // Form interfaces
@@ -78,23 +63,8 @@ function emptyEditForm(): EditAgentForm {
   imports: [
     CommonModule,
     FormsModule,
-    MatTableModule,
-    MatPaginatorModule,
-    MatSortModule,
-    MatButtonModule,
-    MatIconModule,
-    MatTooltipModule,
-    MatChipsModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatSelectModule,
-    MatCheckboxModule,
-    MatCardModule,
-    MatProgressSpinnerModule,
-    MatDialogModule,
     DecimalPipe,
     DatePipe,
-    SearchableSelectDirective,
   ],
   templateUrl: './agent-management.component.html',
   styleUrl: './agent-management.component.scss',
@@ -105,6 +75,8 @@ export class AgentManagementComponent implements OnInit, OnDestroy {
   displayedColumns = ['businessName', 'country', 'type', 'status', 'actions'];
   searchString = '';
   loading = true;
+
+  Math = Math;
 
   // Pagination
   pageIndex = 0;
@@ -260,7 +232,7 @@ export class AgentManagementComponent implements OnInit, OnDestroy {
     });
   }
 
-  onPageChange(event: PageEvent): void {
+  onPageChange(event: { pageIndex: number; pageSize: number }): void {
     this.pageIndex = event.pageIndex;
     this.pageSize = event.pageSize;
     this.loadAgents();

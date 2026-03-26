@@ -1,16 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule, DecimalPipe, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { MatCardModule } from '@angular/material/card';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatTableModule } from '@angular/material/table';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatNativeDateModule } from '@angular/material/core';
 import { ApiService } from '../../../../core/services/api.service';
 import { ExportService } from '../../../../core/services/export.service';
 import { NotificationService } from '../../../../core/services/notification.service';
@@ -21,16 +11,6 @@ import { NotificationService } from '../../../../core/services/notification.serv
   imports: [
     CommonModule,
     FormsModule,
-    MatCardModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatSelectModule,
-    MatButtonModule,
-    MatIconModule,
-    MatTableModule,
-    MatProgressSpinnerModule,
-    MatDatepickerModule,
-    MatNativeDateModule,
   ],
   providers: [DecimalPipe, DatePipe],
   templateUrl: './commission-report.component.html',
@@ -38,8 +18,8 @@ import { NotificationService } from '../../../../core/services/notification.serv
 })
 export class CommissionReportComponent implements OnInit {
   agents: { id: number; businessName: string; agentType: string }[] = [];
-  startDateObj: Date | null = null;
-  endDateObj: Date | null = null;
+  startDate: string = '';
+  endDate: string = '';
   agentId: number | null = null;
   loading = false;
 
@@ -48,15 +28,6 @@ export class CommissionReportComponent implements OnInit {
     totalReversed: number;
     agentSummaries: any[];
   } | null = null;
-
-  displayedColumns: string[] = [
-    'agentName',
-    'agentType',
-    'sendingCommission',
-    'payoutCommission',
-    'totalEarnings',
-    'transactionCount',
-  ];
 
   constructor(
     private api: ApiService,
@@ -76,12 +47,11 @@ export class CommissionReportComponent implements OnInit {
     const today = new Date();
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(today.getDate() - 30);
-    this.endDateObj = today;
-    this.startDateObj = thirtyDaysAgo;
+    this.endDate = this.toDateString(today);
+    this.startDate = this.toDateString(thirtyDaysAgo);
   }
 
-  private formatDate(d: Date | null): string {
-    if (!d) return '';
+  private toDateString(d: Date): string {
     const year = d.getFullYear();
     const month = String(d.getMonth() + 1).padStart(2, '0');
     const day = String(d.getDate()).padStart(2, '0');
@@ -102,8 +72,8 @@ export class CommissionReportComponent implements OnInit {
   loadReport(): void {
     this.loading = true;
     const params: { startDate?: string; endDate?: string; agentId?: number } = {
-      startDate: this.formatDate(this.startDateObj),
-      endDate: this.formatDate(this.endDateObj),
+      startDate: this.startDate,
+      endDate: this.endDate,
     };
     if (this.agentId) {
       params.agentId = this.agentId;
@@ -129,8 +99,8 @@ export class CommissionReportComponent implements OnInit {
 
   exportReport(format: string): void {
     const params: any = {
-      startDate: this.formatDate(this.startDateObj),
-      endDate: this.formatDate(this.endDateObj),
+      startDate: this.startDate,
+      endDate: this.endDate,
     };
     if (this.agentId) params.agentId = this.agentId;
     this.exportService.export('api/admin/reports/commissions/export', params, format as any);

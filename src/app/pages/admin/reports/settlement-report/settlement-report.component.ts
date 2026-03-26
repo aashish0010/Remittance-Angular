@@ -1,15 +1,6 @@
 import { Component, inject } from '@angular/core';
-import { CommonModule, DecimalPipe, DatePipe } from '@angular/common';
+import { CommonModule, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { MatCardModule } from '@angular/material/card';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatTableModule } from '@angular/material/table';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatNativeDateModule } from '@angular/material/core';
 import { ApiService } from '../../../../core/services/api.service';
 import { ExportService } from '../../../../core/services/export.service';
 import { NotificationService } from '../../../../core/services/notification.service';
@@ -36,17 +27,7 @@ interface Settlement {
   imports: [
     CommonModule,
     FormsModule,
-    MatCardModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatButtonModule,
-    MatIconModule,
-    MatTableModule,
-    MatProgressSpinnerModule,
-    MatDatepickerModule,
-    MatNativeDateModule,
-    DecimalPipe,
-    DatePipe
+    DecimalPipe
   ],
   templateUrl: './settlement-report.component.html',
   styleUrls: ['./settlement-report.component.scss']
@@ -56,8 +37,8 @@ export class SettlementReportComponent {
   private exportService = inject(ExportService);
   private notification = inject(NotificationService);
 
-  startDateObj: Date | null = null;
-  endDateObj: Date | null = null;
+  startDate: string = '';
+  endDate: string = '';
   loading = false;
 
   totalAgents = 0;
@@ -65,33 +46,11 @@ export class SettlementReportComponent {
   totalCommissionPaid = 0;
   settlements: Settlement[] = [];
 
-  displayedColumns: string[] = [
-    'agentName',
-    'agentType',
-    'creditLimit',
-    'currentBalance',
-    'availableBalance',
-    'transactionsSent',
-    'transactionsAsPayout',
-    'sendVolume',
-    'commissionEarned',
-    'creditsReceived',
-    'debitsApplied'
-  ];
-
-  private formatDate(d: Date | null): string {
-    if (!d) return '';
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-  }
-
   loadReport(): void {
     this.loading = true;
     const params: { startDate?: string; endDate?: string } = {};
-    if (this.startDateObj) params.startDate = this.formatDate(this.startDateObj);
-    if (this.endDateObj) params.endDate = this.formatDate(this.endDateObj);
+    if (this.startDate) params.startDate = this.startDate;
+    if (this.endDate) params.endDate = this.endDate;
 
     this.api.getSettlementReport(params).subscribe({
       next: (res) => {
@@ -114,8 +73,8 @@ export class SettlementReportComponent {
 
   exportReport(format: string): void {
     const params: any = {};
-    if (this.startDateObj) params.startDate = this.formatDate(this.startDateObj);
-    if (this.endDateObj) params.endDate = this.formatDate(this.endDateObj);
+    if (this.startDate) params.startDate = this.startDate;
+    if (this.endDate) params.endDate = this.endDate;
     this.exportService.export('api/admin/reports/settlement/export', params, format as any);
   }
 }

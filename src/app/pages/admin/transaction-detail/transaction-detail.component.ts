@@ -1,12 +1,6 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule, DecimalPipe, DatePipe } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { MatCardModule } from '@angular/material/card';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatDividerModule } from '@angular/material/divider';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatTooltipModule } from '@angular/material/tooltip';
 import { ApiService } from '../../../core/services/api.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { TransactionResult } from '../../../core/models/transaction.models';
@@ -17,12 +11,6 @@ import { TransactionResult } from '../../../core/models/transaction.models';
   imports: [
     CommonModule,
     RouterModule,
-    MatCardModule,
-    MatButtonModule,
-    MatIconModule,
-    MatDividerModule,
-    MatProgressSpinnerModule,
-    MatTooltipModule,
     DecimalPipe,
     DatePipe,
   ],
@@ -119,13 +107,13 @@ export class TransactionDetailComponent implements OnInit {
 
   getStatusClass(status: string): string {
     switch (status) {
-      case 'Completed': return 'status-completed';
-      case 'Pending': return 'status-pending';
-      case 'Approved': case 'Processing': return 'status-processing';
-      case 'OnHold': return 'status-onhold';
-      case 'Failed': return 'status-failed';
-      case 'Cancelled': return 'status-cancelled';
-      case 'Compliance': return 'status-compliance';
+      case 'Completed': return 'bg-success-100 text-success-700 dark:bg-success-900/30 dark:text-success-400';
+      case 'Pending': return 'bg-warning-100 text-warning-700 dark:bg-warning-900/30 dark:text-warning-400';
+      case 'Approved': case 'Processing': return 'bg-brand-100 text-brand-700 dark:bg-brand-900/30 dark:text-brand-400';
+      case 'OnHold': return 'bg-warning-50 text-warning-600 dark:bg-warning-900/20 dark:text-warning-300';
+      case 'Failed': return 'bg-danger-100 text-danger-700 dark:bg-danger-900/30 dark:text-danger-400';
+      case 'Cancelled': return 'bg-surface-200 text-surface-600 dark:bg-surface-700 dark:text-surface-300';
+      case 'Compliance': return 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400';
       default: return '';
     }
   }

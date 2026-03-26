@@ -1,12 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule, DecimalPipe, DatePipe } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { MatCardModule } from '@angular/material/card';
-import { MatTableModule } from '@angular/material/table';
-import { MatIconModule } from '@angular/material/icon';
-import { MatButtonModule } from '@angular/material/button';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatChipsModule } from '@angular/material/chips';
 import { ApiService } from '../../../core/services/api.service';
 import { AuthStateService } from '../../../core/services/auth-state.service';
 import { NotificationService } from '../../../core/services/notification.service';
@@ -19,12 +13,6 @@ import { TransactionResult } from '../../../core/models/transaction.models';
   imports: [
     CommonModule,
     RouterModule,
-    MatCardModule,
-    MatTableModule,
-    MatIconModule,
-    MatButtonModule,
-    MatProgressSpinnerModule,
-    MatChipsModule,
     DecimalPipe,
     DatePipe,
   ],
@@ -104,16 +92,18 @@ export class AgentDashboardComponent implements OnInit {
   getStatusClass(status: string): string {
     switch (status) {
       case 'Completed':
-        return 'status-completed';
+        return 'bg-success-100 text-success-700';
       case 'Pending':
-        return 'status-pending';
+        return 'bg-warning-100 text-warning-700';
       case 'Approved':
-        return 'status-processing';
+      case 'Processing':
+        return 'bg-brand-100 text-brand-700';
       case 'Cancelled':
+        return 'bg-surface-100 text-surface-500';
       case 'Failed':
-        return 'status-failed';
+        return 'bg-danger-100 text-danger-700';
       default:
-        return 'status-default';
+        return 'bg-surface-100 text-surface-500';
     }
   }
 }

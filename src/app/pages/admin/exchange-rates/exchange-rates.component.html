@@ -1,127 +1,216 @@
 <!-- Page Header -->
-<div class="page-header">
-  <h2>Exchange Rate Management</h2>
-  <div class="header-actions">
-    <button mat-raised-button (click)="exportData('excel')">
-      <mat-icon>download</mat-icon> Excel
+<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+  <h2 class="text-2xl font-bold text-surface-900 dark:text-surface-100">Exchange Rate Management</h2>
+  <div class="flex items-center gap-2">
+    <button (click)="exportData('excel')"
+      class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-700 text-surface-700 dark:text-surface-200 hover:bg-surface-50 dark:hover:bg-surface-600 transition text-sm font-medium">
+      <!-- download icon -->
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round"
+          d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3" />
+      </svg>
+      Excel
     </button>
-    <button mat-raised-button (click)="exportData('csv')">
-      <mat-icon>download</mat-icon> CSV
+    <button (click)="exportData('csv')"
+      class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-700 text-surface-700 dark:text-surface-200 hover:bg-surface-50 dark:hover:bg-surface-600 transition text-sm font-medium">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round"
+          d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3" />
+      </svg>
+      CSV
     </button>
-    <button mat-raised-button color="primary" (click)="openCreatePopup()">
-      <mat-icon>add</mat-icon> Add Rate
+    <button (click)="openCreatePopup()"
+      class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-brand-600 hover:bg-brand-700 text-white transition text-sm font-medium shadow-sm">
+      <!-- plus icon -->
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+      </svg>
+      Add Rate
     </button>
   </div>
 </div>
 
 <!-- Loading -->
-<div *ngIf="loading" class="loading-container">
-  <mat-spinner diameter="40"></mat-spinner>
+<div *ngIf="loading" class="flex items-center justify-center py-20">
+  <svg class="animate-spin h-10 w-10 text-brand-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+  </svg>
 </div>
 
 <!-- Search + Table -->
-<mat-card *ngIf="!loading" class="table-card">
-  <mat-form-field appearance="outline" class="search-field">
-    <mat-icon matPrefix>search</mat-icon>
-    <input matInput placeholder="Search rates..." [(ngModel)]="searchString" (ngModelChange)="onSearchChange()" />
-  </mat-form-field>
+<div *ngIf="!loading"
+  class="rounded-2xl border border-surface-200 dark:border-surface-700 bg-white dark:bg-surface-800 p-6 shadow-soft">
 
-  <table mat-table [dataSource]="rates" class="data-table">
-    <!-- Payout Agent -->
-    <ng-container matColumnDef="agentName">
-      <th mat-header-cell *matHeaderCellDef>Payout Agent</th>
-      <td mat-cell *matCellDef="let r">{{ r.agentName }}</td>
-    </ng-container>
+  <!-- Search -->
+  <div class="relative mb-5">
+    <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-surface-400" fill="none" stroke="currentColor"
+      stroke-width="2" viewBox="0 0 24 24">
+      <circle cx="11" cy="11" r="8" />
+      <path stroke-linecap="round" d="m21 21-4.35-4.35" />
+    </svg>
+    <input type="text" placeholder="Search rates..." [(ngModel)]="searchString" (ngModelChange)="onSearchChange()"
+      class="w-full pl-9 pr-3 py-2 rounded-lg border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-700 text-surface-900 dark:text-surface-100 placeholder-surface-400 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition text-sm" />
+  </div>
 
-    <!-- Source Currency -->
-    <ng-container matColumnDef="sourceCurrency">
-      <th mat-header-cell *matHeaderCellDef>Source Currency</th>
-      <td mat-cell *matCellDef="let r">{{ r.sourceCurrency }}</td>
-    </ng-container>
+  <!-- Table -->
+  <div class="overflow-x-auto">
+    <table class="w-full text-sm text-left">
+      <thead>
+        <tr
+          class="border-b border-surface-200 dark:border-surface-700 text-surface-500 dark:text-surface-400 text-xs uppercase tracking-wider">
+          <th class="px-4 py-3 font-semibold">Payout Agent</th>
+          <th class="px-4 py-3 font-semibold">Source Currency</th>
+          <th class="px-4 py-3 font-semibold">Dest. Currency</th>
+          <th class="px-4 py-3 font-semibold">Rate</th>
+          <th class="px-4 py-3 font-semibold">Margin</th>
+          <th class="px-4 py-3 font-semibold">Active</th>
+          <th class="px-4 py-3 font-semibold">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let r of rates"
+          class="border-b border-surface-100 dark:border-surface-700 hover:bg-surface-50 dark:hover:bg-surface-750 transition-colors">
+          <td class="px-4 py-3 text-surface-900 dark:text-surface-100">{{ r.agentName }}</td>
+          <td class="px-4 py-3 text-surface-700 dark:text-surface-300">{{ r.sourceCurrency }}</td>
+          <td class="px-4 py-3 text-surface-700 dark:text-surface-300">{{ r.destinationCurrency }}</td>
+          <td class="px-4 py-3 text-surface-900 dark:text-surface-100 font-semibold">{{ r.rate | number:'1.4-4' }}</td>
+          <td class="px-4 py-3 text-surface-700 dark:text-surface-300">{{ r.margin | number:'1.2-2' }}</td>
+          <td class="px-4 py-3">
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium" [ngClass]="r.isActive
+                ? 'bg-success-100 text-success-800 dark:bg-success-900/30 dark:text-success-400'
+                : 'bg-surface-100 text-surface-600 dark:bg-surface-700 dark:text-surface-400'">
+              {{ r.isActive ? 'Active' : 'Inactive' }}
+            </span>
+          </td>
+          <td class="px-4 py-3">
+            <div class="flex items-center gap-1">
+              <button title="View Details" (click)="viewDetail(r)"
+                class="p-1.5 rounded-lg text-brand-600 dark:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-900/20 transition">
+                <!-- eye icon -->
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+              </button>
+              <button title="Edit" (click)="openEditPopup(r)"
+                class="p-1.5 rounded-lg text-brand-600 dark:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-900/20 transition">
+                <!-- pencil icon -->
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+              </button>
+              <button title="Delete" (click)="deleteRate(r)"
+                class="p-1.5 rounded-lg text-danger-600 dark:text-danger-400 hover:bg-danger-50 dark:hover:bg-danger-900/20 transition">
+                <!-- trash icon -->
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
 
-    <!-- Destination Currency -->
-    <ng-container matColumnDef="destinationCurrency">
-      <th mat-header-cell *matHeaderCellDef>Dest. Currency</th>
-      <td mat-cell *matCellDef="let r">{{ r.destinationCurrency }}</td>
-    </ng-container>
-
-    <!-- Rate -->
-    <ng-container matColumnDef="rate">
-      <th mat-header-cell *matHeaderCellDef>Rate</th>
-      <td mat-cell *matCellDef="let r" class="text-bold">{{ r.rate | number:'1.4-4' }}</td>
-    </ng-container>
-
-    <!-- Margin -->
-    <ng-container matColumnDef="margin">
-      <th mat-header-cell *matHeaderCellDef>Margin</th>
-      <td mat-cell *matCellDef="let r">{{ r.margin | number:'1.2-2' }}</td>
-    </ng-container>
-
-    <!-- Active -->
-    <ng-container matColumnDef="isActive">
-      <th mat-header-cell *matHeaderCellDef>Active</th>
-      <td mat-cell *matCellDef="let r">
-        <span class="chip" [ngClass]="r.isActive ? 'chip-success' : 'chip-default'">
-          {{ r.isActive ? 'Active' : 'Inactive' }}
-        </span>
-      </td>
-    </ng-container>
-
-    <!-- Actions -->
-    <ng-container matColumnDef="actions">
-      <th mat-header-cell *matHeaderCellDef>Actions</th>
-      <td mat-cell *matCellDef="let r">
-        <button mat-icon-button matTooltip="View Details" (click)="viewDetail(r)">
-          <mat-icon color="primary">visibility</mat-icon>
-        </button>
-        <button mat-icon-button matTooltip="Edit" (click)="openEditPopup(r)">
-          <mat-icon color="primary">edit</mat-icon>
-        </button>
-        <button mat-icon-button matTooltip="Delete" (click)="deleteRate(r)">
-          <mat-icon color="warn">delete</mat-icon>
-        </button>
-      </td>
-    </ng-container>
-
-    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-  </table>
-
-  <div *ngIf="!rates.length && !loading" class="empty-state">
+  <!-- Empty state -->
+  <div *ngIf="!rates.length && !loading" class="text-center py-10 text-surface-400 dark:text-surface-500 text-sm">
     No exchange rates found.
   </div>
 
-  <mat-paginator
-    [length]="totalCount"
-    [pageIndex]="pageIndex"
-    [pageSize]="pageSize"
-    [pageSizeOptions]="[10, 20, 50]"
-    (page)="onPageChange($event)"
-    showFirstLastButtons>
-  </mat-paginator>
-</mat-card>
+  <!-- Pagination -->
+  <div
+    class="flex flex-col sm:flex-row items-center justify-between gap-3 mt-5 pt-4 border-t border-surface-200 dark:border-surface-700">
+    <span class="text-xs text-surface-500 dark:text-surface-400">
+      {{ totalCount }} total &middot; Page {{ pageIndex + 1 }} of {{ totalPages || 1 }}
+    </span>
+    <div class="flex items-center gap-2">
+      <label class="text-xs text-surface-500 dark:text-surface-400">Rows:</label>
+      <select [ngModel]="pageSize" (ngModelChange)="onPageSizeChange($event)"
+        class="px-2 py-1 rounded-lg border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-700 text-surface-900 dark:text-surface-100 text-xs outline-none focus:ring-2 focus:ring-brand-500">
+        <option [value]="10">10</option>
+        <option [value]="20">20</option>
+        <option [value]="50">50</option>
+      </select>
+      <div class="flex items-center gap-1">
+        <button (click)="goToPage(0)" [disabled]="pageIndex === 0" title="First page"
+          class="p-1.5 rounded-lg border border-surface-300 dark:border-surface-600 text-surface-600 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 disabled:opacity-40 disabled:cursor-not-allowed transition">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+          </svg>
+        </button>
+        <button (click)="goToPage(pageIndex - 1)" [disabled]="pageIndex === 0" title="Previous page"
+          class="p-1.5 rounded-lg border border-surface-300 dark:border-surface-600 text-surface-600 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 disabled:opacity-40 disabled:cursor-not-allowed transition">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+        <button (click)="goToPage(pageIndex + 1)" [disabled]="pageIndex >= totalPages - 1" title="Next page"
+          class="p-1.5 rounded-lg border border-surface-300 dark:border-surface-600 text-surface-600 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 disabled:opacity-40 disabled:cursor-not-allowed transition">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
+        <button (click)="goToPage(totalPages - 1)" [disabled]="pageIndex >= totalPages - 1" title="Last page"
+          class="p-1.5 rounded-lg border border-surface-300 dark:border-surface-600 text-surface-600 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 disabled:opacity-40 disabled:cursor-not-allowed transition">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- Detail Popup -->
-<div *ngIf="showDetail && detailRate" class="overlay" (click)="closeDetail()"></div>
-<div *ngIf="showDetail && detailRate" class="popup popup-md">
-  <div class="popup-header">
-    <h3>Exchange Rate Details</h3>
-    <button mat-icon-button (click)="closeDetail()"><mat-icon>close</mat-icon></button>
+<div *ngIf="showDetail && detailRate" class="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm" (click)="closeDetail()">
+</div>
+<div *ngIf="showDetail && detailRate"
+  class="fixed z-50 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md rounded-2xl border border-surface-200 dark:border-surface-700 bg-white dark:bg-surface-800 p-6 shadow-soft">
+  <div class="flex items-center justify-between mb-5">
+    <h3 class="text-lg font-semibold text-surface-900 dark:text-surface-100">Exchange Rate Details</h3>
+    <button (click)="closeDetail()"
+      class="p-1.5 rounded-lg text-surface-400 hover:text-surface-600 dark:hover:text-surface-200 hover:bg-surface-100 dark:hover:bg-surface-700 transition">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
   </div>
-  <div class="detail-grid">
-    <div class="detail-item"><span class="detail-label">Payout Agent</span><span>{{ detailRate.agentName }}</span></div>
-    <div class="detail-item"><span class="detail-label">Country</span><span>{{ detailRate.country || '-' }}</span></div>
-    <div class="detail-item"><span class="detail-label">Source Currency</span><span>{{ detailRate.sourceCurrency
-        }}</span></div>
-    <div class="detail-item"><span class="detail-label">Destination Currency</span><span>{{
-        detailRate.destinationCurrency }}</span></div>
-    <div class="detail-item"><span class="detail-label">Rate</span><span class="text-bold">{{ detailRate.rate |
-        number:'1.4-4' }}</span></div>
-    <div class="detail-item"><span class="detail-label">Margin</span><span>{{ detailRate.margin | number:'1.2-2'
-        }}</span></div>
-    <div class="detail-item">
-      <span class="detail-label">Status</span>
-      <span class="chip" [ngClass]="detailRate.isActive ? 'chip-success' : 'chip-default'">
+  <div class="grid grid-cols-2 gap-4">
+    <div class="space-y-1">
+      <span class="block text-xs font-medium text-surface-500 dark:text-surface-400">Payout Agent</span>
+      <span class="block text-sm text-surface-900 dark:text-surface-100">{{ detailRate.agentName }}</span>
+    </div>
+    <div class="space-y-1">
+      <span class="block text-xs font-medium text-surface-500 dark:text-surface-400">Country</span>
+      <span class="block text-sm text-surface-900 dark:text-surface-100">{{ detailRate.country || '-' }}</span>
+    </div>
+    <div class="space-y-1">
+      <span class="block text-xs font-medium text-surface-500 dark:text-surface-400">Source Currency</span>
+      <span class="block text-sm text-surface-900 dark:text-surface-100">{{ detailRate.sourceCurrency }}</span>
+    </div>
+    <div class="space-y-1">
+      <span class="block text-xs font-medium text-surface-500 dark:text-surface-400">Destination Currency</span>
+      <span class="block text-sm text-surface-900 dark:text-surface-100">{{ detailRate.destinationCurrency }}</span>
+    </div>
+    <div class="space-y-1">
+      <span class="block text-xs font-medium text-surface-500 dark:text-surface-400">Rate</span>
+      <span class="block text-sm font-semibold text-surface-900 dark:text-surface-100">{{ detailRate.rate |
+        number:'1.4-4' }}</span>
+    </div>
+    <div class="space-y-1">
+      <span class="block text-xs font-medium text-surface-500 dark:text-surface-400">Margin</span>
+      <span class="block text-sm text-surface-900 dark:text-surface-100">{{ detailRate.margin | number:'1.2-2' }}</span>
+    </div>
+    <div class="space-y-1 col-span-2">
+      <span class="block text-xs font-medium text-surface-500 dark:text-surface-400">Status</span>
+      <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium" [ngClass]="detailRate.isActive
+          ? 'bg-success-100 text-success-800 dark:bg-success-900/30 dark:text-success-400'
+          : 'bg-surface-100 text-surface-600 dark:bg-surface-700 dark:text-surface-400'">
         {{ detailRate.isActive ? 'Active' : 'Inactive' }}
       </span>
     </div>
@@ -129,60 +218,100 @@
 </div>
 
 <!-- Create / Edit Rate Popup -->
-<div *ngIf="showFormPopup" class="overlay" (click)="closeFormPopup()"></div>
-<div *ngIf="showFormPopup" class="popup popup-lg">
-  <div class="popup-header">
-    <h3>{{ isEditing ? 'Edit Exchange Rate' : 'Add New Exchange Rate' }}</h3>
-    <button mat-icon-button (click)="closeFormPopup()"><mat-icon>close</mat-icon></button>
+<div *ngIf="showFormPopup" class="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm" (click)="closeFormPopup()"></div>
+<div *ngIf="showFormPopup"
+  class="fixed z-50 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg rounded-2xl border border-surface-200 dark:border-surface-700 bg-white dark:bg-surface-800 p-6 shadow-soft">
+  <div class="flex items-center justify-between mb-5">
+    <h3 class="text-lg font-semibold text-surface-900 dark:text-surface-100">{{ isEditing ? 'Edit Exchange Rate' : 'Add
+      New Exchange Rate' }}</h3>
+    <button (click)="closeFormPopup()"
+      class="p-1.5 rounded-lg text-surface-400 hover:text-surface-600 dark:hover:text-surface-200 hover:bg-surface-100 dark:hover:bg-surface-700 transition">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
   </div>
 
-  <div *ngIf="formError" class="alert-banner alert-error inline-alert">{{ formError }}</div>
-
-  <div class="form-grid">
-    <mat-form-field appearance="outline" class="full-width">
-      <mat-label>Payout Agent *</mat-label>
-      <mat-select [(ngModel)]="form.agentId">
-        <mat-option *ngFor="let a of agents" [value]="a.id">{{ a.businessName }}</mat-option>
-      </mat-select>
-    </mat-form-field>
-
-    <mat-form-field appearance="outline" class="full-width">
-      <mat-label>Payout Country</mat-label>
-      <mat-select [(ngModel)]="form.country">
-        <mat-option *ngFor="let c of countries" [value]="c.name">{{ c.name }}</mat-option>
-      </mat-select>
-    </mat-form-field>
-
-    <mat-form-field appearance="outline">
-      <mat-label>Source Currency *</mat-label>
-      <mat-select [(ngModel)]="form.sourceCurrency">
-        <mat-option *ngFor="let c of currencies" [value]="c">{{ c }}</mat-option>
-      </mat-select>
-    </mat-form-field>
-
-    <mat-form-field appearance="outline">
-      <mat-label>Destination Currency *</mat-label>
-      <mat-select [(ngModel)]="form.destinationCurrency">
-        <mat-option *ngFor="let c of currencies" [value]="c">{{ c }}</mat-option>
-      </mat-select>
-    </mat-form-field>
-
-    <mat-form-field appearance="outline">
-      <mat-label>Rate *</mat-label>
-      <input matInput type="number" [(ngModel)]="form.rate" />
-    </mat-form-field>
-
-    <mat-form-field appearance="outline">
-      <mat-label>Margin</mat-label>
-      <input matInput type="number" [(ngModel)]="form.margin" />
-    </mat-form-field>
+  <!-- Error banner -->
+  <div *ngIf="formError"
+    class="mb-4 px-4 py-3 rounded-lg bg-danger-50 dark:bg-danger-900/20 border border-danger-200 dark:border-danger-800 text-danger-700 dark:text-danger-400 text-sm">
+    {{ formError }}
   </div>
 
-  <div class="popup-actions">
-    <button mat-button (click)="closeFormPopup()"><mat-icon>close</mat-icon> Cancel</button>
-    <button mat-raised-button color="primary" (click)="saveRate()" [disabled]="saving">
-      <mat-spinner *ngIf="saving" diameter="18" class="inline-spinner"></mat-spinner>
-      <mat-icon *ngIf="!saving">save</mat-icon>
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <!-- Payout Agent -->
+    <div class="sm:col-span-2">
+      <label class="block text-xs font-medium text-surface-600 dark:text-surface-400 mb-1">Payout Agent *</label>
+      <select [(ngModel)]="form.agentId"
+        class="w-full px-3 py-2 rounded-lg border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-700 text-surface-900 dark:text-surface-100 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition text-sm">
+        <option [ngValue]="null" disabled>Select agent</option>
+        <option *ngFor="let a of agents" [ngValue]="a.id">{{ a.businessName }}</option>
+      </select>
+    </div>
+
+    <!-- Payout Country -->
+    <div class="sm:col-span-2">
+      <label class="block text-xs font-medium text-surface-600 dark:text-surface-400 mb-1">Payout Country</label>
+      <select [(ngModel)]="form.country"
+        class="w-full px-3 py-2 rounded-lg border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-700 text-surface-900 dark:text-surface-100 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition text-sm">
+        <option *ngFor="let c of countries" [value]="c.name">{{ c.name }}</option>
+      </select>
+    </div>
+
+    <!-- Source Currency -->
+    <div>
+      <label class="block text-xs font-medium text-surface-600 dark:text-surface-400 mb-1">Source Currency *</label>
+      <select [(ngModel)]="form.sourceCurrency"
+        class="w-full px-3 py-2 rounded-lg border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-700 text-surface-900 dark:text-surface-100 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition text-sm">
+        <option value="" disabled>Select</option>
+        <option *ngFor="let c of currencies" [value]="c">{{ c }}</option>
+      </select>
+    </div>
+
+    <!-- Destination Currency -->
+    <div>
+      <label class="block text-xs font-medium text-surface-600 dark:text-surface-400 mb-1">Destination Currency
+        *</label>
+      <select [(ngModel)]="form.destinationCurrency"
+        class="w-full px-3 py-2 rounded-lg border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-700 text-surface-900 dark:text-surface-100 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition text-sm">
+        <option value="" disabled>Select</option>
+        <option *ngFor="let c of currencies" [value]="c">{{ c }}</option>
+      </select>
+    </div>
+
+    <!-- Rate -->
+    <div>
+      <label class="block text-xs font-medium text-surface-600 dark:text-surface-400 mb-1">Rate *</label>
+      <input type="number" [(ngModel)]="form.rate"
+        class="w-full px-3 py-2 rounded-lg border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-700 text-surface-900 dark:text-surface-100 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition text-sm" />
+    </div>
+
+    <!-- Margin -->
+    <div>
+      <label class="block text-xs font-medium text-surface-600 dark:text-surface-400 mb-1">Margin</label>
+      <input type="number" [(ngModel)]="form.margin"
+        class="w-full px-3 py-2 rounded-lg border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-700 text-surface-900 dark:text-surface-100 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition text-sm" />
+    </div>
+  </div>
+
+  <!-- Actions -->
+  <div class="flex items-center justify-end gap-3 mt-6 pt-4 border-t border-surface-200 dark:border-surface-700">
+    <button (click)="closeFormPopup()"
+      class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-700 text-surface-700 dark:text-surface-200 hover:bg-surface-50 dark:hover:bg-surface-600 transition text-sm font-medium">
+      Cancel
+    </button>
+    <button (click)="saveRate()" [disabled]="saving"
+      class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-brand-600 hover:bg-brand-700 text-white transition text-sm font-medium shadow-sm disabled:opacity-60 disabled:cursor-not-allowed">
+      <!-- spinner -->
+      <svg *ngIf="saving" class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none"
+        viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+      </svg>
+      <!-- save icon -->
+      <svg *ngIf="!saving" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+      </svg>
       {{ isEditing ? 'Save Changes' : 'Add Rate' }}
     </button>
   </div>

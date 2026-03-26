@@ -1,14 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { ReactiveFormsModule, FormGroup, FormControl } from '@angular/forms';
 import { Router } from '@angular/router';
-import { MatCardModule } from '@angular/material/card';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatCheckboxModule } from '@angular/material/checkbox';
+import { z } from 'zod';
 import { ApiService } from '../../../core/services/api.service';
 import { AuthStateService } from '../../../core/services/auth-state.service';
 
@@ -48,30 +42,35 @@ const ALL_PORTALS: Record<string, PortalOption> = {
   },
 };
 
+const loginSchema = z.object({
+  email: z.string().email('Please enter a valid email address'),
+  password: z.string().min(1, 'Password is required'),
+});
+
+type LoginForm = z.infer<typeof loginSchema>;
+
 @Component({
   selector: 'app-login',
   standalone: true,
   imports: [
     CommonModule,
-    FormsModule,
-    MatCardModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatButtonModule,
-    MatIconModule,
-    MatProgressSpinnerModule,
-    MatCheckboxModule,
+    ReactiveFormsModule,
   ],
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss',
 })
-export class LoginComponent {
-  email = '';
-  password = '';
+export class LoginComponent implements OnInit {
+  loginForm = new FormGroup({
+    email: new FormControl('', { nonNullable: true }),
+    password: new FormControl('', { nonNullable: true }),
+  });
+
   errorMessage = '';
   loading = false;
   hidePassword = true;
   rememberMe = false;
+
+  fieldErrors: Partial<Record<keyof LoginForm, string>> = {};
 
   // Portal selection step
   showPortalSelection = false;
@@ -90,16 +89,39 @@ export class LoginComponent {
     private router: Router,
   ) { }
 
+  ngOnInit(): void {
+    // Clear field errors on value change
+    this.loginForm.valueChanges.subscribe(() => {
+      this.fieldErrors = {};
+    });
+  }
+
+  private validateForm(): LoginForm | null {
+    const result = loginSchema.safeParse(this.loginForm.getRawValue());
+    if (!result.success) {
+      this.fieldErrors = {};
+      for (const issue of result.error.issues) {
+        const field = issue.path[0] as keyof LoginForm;
+        if (!this.fieldErrors[field]) {
+          this.fieldErrors[field] = issue.message;
+        }
+      }
+      return null;
+    }
+    this.fieldErrors = {};
+    return result.data;
+  }
+
   login(): void {
-    if (!this.email || !this.password) {
-      this.errorMessage = 'Please enter your email and password.';
+    const data = this.validateForm();
+    if (!data) {
       return;
     }
 
     this.loading = true;
     this.errorMessage = '';
 
-    this.api.login(this.email, this.password).subscribe({
+    this.api.login(data.email, data.password).subscribe({
       next: (res) => {
         this.loading = false;
 
@@ -150,7 +172,7 @@ export class LoginComponent {
     this.storedLoginData = null;
     this.availablePortals = [];
     this.errorMessage = '';
-    this.password = '';
+    this.loginForm.patchValue({ password: '' });
   }
 
   private setAuthAndNavigate(route: string): void {

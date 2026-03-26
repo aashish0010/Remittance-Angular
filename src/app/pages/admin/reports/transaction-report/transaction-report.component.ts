@@ -1,18 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule, DecimalPipe, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { MatCardModule } from '@angular/material/card';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatTableModule } from '@angular/material/table';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
-import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatNativeDateModule } from '@angular/material/core';
 
 import { ApiService } from '../../../../core/services/api.service';
 import { ExportService } from '../../../../core/services/export.service';
@@ -53,18 +41,6 @@ interface TransactionReportData {
   imports: [
     CommonModule,
     FormsModule,
-    MatCardModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatSelectModule,
-    MatButtonModule,
-    MatIconModule,
-    MatTableModule,
-    MatProgressSpinnerModule,
-    MatPaginatorModule,
-    MatTooltipModule,
-    MatDatepickerModule,
-    MatNativeDateModule,
     DecimalPipe,
     DatePipe,
   ],
@@ -72,9 +48,11 @@ interface TransactionReportData {
   styleUrls: ['./transaction-report.component.scss'],
 })
 export class TransactionReportComponent implements OnInit {
+  Math = Math;
+
   // Filters
-  startDateObj: Date | null = null;
-  endDateObj: Date | null = null;
+  startDate: string = '';
+  endDate: string = '';
   agentId?: number;
   status?: string;
 
@@ -86,17 +64,7 @@ export class TransactionReportComponent implements OnInit {
   // Pagination
   pageSize = 25;
   pageIndex = 0;
-
-  displayedColumns: string[] = [
-    'referenceNumber',
-    'senderName',
-    'receiverName',
-    'sendAmount',
-    'receiveAmount',
-    'commission',
-    'status',
-    'createdAt',
-  ];
+  pageSizeOptions = [10, 25, 50, 100];
 
   constructor(
     private api: ApiService,
@@ -114,17 +82,38 @@ export class TransactionReportComponent implements OnInit {
     return this.reportData.transactions.slice(start, start + this.pageSize);
   }
 
-  onPageChange(event: PageEvent): void {
-    this.pageIndex = event.pageIndex;
-    this.pageSize = event.pageSize;
+  get totalPages(): number {
+    if (!this.reportData) return 0;
+    return Math.ceil(this.reportData.totalCount / this.pageSize);
   }
 
-  private formatDate(d: Date | null): string {
-    if (!d) return '';
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
+  get rangeStart(): number {
+    return this.reportData ? this.pageIndex * this.pageSize + 1 : 0;
+  }
+
+  get rangeEnd(): number {
+    if (!this.reportData) return 0;
+    return Math.min((this.pageIndex + 1) * this.pageSize, this.reportData.totalCount);
+  }
+
+  onPageSizeChange(): void {
+    this.pageIndex = 0;
+  }
+
+  goToFirst(): void {
+    this.pageIndex = 0;
+  }
+
+  goToPrevious(): void {
+    if (this.pageIndex > 0) this.pageIndex--;
+  }
+
+  goToNext(): void {
+    if (this.pageIndex < this.totalPages - 1) this.pageIndex++;
+  }
+
+  goToLast(): void {
+    this.pageIndex = this.totalPages - 1;
   }
 
   loadAgents(): void {
@@ -142,8 +131,8 @@ export class TransactionReportComponent implements OnInit {
     this.pageIndex = 0;
 
     const params: any = {};
-    if (this.startDateObj) params.startDate = this.formatDate(this.startDateObj);
-    if (this.endDateObj) params.endDate = this.formatDate(this.endDateObj);
+    if (this.startDate) params.startDate = this.startDate;
+    if (this.endDate) params.endDate = this.endDate;
     if (this.agentId) params.agentId = this.agentId;
     if (this.status) params.status = this.status;
 
@@ -165,8 +154,8 @@ export class TransactionReportComponent implements OnInit {
 
   exportReport(format: string): void {
     const params: any = {};
-    if (this.startDateObj) params.startDate = this.formatDate(this.startDateObj);
-    if (this.endDateObj) params.endDate = this.formatDate(this.endDateObj);
+    if (this.startDate) params.startDate = this.startDate;
+    if (this.endDate) params.endDate = this.endDate;
     if (this.agentId) params.agentId = this.agentId;
     if (this.status) params.status = this.status;
     this.exportService.export('api/admin/reports/transactions/export', params, format as any);

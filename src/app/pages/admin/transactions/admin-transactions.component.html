@@ -1,284 +1,377 @@
 <!-- Page Header -->
-<div class="page-header">
-  <h2 class="page-title">Transaction Management</h2>
-  <div class="header-actions">
-    <button mat-raised-button (click)="exportData('excel')">
-      <mat-icon>download</mat-icon> Excel
+<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+  <h2 class="text-2xl font-bold text-surface-900 dark:text-surface-100">Transaction Management</h2>
+  <div class="flex items-center gap-2">
+    <button
+      (click)="exportData('excel')"
+      class="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-700 text-surface-700 dark:text-surface-200 hover:bg-surface-50 dark:hover:bg-surface-600 transition text-sm font-medium"
+    >
+      <!-- Download icon -->
+      <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+      </svg>
+      Excel
     </button>
-    <button mat-raised-button (click)="exportData('csv')">
-      <mat-icon>download</mat-icon> CSV
+    <button
+      (click)="exportData('csv')"
+      class="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-700 text-surface-700 dark:text-surface-200 hover:bg-surface-50 dark:hover:bg-surface-600 transition text-sm font-medium"
+    >
+      <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+      </svg>
+      CSV
     </button>
   </div>
 </div>
 
 <!-- Loading Spinner -->
-<div *ngIf="loading" class="loading-container">
-  <mat-spinner diameter="48"></mat-spinner>
+<div *ngIf="loading" class="flex items-center justify-center py-24">
+  <svg class="animate-spin h-10 w-10 text-brand-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+  </svg>
 </div>
 
-<!-- Transactions Table -->
-<mat-card *ngIf="!loading" class="table-card" appearance="outlined">
-  <!-- Toolbar -->
-  <div class="table-toolbar">
-    <mat-form-field appearance="outline" class="search-field">
-      <mat-icon matPrefix>search</mat-icon>
-      <mat-label>Search by reference, sender, receiver...</mat-label>
-      <input matInput [(ngModel)]="searchText" (ngModelChange)="onSearchChange()" placeholder="Search..." />
-      <button *ngIf="searchText" mat-icon-button matSuffix (click)="searchText = ''; onSearchChange()">
-        <mat-icon>clear</mat-icon>
+<!-- Transactions Table Card -->
+<div *ngIf="!loading" class="rounded-2xl border border-surface-200 dark:border-surface-700 bg-white dark:bg-surface-800 shadow-soft">
+  <!-- Toolbar: Search + Status Filter -->
+  <div class="flex flex-col sm:flex-row gap-3 p-4 border-b border-surface-200 dark:border-surface-700">
+    <!-- Search Field -->
+    <div class="relative flex-1">
+      <svg class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-surface-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+      </svg>
+      <input
+        type="text"
+        [(ngModel)]="searchText"
+        (ngModelChange)="onSearchChange()"
+        placeholder="Search by reference, sender, receiver..."
+        class="w-full pl-10 pr-9 py-2 rounded-lg border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-700 text-surface-900 dark:text-surface-100 placeholder-surface-400 dark:placeholder-surface-500 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition text-sm"
+      />
+      <button
+        *ngIf="searchText"
+        (click)="searchText = ''; onSearchChange()"
+        class="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 rounded text-surface-400 hover:text-surface-600 dark:hover:text-surface-300 transition"
+        title="Clear search"
+      >
+        <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+        </svg>
       </button>
-    </mat-form-field>
+    </div>
 
-    <mat-form-field appearance="outline" class="status-filter">
-      <mat-label>Status</mat-label>
-      <mat-select [(ngModel)]="statusFilter" (ngModelChange)="onStatusChange()">
-        <mat-option value="All">All</mat-option>
-        <mat-option value="OnHold">On Hold</mat-option>
-        <mat-option value="Compliance">Compliance</mat-option>
-        <mat-option value="Pending">Pending</mat-option>
-        <mat-option value="Completed">Completed</mat-option>
-        <mat-option value="Cancelled">Cancelled</mat-option>
-        <mat-option value="Failed">Failed</mat-option>
-      </mat-select>
-    </mat-form-field>
+    <!-- Status Filter -->
+    <select
+      [(ngModel)]="statusFilter"
+      (ngModelChange)="onStatusChange()"
+      class="w-full sm:w-44 px-3 py-2 rounded-lg border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-700 text-surface-900 dark:text-surface-100 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition text-sm"
+    >
+      <option value="All">All Statuses</option>
+      <option value="OnHold">On Hold</option>
+      <option value="Compliance">Compliance</option>
+      <option value="Pending">Pending</option>
+      <option value="Completed">Completed</option>
+      <option value="Cancelled">Cancelled</option>
+      <option value="Failed">Failed</option>
+    </select>
   </div>
 
-  <div class="table-container">
-    <table mat-table [dataSource]="transactions" class="transactions-table">
-      <!-- Reference Number -->
-      <ng-container matColumnDef="referenceNumber">
-        <th mat-header-cell *matHeaderCellDef>Reference</th>
-        <td mat-cell *matCellDef="let txn" class="ref-cell">
-          <a [routerLink]="['/admin/transactions', txn.id]" class="ref-link">{{ txn.referenceNumber }}</a>
-        </td>
-      </ng-container>
+  <!-- Table -->
+  <div class="overflow-x-auto">
+    <table class="w-full text-left text-sm">
+      <thead>
+        <tr class="border-b border-surface-200 dark:border-surface-700 bg-surface-50 dark:bg-surface-800/50">
+          <th class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-400 text-xs uppercase tracking-wider">Reference</th>
+          <th class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-400 text-xs uppercase tracking-wider">Sender</th>
+          <th class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-400 text-xs uppercase tracking-wider">Receiver</th>
+          <th class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-400 text-xs uppercase tracking-wider">Send Amount</th>
+          <th class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-400 text-xs uppercase tracking-wider">Receive Amount</th>
+          <th class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-400 text-xs uppercase tracking-wider">Rate</th>
+          <th class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-400 text-xs uppercase tracking-wider">Service Charge</th>
+          <th class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-400 text-xs uppercase tracking-wider">Status</th>
+          <th class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-400 text-xs uppercase tracking-wider">Date</th>
+          <th class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-400 text-xs uppercase tracking-wider text-center">Actions</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-surface-100 dark:divide-surface-700">
+        <tr
+          *ngFor="let txn of transactions"
+          class="hover:bg-surface-50 dark:hover:bg-surface-700/50 transition-colors"
+        >
+          <td class="px-4 py-3 font-mono text-xs">
+            <a [routerLink]="['/admin/transactions', txn.id]" class="text-brand-600 dark:text-brand-400 hover:underline">{{ txn.referenceNumber }}</a>
+          </td>
+          <td class="px-4 py-3 text-surface-900 dark:text-surface-100">{{ txn.senderName }}</td>
+          <td class="px-4 py-3 text-surface-900 dark:text-surface-100">{{ txn.receiverName }}</td>
+          <td class="px-4 py-3 text-surface-900 dark:text-surface-100">{{ txn.sendAmount | number:'1.2-2' }} {{ txn.sendCurrency }}</td>
+          <td class="px-4 py-3 text-surface-900 dark:text-surface-100">{{ txn.receiveAmount | number:'1.2-2' }} {{ txn.receiveCurrency }}</td>
+          <td class="px-4 py-3 text-surface-900 dark:text-surface-100">{{ txn.exchangeRateApplied | number:'1.4-4' }}</td>
+          <td class="px-4 py-3 text-surface-900 dark:text-surface-100">{{ txn.totalCommission | number:'1.2-2' }}</td>
+          <td class="px-4 py-3">
+            <span
+              class="px-2.5 py-0.5 rounded-full text-xs font-medium whitespace-nowrap"
+              [ngClass]="getStatusClass(txn.status)"
+            >
+              {{ getStatusLabel(txn.status) }}
+            </span>
+          </td>
+          <td class="px-4 py-3 text-surface-900 dark:text-surface-100 whitespace-nowrap">{{ txn.createdAt | date:'MMM dd, HH:mm' }}</td>
+          <td class="px-4 py-3 text-center whitespace-nowrap">
+            <!-- View Details -->
+            <button
+              (click)="viewDetail(txn)"
+              title="View Details"
+              class="inline-flex items-center justify-center p-1.5 rounded-lg text-brand-600 dark:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-900/20 transition"
+            >
+              <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+              </svg>
+            </button>
 
-      <!-- Sender -->
-      <ng-container matColumnDef="senderName">
-        <th mat-header-cell *matHeaderCellDef>Sender</th>
-        <td mat-cell *matCellDef="let txn">{{ txn.senderName }}</td>
-      </ng-container>
+            <!-- Pending: Complete -->
+            <button
+              *ngIf="txn.status === 'Pending'"
+              (click)="completeTransaction(txn)"
+              title="Complete"
+              class="inline-flex items-center justify-center p-1.5 rounded-lg text-success-600 dark:text-success-400 hover:bg-success-50 dark:hover:bg-success-900/20 transition"
+            >
+              <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+              </svg>
+            </button>
 
-      <!-- Receiver -->
-      <ng-container matColumnDef="receiverName">
-        <th mat-header-cell *matHeaderCellDef>Receiver</th>
-        <td mat-cell *matCellDef="let txn">{{ txn.receiverName }}</td>
-      </ng-container>
+            <!-- Pending: Cancel -->
+            <button
+              *ngIf="txn.status === 'Pending'"
+              (click)="cancelTransaction(txn)"
+              title="Cancel"
+              class="inline-flex items-center justify-center p-1.5 rounded-lg text-danger-600 dark:text-danger-400 hover:bg-danger-50 dark:hover:bg-danger-900/20 transition"
+            >
+              <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+              </svg>
+            </button>
 
-      <!-- Send Amount -->
-      <ng-container matColumnDef="sendAmount">
-        <th mat-header-cell *matHeaderCellDef>Send Amount</th>
-        <td mat-cell *matCellDef="let txn">
-          {{ txn.sendAmount | number:'1.2-2' }} {{ txn.sendCurrency }}
-        </td>
-      </ng-container>
+            <!-- Completed: Cancel -->
+            <button
+              *ngIf="txn.status === 'Completed'"
+              (click)="cancelTransaction(txn)"
+              title="Cancel Transaction"
+              class="inline-flex items-center justify-center p-1.5 rounded-lg text-danger-600 dark:text-danger-400 hover:bg-danger-50 dark:hover:bg-danger-900/20 transition"
+            >
+              <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+              </svg>
+            </button>
+          </td>
+        </tr>
 
-      <!-- Receive Amount -->
-      <ng-container matColumnDef="receiveAmount">
-        <th mat-header-cell *matHeaderCellDef>Receive Amount</th>
-        <td mat-cell *matCellDef="let txn">
-          {{ txn.receiveAmount | number:'1.2-2' }} {{ txn.receiveCurrency }}
-        </td>
-      </ng-container>
-
-      <!-- Exchange Rate -->
-      <ng-container matColumnDef="exchangeRate">
-        <th mat-header-cell *matHeaderCellDef>Rate</th>
-        <td mat-cell *matCellDef="let txn">{{ txn.exchangeRateApplied | number:'1.4-4' }}</td>
-      </ng-container>
-
-      <!-- Commission -->
-      <ng-container matColumnDef="commission">
-        <th mat-header-cell *matHeaderCellDef>Service Charge</th>
-        <td mat-cell *matCellDef="let txn">{{ txn.totalCommission | number:'1.2-2' }}</td>
-      </ng-container>
-
-      <!-- Status -->
-      <ng-container matColumnDef="status">
-        <th mat-header-cell *matHeaderCellDef>Status</th>
-        <td mat-cell *matCellDef="let txn">
-          <span class="status-chip" [ngClass]="getStatusClass(txn.status)">
-            {{ getStatusLabel(txn.status) }}
-          </span>
-        </td>
-      </ng-container>
-
-      <!-- Date -->
-      <ng-container matColumnDef="createdAt">
-        <th mat-header-cell *matHeaderCellDef>Date</th>
-        <td mat-cell *matCellDef="let txn">{{ txn.createdAt | date:'MMM dd, HH:mm' }}</td>
-      </ng-container>
-
-      <!-- Actions -->
-      <ng-container matColumnDef="actions">
-        <th mat-header-cell *matHeaderCellDef>Actions</th>
-        <td mat-cell *matCellDef="let txn" class="actions-cell">
-          <!-- View Details (always) -->
-          <button mat-icon-button matTooltip="View Details" (click)="viewDetail(txn)">
-            <mat-icon class="action-view">visibility</mat-icon>
-          </button>
-
-          <!-- OnHold / Compliance: show status label only (agent must release first) -->
-
-          <!-- Pending: Admin can Complete -->
-          <button
-            *ngIf="txn.status === 'Pending'"
-            mat-icon-button
-            matTooltip="Complete"
-            (click)="completeTransaction(txn)"
-          >
-            <mat-icon class="action-complete">check_circle</mat-icon>
-          </button>
-
-          <!-- Pending: Admin can Cancel -->
-          <button
-            *ngIf="txn.status === 'Pending'"
-            mat-icon-button
-            matTooltip="Cancel"
-            (click)="cancelTransaction(txn)"
-          >
-            <mat-icon class="action-cancel">cancel</mat-icon>
-          </button>
-
-          <!-- Completed: Admin can still Cancel -->
-          <button
-            *ngIf="txn.status === 'Completed'"
-            mat-icon-button
-            matTooltip="Cancel Transaction"
-            (click)="cancelTransaction(txn)"
-          >
-            <mat-icon class="action-cancel">cancel</mat-icon>
-          </button>
-        </td>
-      </ng-container>
-
-      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-      <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
-
-      <!-- No data row -->
-      <tr class="mat-row no-data-row" *matNoDataRow>
-        <td class="mat-cell" [attr.colspan]="displayedColumns.length">
-          No transactions found.
-        </td>
-      </tr>
+        <!-- No data row -->
+        <tr *ngIf="transactions.length === 0">
+          <td colspan="10" class="px-4 py-12 text-center text-surface-400 dark:text-surface-500 italic">
+            No transactions found.
+          </td>
+        </tr>
+      </tbody>
     </table>
   </div>
 
-  <mat-paginator
-    [length]="totalCount"
-    [pageIndex]="pageIndex"
-    [pageSize]="pageSize"
-    [pageSizeOptions]="[10, 20, 50]"
-    (page)="onPageChange($event)"
-    showFirstLastButtons>
-  </mat-paginator>
-</mat-card>
+  <!-- Pagination -->
+  <div class="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3 border-t border-surface-200 dark:border-surface-700">
+    <div class="text-sm text-surface-500 dark:text-surface-400">
+      Showing {{ transactions.length === 0 ? 0 : pageIndex * pageSize + 1 }}–{{ pageIndex * pageSize + transactions.length }} of {{ totalCount }}
+    </div>
+    <div class="flex items-center gap-2">
+      <!-- Page Size Selector -->
+      <select
+        [ngModel]="pageSize"
+        (ngModelChange)="onPageChange({ pageIndex: 0, pageSize: $event })"
+        class="px-2 py-1.5 rounded-lg border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-700 text-surface-900 dark:text-surface-100 text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition"
+      >
+        <option [ngValue]="10">10 / page</option>
+        <option [ngValue]="20">20 / page</option>
+        <option [ngValue]="50">50 / page</option>
+      </select>
+
+      <!-- First Page -->
+      <button
+        (click)="onPageChange({ pageIndex: 0, pageSize: pageSize })"
+        [disabled]="pageIndex === 0"
+        class="p-1.5 rounded-lg border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-700 text-surface-600 dark:text-surface-300 hover:bg-surface-50 dark:hover:bg-surface-600 disabled:opacity-40 disabled:cursor-not-allowed transition"
+        title="First page"
+      >
+        <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="m18.75 4.5-7.5 7.5 7.5 7.5m-6-15L5.25 12l7.5 7.5" />
+        </svg>
+      </button>
+
+      <!-- Previous Page -->
+      <button
+        (click)="onPageChange({ pageIndex: pageIndex - 1, pageSize: pageSize })"
+        [disabled]="pageIndex === 0"
+        class="p-1.5 rounded-lg border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-700 text-surface-600 dark:text-surface-300 hover:bg-surface-50 dark:hover:bg-surface-600 disabled:opacity-40 disabled:cursor-not-allowed transition"
+        title="Previous page"
+      >
+        <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+        </svg>
+      </button>
+
+      <span class="text-sm text-surface-700 dark:text-surface-300 px-2">
+        Page {{ pageIndex + 1 }} of {{ totalCount === 0 ? 1 : (totalCount + pageSize - 1) / pageSize | number:'1.0-0' }}
+      </span>
+
+      <!-- Next Page -->
+      <button
+        (click)="onPageChange({ pageIndex: pageIndex + 1, pageSize: pageSize })"
+        [disabled]="(pageIndex + 1) * pageSize >= totalCount"
+        class="p-1.5 rounded-lg border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-700 text-surface-600 dark:text-surface-300 hover:bg-surface-50 dark:hover:bg-surface-600 disabled:opacity-40 disabled:cursor-not-allowed transition"
+        title="Next page"
+      >
+        <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+        </svg>
+      </button>
+
+      <!-- Last Page -->
+      <button
+        (click)="onPageChange({ pageIndex: totalCount === 0 ? 0 : Math.ceil(totalCount / pageSize) - 1, pageSize: pageSize })"
+        [disabled]="(pageIndex + 1) * pageSize >= totalCount"
+        class="p-1.5 rounded-lg border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-700 text-surface-600 dark:text-surface-300 hover:bg-surface-50 dark:hover:bg-surface-600 disabled:opacity-40 disabled:cursor-not-allowed transition"
+        title="Last page"
+      >
+        <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="m5.25 4.5 7.5 7.5-7.5 7.5m6-15 7.5 7.5-7.5 7.5" />
+        </svg>
+      </button>
+    </div>
+  </div>
+</div>
 
 <!-- Transaction Detail Overlay -->
-<div *ngIf="selectedTransaction" class="detail-overlay" (click)="closeDetail()">
-  <div class="detail-popup" (click)="$event.stopPropagation()">
-    <div class="detail-header">
-      <h3>Transaction Details</h3>
-      <button mat-icon-button (click)="closeDetail()">
-        <mat-icon>close</mat-icon>
+<div
+  *ngIf="selectedTransaction"
+  class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+  (click)="closeDetail()"
+>
+  <div
+    class="relative w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto rounded-2xl border border-surface-200 dark:border-surface-700 bg-white dark:bg-surface-800 p-6 shadow-soft"
+    (click)="$event.stopPropagation()"
+  >
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-6">
+      <h3 class="text-lg font-semibold text-surface-900 dark:text-surface-100">Transaction Details</h3>
+      <button
+        (click)="closeDetail()"
+        class="p-1.5 rounded-lg text-surface-400 hover:text-surface-600 dark:hover:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 transition"
+      >
+        <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+        </svg>
       </button>
     </div>
 
-    <div class="detail-grid">
-      <div class="detail-item">
-        <span class="detail-label">Reference</span>
-        <span class="detail-value ref-cell">{{ selectedTransaction.referenceNumber }}</span>
+    <!-- Detail Grid - Top Section -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+      <div>
+        <span class="block text-xs font-medium text-surface-500 dark:text-surface-400 mb-1">Reference</span>
+        <span class="text-sm font-mono text-surface-900 dark:text-surface-100">{{ selectedTransaction.referenceNumber }}</span>
       </div>
-      <div class="detail-item">
-        <span class="detail-label">Status</span>
-        <span class="status-chip" [ngClass]="getStatusClass(selectedTransaction.status)">
+      <div>
+        <span class="block text-xs font-medium text-surface-500 dark:text-surface-400 mb-1">Status</span>
+        <span
+          class="px-2.5 py-0.5 rounded-full text-xs font-medium"
+          [ngClass]="getStatusClass(selectedTransaction.status)"
+        >
           {{ getStatusLabel(selectedTransaction.status) }}
         </span>
       </div>
-      <div class="detail-item">
-        <span class="detail-label">Sender</span>
-        <span class="detail-value">{{ selectedTransaction.senderName }}</span>
+      <div>
+        <span class="block text-xs font-medium text-surface-500 dark:text-surface-400 mb-1">Sender</span>
+        <span class="text-sm text-surface-900 dark:text-surface-100">{{ selectedTransaction.senderName }}</span>
       </div>
-      <div class="detail-item">
-        <span class="detail-label">Sender Country</span>
-        <span class="detail-value">{{ selectedTransaction.senderCountry }}</span>
+      <div>
+        <span class="block text-xs font-medium text-surface-500 dark:text-surface-400 mb-1">Sender Country</span>
+        <span class="text-sm text-surface-900 dark:text-surface-100">{{ selectedTransaction.senderCountry }}</span>
       </div>
-      <div class="detail-item">
-        <span class="detail-label">Receiver</span>
-        <span class="detail-value">{{ selectedTransaction.receiverName }}</span>
+      <div>
+        <span class="block text-xs font-medium text-surface-500 dark:text-surface-400 mb-1">Receiver</span>
+        <span class="text-sm text-surface-900 dark:text-surface-100">{{ selectedTransaction.receiverName }}</span>
       </div>
-      <div class="detail-item">
-        <span class="detail-label">Receiver Country</span>
-        <span class="detail-value">{{ selectedTransaction.receiverCountry }}</span>
+      <div>
+        <span class="block text-xs font-medium text-surface-500 dark:text-surface-400 mb-1">Receiver Country</span>
+        <span class="text-sm text-surface-900 dark:text-surface-100">{{ selectedTransaction.receiverCountry }}</span>
       </div>
-      <div class="detail-item" *ngIf="selectedTransaction.receiverBankName">
-        <span class="detail-label">Bank</span>
-        <span class="detail-value">{{ selectedTransaction.receiverBankName }}</span>
+      <div *ngIf="selectedTransaction.receiverBankName">
+        <span class="block text-xs font-medium text-surface-500 dark:text-surface-400 mb-1">Bank</span>
+        <span class="text-sm text-surface-900 dark:text-surface-100">{{ selectedTransaction.receiverBankName }}</span>
       </div>
-      <div class="detail-item" *ngIf="selectedTransaction.receiverAccountNumber">
-        <span class="detail-label">Account Number</span>
-        <span class="detail-value">{{ selectedTransaction.receiverAccountNumber }}</span>
+      <div *ngIf="selectedTransaction.receiverAccountNumber">
+        <span class="block text-xs font-medium text-surface-500 dark:text-surface-400 mb-1">Account Number</span>
+        <span class="text-sm text-surface-900 dark:text-surface-100">{{ selectedTransaction.receiverAccountNumber }}</span>
       </div>
-      <div class="detail-item" *ngIf="selectedTransaction.receiverBranchName">
-        <span class="detail-label">Branch</span>
-        <span class="detail-value">{{ selectedTransaction.receiverBranchName }}</span>
+      <div *ngIf="selectedTransaction.receiverBranchName">
+        <span class="block text-xs font-medium text-surface-500 dark:text-surface-400 mb-1">Branch</span>
+        <span class="text-sm text-surface-900 dark:text-surface-100">{{ selectedTransaction.receiverBranchName }}</span>
       </div>
-      <div class="detail-item">
-        <span class="detail-label">Date</span>
-        <span class="detail-value">{{ selectedTransaction.createdAt | date:'yyyy-MM-dd HH:mm' }}</span>
+      <div>
+        <span class="block text-xs font-medium text-surface-500 dark:text-surface-400 mb-1">Date</span>
+        <span class="text-sm text-surface-900 dark:text-surface-100">{{ selectedTransaction.createdAt | date:'yyyy-MM-dd HH:mm' }}</span>
       </div>
     </div>
 
-    <hr class="detail-divider" />
+    <hr class="border-surface-200 dark:border-surface-700 mb-6" />
 
-    <div class="detail-grid">
-      <div class="detail-item">
-        <span class="detail-label">Send Amount</span>
-        <span class="detail-value detail-bold">
+    <!-- Detail Grid - Financial Section -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div>
+        <span class="block text-xs font-medium text-surface-500 dark:text-surface-400 mb-1">Send Amount</span>
+        <span class="text-sm font-semibold text-surface-900 dark:text-surface-100">
           {{ selectedTransaction.sendAmount | number:'1.2-2' }} {{ selectedTransaction.sendCurrency }}
         </span>
       </div>
-      <div class="detail-item">
-        <span class="detail-label">Receive Amount</span>
-        <span class="detail-value detail-bold">
+      <div>
+        <span class="block text-xs font-medium text-surface-500 dark:text-surface-400 mb-1">Receive Amount</span>
+        <span class="text-sm font-semibold text-surface-900 dark:text-surface-100">
           {{ selectedTransaction.receiveAmount | number:'1.2-2' }} {{ selectedTransaction.receiveCurrency }}
         </span>
       </div>
-      <div class="detail-item">
-        <span class="detail-label">Exchange Rate</span>
-        <span class="detail-value">{{ selectedTransaction.exchangeRateApplied | number:'1.4-4' }}</span>
+      <div>
+        <span class="block text-xs font-medium text-surface-500 dark:text-surface-400 mb-1">Exchange Rate</span>
+        <span class="text-sm text-surface-900 dark:text-surface-100">{{ selectedTransaction.exchangeRateApplied | number:'1.4-4' }}</span>
       </div>
-      <div class="detail-item">
-        <span class="detail-label">Total Service Charge</span>
-        <span class="detail-value">{{ selectedTransaction.totalCommission | number:'1.2-2' }}</span>
+      <div>
+        <span class="block text-xs font-medium text-surface-500 dark:text-surface-400 mb-1">Total Service Charge</span>
+        <span class="text-sm text-surface-900 dark:text-surface-100">{{ selectedTransaction.totalCommission | number:'1.2-2' }}</span>
       </div>
-      <div class="detail-item">
-        <span class="detail-label">Agent Service Charge</span>
-        <span class="detail-value">{{ selectedTransaction.agentCommission | number:'1.2-2' }}</span>
+      <div>
+        <span class="block text-xs font-medium text-surface-500 dark:text-surface-400 mb-1">Agent Service Charge</span>
+        <span class="text-sm text-surface-900 dark:text-surface-100">{{ selectedTransaction.agentCommission | number:'1.2-2' }}</span>
       </div>
-      <div class="detail-item">
-        <span class="detail-label">Payout Agent Service Charge</span>
-        <span class="detail-value">{{ selectedTransaction.payoutAgentCommission | number:'1.2-2' }}</span>
+      <div>
+        <span class="block text-xs font-medium text-surface-500 dark:text-surface-400 mb-1">Payout Agent Service Charge</span>
+        <span class="text-sm text-surface-900 dark:text-surface-100">{{ selectedTransaction.payoutAgentCommission | number:'1.2-2' }}</span>
       </div>
-      <div class="detail-item">
-        <span class="detail-label">Company Service Charge</span>
-        <span class="detail-value">{{ selectedTransaction.companyCommission | number:'1.2-2' }}</span>
+      <div>
+        <span class="block text-xs font-medium text-surface-500 dark:text-surface-400 mb-1">Company Service Charge</span>
+        <span class="text-sm text-surface-900 dark:text-surface-100">{{ selectedTransaction.companyCommission | number:'1.2-2' }}</span>
       </div>
-      <div class="detail-item" *ngIf="selectedTransaction.paymentMethodName">
-        <span class="detail-label">Payment Method</span>
-        <span class="detail-value">{{ selectedTransaction.paymentMethodName }}</span>
+      <div *ngIf="selectedTransaction.paymentMethodName">
+        <span class="block text-xs font-medium text-surface-500 dark:text-surface-400 mb-1">Payment Method</span>
+        <span class="text-sm text-surface-900 dark:text-surface-100">{{ selectedTransaction.paymentMethodName }}</span>
       </div>
-      <div class="detail-item" *ngIf="selectedTransaction.payoutMethodName">
-        <span class="detail-label">Payout Method</span>
-        <span class="detail-value">{{ selectedTransaction.payoutMethodName }}</span>
+      <div *ngIf="selectedTransaction.payoutMethodName">
+        <span class="block text-xs font-medium text-surface-500 dark:text-surface-400 mb-1">Payout Method</span>
+        <span class="text-sm text-surface-900 dark:text-surface-100">{{ selectedTransaction.payoutMethodName }}</span>
       </div>
-      <div class="detail-item" *ngIf="selectedTransaction.sendingAgentName">
-        <span class="detail-label">Sending Agent</span>
-        <span class="detail-value">{{ selectedTransaction.sendingAgentName }}</span>
+      <div *ngIf="selectedTransaction.sendingAgentName">
+        <span class="block text-xs font-medium text-surface-500 dark:text-surface-400 mb-1">Sending Agent</span>
+        <span class="text-sm text-surface-900 dark:text-surface-100">{{ selectedTransaction.sendingAgentName }}</span>
       </div>
-      <div class="detail-item" *ngIf="selectedTransaction.payoutAgentName">
-        <span class="detail-label">Payout Partner</span>
-        <span class="detail-value">{{ selectedTransaction.payoutAgentName }}</span>
+      <div *ngIf="selectedTransaction.payoutAgentName">
+        <span class="block text-xs font-medium text-surface-500 dark:text-surface-400 mb-1">Payout Partner</span>
+        <span class="text-sm text-surface-900 dark:text-surface-100">{{ selectedTransaction.payoutAgentName }}</span>
       </div>
     </div>
   </div>

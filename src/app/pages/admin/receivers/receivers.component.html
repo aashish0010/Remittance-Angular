@@ -1,149 +1,164 @@
 <!-- Page Header -->
-<div class="page-header">
-  <h2>Receiver Management</h2>
-  <div class="header-actions">
-    <button mat-stroked-button (click)="exportData('excel')">
-      <mat-icon>download</mat-icon> Excel
+<div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+  <h2 class="text-2xl font-semibold text-surface-900 dark:text-surface-100">Receiver Management</h2>
+  <div class="flex flex-wrap items-center gap-2">
+    <button (click)="exportData('excel')" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-800 text-surface-700 dark:text-surface-200 hover:bg-surface-50 dark:hover:bg-surface-700 transition text-sm font-medium">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+      Excel
     </button>
-    <button mat-stroked-button (click)="exportData('csv')">
-      <mat-icon>download</mat-icon> CSV
+    <button (click)="exportData('csv')" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-800 text-surface-700 dark:text-surface-200 hover:bg-surface-50 dark:hover:bg-surface-700 transition text-sm font-medium">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+      CSV
     </button>
-    <button mat-raised-button (click)="openSearchPopup()">
-      <mat-icon>search</mat-icon> Search Receiver
+    <button (click)="openSearchPopup()" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg border border-brand-600 text-brand-600 dark:text-brand-400 dark:border-brand-400 hover:bg-brand-50 dark:hover:bg-brand-900/20 transition text-sm font-medium">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+      Search Receiver
     </button>
-    <button mat-raised-button color="primary" (click)="openCreatePopup()">
-      <mat-icon>person_add</mat-icon> Add Receiver
+    <button (click)="openCreatePopup()" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-brand-600 text-white hover:bg-brand-700 transition text-sm font-medium shadow-sm">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
+      Add Receiver
     </button>
   </div>
 </div>
 
 <!-- Loading -->
-<div *ngIf="loading" class="loading-container">
-  <mat-spinner diameter="40"></mat-spinner>
+<div *ngIf="loading" class="flex items-center justify-center py-20">
+  <svg class="animate-spin h-10 w-10 text-brand-600" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
 </div>
 
 <!-- Search + Filter + Table -->
-<mat-card *ngIf="!loading" class="table-card">
-  <div class="filter-row">
-    <mat-form-field appearance="outline" class="filter-field">
-      <mat-label>Filter by Customer</mat-label>
-      <mat-select searchable [(ngModel)]="filterCustomerId" (ngModelChange)="filterByCustomer()">
-        <mat-option [value]="null">All Customers</mat-option>
-        <mat-option *ngFor="let c of customers" [value]="c.id">{{ c.fullName }}</mat-option>
-      </mat-select>
-    </mat-form-field>
-
-    <mat-form-field appearance="outline" class="search-field">
-      <mat-icon matPrefix>search</mat-icon>
-      <input matInput placeholder="Search receivers..." [(ngModel)]="searchString" (ngModelChange)="searchDebounce.next($event)" />
-    </mat-form-field>
+<div *ngIf="!loading" class="rounded-2xl border border-surface-200 dark:border-surface-700 bg-white dark:bg-surface-800 p-6 shadow-soft">
+  <div class="flex flex-col sm:flex-row items-center gap-4 mb-4">
+    <div class="w-full sm:w-64">
+      <label class="block text-xs font-medium text-surface-500 dark:text-surface-400 mb-1">Filter by Customer</label>
+      <select [(ngModel)]="filterCustomerId" (ngModelChange)="filterByCustomer()" class="w-full px-3 py-2 rounded-lg border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-700 text-surface-900 dark:text-surface-100 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition text-sm">
+        <option [ngValue]="null">All Customers</option>
+        <option *ngFor="let c of customers" [ngValue]="c.id">{{ c.fullName }}</option>
+      </select>
+    </div>
+    <div class="w-full max-w-md">
+      <label class="block text-xs font-medium text-surface-500 dark:text-surface-400 mb-1 opacity-0 hidden sm:block">Search</label>
+      <div class="relative">
+        <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-surface-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        <input type="text" placeholder="Search receivers..." [(ngModel)]="searchString" (ngModelChange)="searchDebounce.next($event)"
+          class="w-full pl-10 pr-3 py-2 rounded-lg border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-700 text-surface-900 dark:text-surface-100 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition text-sm" />
+      </div>
+    </div>
   </div>
 
-  <table mat-table [dataSource]="receivers" class="data-table">
-    <!-- Customer Name -->
-    <ng-container matColumnDef="customerName">
-      <th mat-header-cell *matHeaderCellDef>Customer Name</th>
-      <td mat-cell *matCellDef="let r">{{ r.customerName }}</td>
-    </ng-container>
+  <div class="overflow-x-auto">
+    <table class="w-full text-sm text-left">
+      <thead>
+        <tr class="border-b border-surface-200 dark:border-surface-700 text-surface-600 dark:text-surface-300">
+          <th class="px-4 py-3 font-semibold">Customer Name</th>
+          <th class="px-4 py-3 font-semibold">Receiver Name</th>
+          <th class="px-4 py-3 font-semibold">Phone</th>
+          <th class="px-4 py-3 font-semibold">Country</th>
+          <th class="px-4 py-3 font-semibold">Bank Name</th>
+          <th class="px-4 py-3 font-semibold">Account</th>
+          <th class="px-4 py-3 font-semibold">Status</th>
+          <th class="px-4 py-3 font-semibold">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let r of receivers" class="border-b border-surface-100 dark:border-surface-700 hover:bg-surface-50 dark:hover:bg-surface-750 transition-colors">
+          <td class="px-4 py-3 text-surface-900 dark:text-surface-100">{{ r.customerName }}</td>
+          <td class="px-4 py-3 text-surface-900 dark:text-surface-100 font-medium">{{ r.fullName }}</td>
+          <td class="px-4 py-3 text-surface-700 dark:text-surface-300">{{ r.phone }}</td>
+          <td class="px-4 py-3 text-surface-700 dark:text-surface-300">{{ r.country }}</td>
+          <td class="px-4 py-3 text-surface-700 dark:text-surface-300">{{ r.bankName || '-' }}</td>
+          <td class="px-4 py-3 text-surface-700 dark:text-surface-300">{{ r.accountNumber || '-' }}</td>
+          <td class="px-4 py-3">
+            <span class="inline-flex items-center px-2.5 py-0.5 text-xs font-medium rounded-full" [ngClass]="r.isActive ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-surface-100 text-surface-500 dark:bg-surface-700 dark:text-surface-400'">
+              {{ r.isActive ? 'Active' : 'Inactive' }}
+            </span>
+          </td>
+          <td class="px-4 py-3">
+            <div class="flex items-center gap-1">
+              <button title="Edit" (click)="openEditPopup(r)" class="p-1.5 rounded-md text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/20 transition"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg></button>
+              <button title="Delete" (click)="deleteReceiver(r)" class="p-1.5 rounded-md text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
 
-    <!-- Receiver Name -->
-    <ng-container matColumnDef="fullName">
-      <th mat-header-cell *matHeaderCellDef>Receiver Name</th>
-      <td mat-cell *matCellDef="let r">{{ r.fullName }}</td>
-    </ng-container>
-
-    <!-- Phone -->
-    <ng-container matColumnDef="phone">
-      <th mat-header-cell *matHeaderCellDef>Phone</th>
-      <td mat-cell *matCellDef="let r">{{ r.phone }}</td>
-    </ng-container>
-
-    <!-- Country -->
-    <ng-container matColumnDef="country">
-      <th mat-header-cell *matHeaderCellDef>Country</th>
-      <td mat-cell *matCellDef="let r">{{ r.country }}</td>
-    </ng-container>
-
-    <!-- Bank Name -->
-    <ng-container matColumnDef="bankName">
-      <th mat-header-cell *matHeaderCellDef>Bank Name</th>
-      <td mat-cell *matCellDef="let r">{{ r.bankName || '-' }}</td>
-    </ng-container>
-
-    <!-- Account Number -->
-    <ng-container matColumnDef="accountNumber">
-      <th mat-header-cell *matHeaderCellDef>Account</th>
-      <td mat-cell *matCellDef="let r">{{ r.accountNumber || '-' }}</td>
-    </ng-container>
-
-    <!-- Status -->
-    <ng-container matColumnDef="status">
-      <th mat-header-cell *matHeaderCellDef>Status</th>
-      <td mat-cell *matCellDef="let r">
-        <span class="chip" [ngClass]="r.isActive ? 'chip-success' : 'chip-default'">
-          {{ r.isActive ? 'Active' : 'Inactive' }}
-        </span>
-      </td>
-    </ng-container>
-
-    <!-- Actions -->
-    <ng-container matColumnDef="actions">
-      <th mat-header-cell *matHeaderCellDef>Actions</th>
-      <td mat-cell *matCellDef="let r">
-        <button mat-icon-button matTooltip="Edit" (click)="openEditPopup(r)">
-          <mat-icon color="primary">edit</mat-icon>
-        </button>
-        <button mat-icon-button matTooltip="Delete" (click)="deleteReceiver(r)">
-          <mat-icon color="warn">delete</mat-icon>
-        </button>
-      </td>
-    </ng-container>
-
-    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-  </table>
-
-  <div *ngIf="!receivers.length && !loading" class="empty-state">
+  <div *ngIf="!receivers.length && !loading" class="text-center py-12 text-surface-400 dark:text-surface-500 text-sm">
     No receivers found.
   </div>
 
-  <mat-paginator [length]="totalCount" [pageSize]="pageSize" [pageIndex]="pageIndex"
-    [pageSizeOptions]="[10, 20, 50, 100]" (page)="onPageChange($event)" showFirstLastButtons>
-  </mat-paginator>
-</mat-card>
+  <!-- Pagination -->
+  <div class="flex flex-col sm:flex-row items-center justify-between gap-3 mt-4 pt-4 border-t border-surface-200 dark:border-surface-700">
+    <span class="text-sm text-surface-500 dark:text-surface-400">
+      Showing {{ receivers.length ? pageIndex * pageSize + 1 : 0 }}&ndash;{{ pageIndex * pageSize + receivers.length }} of {{ totalCount }}
+    </span>
+    <div class="flex items-center gap-2">
+      <label class="text-sm text-surface-500 dark:text-surface-400">Rows:</label>
+      <select [ngModel]="pageSize" (ngModelChange)="onPageChange({pageIndex: 0, pageSize: $event, length: totalCount})" class="px-2 py-1 rounded-lg border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-700 text-surface-900 dark:text-surface-100 text-sm outline-none focus:ring-2 focus:ring-brand-500">
+        <option [value]="10">10</option><option [value]="20">20</option><option [value]="50">50</option><option [value]="100">100</option>
+      </select>
+      <button (click)="onPageChange({pageIndex: 0, pageSize: pageSize, length: totalCount})" [disabled]="pageIndex === 0" class="p-1.5 rounded-md border border-surface-300 dark:border-surface-600 disabled:opacity-40 hover:bg-surface-100 dark:hover:bg-surface-700 transition">
+        <svg class="w-4 h-4 text-surface-600 dark:text-surface-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/></svg>
+      </button>
+      <button (click)="onPageChange({pageIndex: pageIndex - 1, pageSize: pageSize, length: totalCount})" [disabled]="pageIndex === 0" class="p-1.5 rounded-md border border-surface-300 dark:border-surface-600 disabled:opacity-40 hover:bg-surface-100 dark:hover:bg-surface-700 transition">
+        <svg class="w-4 h-4 text-surface-600 dark:text-surface-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+      </button>
+      <span class="text-sm text-surface-700 dark:text-surface-300 px-2">Page {{ pageIndex + 1 }} of {{ totalPages }}</span>
+      <button (click)="onPageChange({pageIndex: pageIndex + 1, pageSize: pageSize, length: totalCount})" [disabled]="pageIndex >= totalPages - 1" class="p-1.5 rounded-md border border-surface-300 dark:border-surface-600 disabled:opacity-40 hover:bg-surface-100 dark:hover:bg-surface-700 transition">
+        <svg class="w-4 h-4 text-surface-600 dark:text-surface-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+      </button>
+      <button (click)="onPageChange({pageIndex: totalPages - 1, pageSize: pageSize, length: totalCount})" [disabled]="pageIndex >= totalPages - 1" class="p-1.5 rounded-md border border-surface-300 dark:border-surface-600 disabled:opacity-40 hover:bg-surface-100 dark:hover:bg-surface-700 transition">
+        <svg class="w-4 h-4 text-surface-600 dark:text-surface-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 5l7 7-7 7M5 5l7 7-7 7"/></svg>
+      </button>
+    </div>
+  </div>
+</div>
 
 <!-- ============================================================ -->
 <!-- Search Receiver Popup                                         -->
 <!-- ============================================================ -->
-<div *ngIf="showSearchPopup" class="overlay" (click)="closeSearchPopup()"></div>
-<div *ngIf="showSearchPopup" class="popup popup-md">
-  <div class="popup-header">
-    <h3><mat-icon class="header-icon">person_search</mat-icon> Search Receiver</h3>
-    <button mat-icon-button (click)="closeSearchPopup()"><mat-icon>close</mat-icon></button>
-  </div>
+<div *ngIf="showSearchPopup" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm" (click)="closeSearchPopup()"></div>
+<div *ngIf="showSearchPopup" class="fixed inset-0 z-50 flex items-start justify-center p-4 pt-[10vh] pointer-events-none">
+  <div class="bg-white dark:bg-surface-800 rounded-2xl shadow-xl w-full max-w-2xl pointer-events-auto max-h-[80vh] flex flex-col">
+    <div class="flex items-center justify-between px-6 py-4 border-b border-surface-100 dark:border-surface-700">
+      <h3 class="text-lg font-semibold text-surface-900 dark:text-surface-100 flex items-center gap-2">
+        <svg class="w-5 h-5 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"/></svg>
+        Search Receiver
+      </h3>
+      <button (click)="closeSearchPopup()" class="p-1 rounded-lg hover:bg-surface-100 dark:hover:bg-surface-700 text-surface-400 transition"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg></button>
+    </div>
 
-  <mat-form-field appearance="outline" class="full-width">
-    <mat-icon matPrefix>search</mat-icon>
-    <mat-label>Search by name or mobile number</mat-label>
-    <input matInput [(ngModel)]="searchQuery" (ngModelChange)="performSearch()" placeholder="Enter name or phone..." />
-  </mat-form-field>
-
-  <div *ngIf="searchQuery && !searchResults.length" class="empty-state">
-    No receivers match your search.
-  </div>
-
-  <div *ngIf="searchResults.length" class="search-results">
-    <div class="search-result-item" *ngFor="let r of searchResults" (click)="selectSearchResult(r)">
-      <div class="result-main">
-        <span class="result-name">{{ r.fullName }}</span>
-        <span class="result-phone">{{ r.phone }}</span>
+    <div class="p-6">
+      <div class="relative mb-2">
+        <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-surface-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        <input type="text" [(ngModel)]="searchQuery" (ngModelChange)="performSearch()" placeholder="Search by name or mobile number..." autofocus
+          class="w-full pl-11 pr-4 py-3 rounded-xl border border-surface-300 dark:border-surface-600 bg-surface-50 dark:bg-surface-700/50 text-surface-900 dark:text-surface-100 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition text-sm" />
       </div>
-      <div class="result-sub">
-        <span>{{ r.customerName }}</span>
-        <span class="result-dot"></span>
-        <span>{{ r.country }}</span>
-        <span *ngIf="r.bankName" class="result-dot"></span>
-        <span *ngIf="r.bankName">{{ r.bankName }}</span>
+
+      <div *ngIf="searchQuery && !searchResults.length && !searching" class="py-8 text-center text-surface-500 dark:text-surface-400 text-sm">
+        No receivers match your search.
+      </div>
+    </div>
+
+    <div *ngIf="searchResults.length" class="flex-1 overflow-y-auto px-6 pb-6">
+      <div class="space-y-2">
+        <div *ngFor="let r of searchResults" (click)="selectSearchResult(r)"
+          class="cursor-pointer rounded-xl border border-surface-200 dark:border-surface-700 bg-white dark:bg-surface-750 p-4 hover:border-brand-300 dark:hover:border-brand-700 hover:shadow-md transition-all group">
+          <div class="flex items-center justify-between mb-1">
+            <span class="font-semibold text-surface-900 dark:text-surface-100 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">{{ r.fullName }}</span>
+            <span class="text-sm font-medium text-surface-600 dark:text-surface-300">{{ r.phone }}</span>
+          </div>
+          <div class="flex items-center gap-2 text-xs text-surface-500 dark:text-surface-400">
+            <span class="font-medium text-surface-700 dark:text-surface-300 flex items-center gap-1"><svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg> {{ r.customerName }}</span>
+            <span class="w-1 h-1 rounded-full bg-surface-300 dark:bg-surface-600"></span>
+            <span>{{ r.country }}</span>
+            <ng-container *ngIf="r.bankName">
+              <span class="w-1 h-1 rounded-full bg-surface-300 dark:bg-surface-600"></span>
+              <span><svg class="w-3 h-3 inline pb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg> {{ r.bankName }}</span>
+            </ng-container>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -152,70 +167,67 @@
 <!-- ============================================================ -->
 <!-- Create / Edit Receiver Popup                                  -->
 <!-- ============================================================ -->
-<div *ngIf="showFormPopup" class="overlay" (click)="closeFormPopup()"></div>
-<div *ngIf="showFormPopup" class="popup popup-lg">
-  <div class="popup-header">
-    <h3>{{ isEditing ? 'Edit Receiver' : 'Add New Receiver' }}</h3>
-    <button mat-icon-button (click)="closeFormPopup()"><mat-icon>close</mat-icon></button>
-  </div>
+<div *ngIf="showFormPopup" class="fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm" (click)="closeFormPopup()"></div>
+<div *ngIf="showFormPopup" class="fixed inset-0 z-[60] flex items-center justify-center p-4 pointer-events-none">
+  <div class="bg-white dark:bg-surface-800 rounded-2xl shadow-xl w-full max-w-2xl pointer-events-auto max-h-[90vh] overflow-y-auto">
+    <div class="flex items-center justify-between px-6 py-4 border-b border-surface-100 dark:border-surface-700">
+      <h3 class="text-lg font-semibold text-surface-900 dark:text-surface-100">{{ isEditing ? 'Edit Receiver' : 'Add New Receiver' }}</h3>
+      <button (click)="closeFormPopup()" class="p-1 rounded-lg hover:bg-surface-100 dark:hover:bg-surface-700 text-surface-400 transition"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg></button>
+    </div>
 
-  <div *ngIf="formError" class="alert-banner alert-error inline-alert">{{ formError }}</div>
+    <div class="p-6 space-y-4">
+      <div *ngIf="formError" class="px-4 py-3 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 text-sm rounded-lg">{{ formError }}</div>
 
-  <div class="form-grid">
-    <mat-form-field appearance="outline" class="full-width">
-      <mat-label>Customer *</mat-label>
-      <mat-select searchable [(ngModel)]="form.customerId">
-        <mat-option *ngFor="let c of customers" [value]="c.id">{{ c.fullName }}</mat-option>
-      </mat-select>
-    </mat-form-field>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="sm:col-span-2">
+          <label class="block text-xs font-medium text-surface-600 dark:text-surface-400 mb-1">Customer *</label>
+          <select [(ngModel)]="form.customerId" class="w-full px-3 py-2 rounded-lg border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-700 text-surface-900 dark:text-surface-100 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition text-sm">
+            <option [ngValue]="null" disabled>Select Customer</option>
+            <option *ngFor="let c of customers" [ngValue]="c.id">{{ c.fullName }}</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-surface-600 dark:text-surface-400 mb-1">Full Name *</label>
+          <input type="text" [(ngModel)]="form.fullName" class="w-full px-3 py-2 rounded-lg border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-700 text-surface-900 dark:text-surface-100 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition text-sm" />
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-surface-600 dark:text-surface-400 mb-1">Phone *</label>
+          <input type="text" [(ngModel)]="form.phone" class="w-full px-3 py-2 rounded-lg border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-700 text-surface-900 dark:text-surface-100 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition text-sm" />
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-surface-600 dark:text-surface-400 mb-1">Email</label>
+          <input type="email" [(ngModel)]="form.email" class="w-full px-3 py-2 rounded-lg border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-700 text-surface-900 dark:text-surface-100 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition text-sm" />
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-surface-600 dark:text-surface-400 mb-1">Country *</label>
+          <input type="text" [(ngModel)]="form.country" class="w-full px-3 py-2 rounded-lg border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-700 text-surface-900 dark:text-surface-100 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition text-sm" />
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-surface-600 dark:text-surface-400 mb-1">City</label>
+          <input type="text" [(ngModel)]="form.city" class="w-full px-3 py-2 rounded-lg border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-700 text-surface-900 dark:text-surface-100 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition text-sm" />
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-surface-600 dark:text-surface-400 mb-1">Bank Name</label>
+          <input type="text" [(ngModel)]="form.bankName" class="w-full px-3 py-2 rounded-lg border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-700 text-surface-900 dark:text-surface-100 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition text-sm" />
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-surface-600 dark:text-surface-400 mb-1">Account Number</label>
+          <input type="text" [(ngModel)]="form.accountNumber" class="w-full px-3 py-2 rounded-lg border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-700 text-surface-900 dark:text-surface-100 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition text-sm" />
+        </div>
+        <div class="sm:col-span-2">
+          <label class="block text-xs font-medium text-surface-600 dark:text-surface-400 mb-1">Relationship</label>
+          <input type="text" [(ngModel)]="form.relationship" class="w-full px-3 py-2 rounded-lg border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-700 text-surface-900 dark:text-surface-100 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition text-sm" />
+        </div>
+      </div>
+    </div>
 
-    <mat-form-field appearance="outline">
-      <mat-label>Full Name *</mat-label>
-      <input matInput [(ngModel)]="form.fullName" />
-    </mat-form-field>
-
-    <mat-form-field appearance="outline">
-      <mat-label>Phone *</mat-label>
-      <input matInput [(ngModel)]="form.phone" />
-    </mat-form-field>
-
-    <mat-form-field appearance="outline">
-      <mat-label>Email</mat-label>
-      <input matInput type="email" [(ngModel)]="form.email" />
-    </mat-form-field>
-
-    <mat-form-field appearance="outline">
-      <mat-label>Country *</mat-label>
-      <input matInput [(ngModel)]="form.country" />
-    </mat-form-field>
-
-    <mat-form-field appearance="outline">
-      <mat-label>City</mat-label>
-      <input matInput [(ngModel)]="form.city" />
-    </mat-form-field>
-
-    <mat-form-field appearance="outline">
-      <mat-label>Bank Name</mat-label>
-      <input matInput [(ngModel)]="form.bankName" />
-    </mat-form-field>
-
-    <mat-form-field appearance="outline">
-      <mat-label>Account Number</mat-label>
-      <input matInput [(ngModel)]="form.accountNumber" />
-    </mat-form-field>
-
-    <mat-form-field appearance="outline" class="full-width">
-      <mat-label>Relationship</mat-label>
-      <input matInput [(ngModel)]="form.relationship" />
-    </mat-form-field>
-  </div>
-
-  <div class="popup-actions">
-    <button mat-button (click)="closeFormPopup()"><mat-icon>close</mat-icon> Cancel</button>
-    <button mat-raised-button color="primary" (click)="saveReceiver()" [disabled]="saving">
-      <mat-spinner *ngIf="saving" diameter="18" class="inline-spinner"></mat-spinner>
-      <mat-icon *ngIf="!saving">save</mat-icon>
-      {{ isEditing ? 'Save Changes' : 'Add Receiver' }}
-    </button>
+    <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-surface-100 dark:border-surface-700">
+      <button (click)="closeFormPopup()" class="px-4 py-2 text-sm font-medium text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors">Cancel</button>
+      <button (click)="saveReceiver()" [disabled]="saving" class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition-colors disabled:opacity-50 shadow-sm">
+        <svg *ngIf="saving" class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+        <svg *ngIf="!saving" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+        {{ isEditing ? 'Save Changes' : 'Add Receiver' }}
+      </button>
+    </div>
   </div>
 </div>

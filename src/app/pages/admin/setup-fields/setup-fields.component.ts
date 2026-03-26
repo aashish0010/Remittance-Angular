@@ -2,16 +2,6 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
-import { MatCardModule } from '@angular/material/card';
-import { MatTabsModule } from '@angular/material/tabs';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatSlideToggleModule } from '@angular/material/slide-toggle';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatTooltipModule } from '@angular/material/tooltip';
 import { ApiService } from '../../../core/services/api.service';
 import { NotificationService } from '../../../core/services/notification.service';
 
@@ -89,16 +79,6 @@ function emptySystemSetting(): SystemSettingModel {
   imports: [
     CommonModule,
     FormsModule,
-    MatCardModule,
-    MatTabsModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatSelectModule,
-    MatButtonModule,
-    MatIconModule,
-    MatSlideToggleModule,
-    MatProgressSpinnerModule,
-    MatTooltipModule,
   ],
   templateUrl: './setup-fields.component.html',
   styleUrl: './setup-fields.component.scss',
@@ -176,7 +156,7 @@ export class SetupFieldsComponent implements OnInit {
     if (path === 'static-values') {
       this.mode = 'static';
       this.pageTitle = 'Static Values';
-      this.activeTabIndex = 0; // First (and only) tab in static mode is System Settings
+      this.activeTabIndex = 7; // Default to System Settings tab
     } else {
       this.mode = 'setup';
       this.pageTitle = 'Setup';
@@ -196,14 +176,12 @@ export class SetupFieldsComponent implements OnInit {
   }
 
   private loadCurrentTabData(): void {
-    if (this.mode === 'static') {
+    if (this.activeTabIndex <= 5) {
+      this.loadSetupFields(this.setupTabs[this.activeTabIndex].category);
+    } else if (this.activeTabIndex === 6) {
+      this.loadDocumentTypes();
+    } else if (this.activeTabIndex === 7) {
       this.loadSystemSettings();
-    } else {
-      if (this.activeTabIndex <= 5) {
-        this.loadSetupFields(this.setupTabs[this.activeTabIndex].category);
-      } else if (this.activeTabIndex === 6) {
-        this.loadDocumentTypes();
-      }
     }
   }
 

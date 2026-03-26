@@ -1,20 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { MatTableModule } from '@angular/material/table';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatChipsModule } from '@angular/material/chips';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
-import { MatCardModule } from '@angular/material/card';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatTabsModule } from '@angular/material/tabs';
-import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
-import { provideNativeDateAdapter } from '@angular/material/core';
 import { Subject } from 'rxjs';
 import { debounceTime, takeUntil } from 'rxjs/operators';
 import { ApiService } from '../../../core/services/api.service';
@@ -62,12 +48,8 @@ function emptyForm(): CustomerForm {
   selector: 'app-customer-register',
   standalone: true,
   imports: [
-    CommonModule, FormsModule, MatTableModule, MatButtonModule, MatIconModule,
-    MatTooltipModule, MatChipsModule, MatFormFieldModule, MatInputModule,
-    MatSelectModule, MatCardModule, MatProgressSpinnerModule, MatTabsModule,
-    MatDatepickerModule, MatPaginatorModule, DatePipe, SearchableSelectDirective,
+    CommonModule, FormsModule, DatePipe, SearchableSelectDirective,
   ],
-  providers: [provideNativeDateAdapter()],
   templateUrl: './customer-register.component.html',
   styleUrl: './customer-register.component.scss',
 })
@@ -175,7 +157,26 @@ export class CustomerRegisterComponent implements OnInit, OnDestroy {
     });
   }
 
-  onPageChange(event: PageEvent): void {
+  // Tab state for form popup
+  activeTab = 'Personal';
+
+  get totalPages(): number {
+    return Math.ceil(this.totalCount / this.pageSize) || 1;
+  }
+
+  goToPage(page: number): void {
+    if (page < 0 || page >= this.totalPages) return;
+    this.pageIndex = page;
+    this.loadCustomers();
+  }
+
+  onPageSizeChange(size: number): void {
+    this.pageSize = +size;
+    this.pageIndex = 0;
+    this.loadCustomers();
+  }
+
+  onPageChange(event: { pageIndex: number; pageSize: number }): void {
     this.pageIndex = event.pageIndex;
     this.pageSize = event.pageSize;
     this.loadCustomers();

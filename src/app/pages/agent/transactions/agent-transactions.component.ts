@@ -2,17 +2,6 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule, DecimalPipe, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
-import { MatCardModule } from '@angular/material/card';
-import { MatTableModule } from '@angular/material/table';
-import { MatIconModule } from '@angular/material/icon';
-import { MatButtonModule } from '@angular/material/button';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatChipsModule } from '@angular/material/chips';
-import { PageEvent, MatPaginatorModule } from '@angular/material/paginator';
-import { MatTooltipModule } from '@angular/material/tooltip';
 import { Subject } from 'rxjs';
 import { debounceTime, takeUntil } from 'rxjs/operators';
 import { ApiService } from '../../../core/services/api.service';
@@ -28,17 +17,6 @@ import { TransactionResult } from '../../../core/models/transaction.models';
     CommonModule,
     FormsModule,
     RouterModule,
-    MatCardModule,
-    MatTableModule,
-    MatIconModule,
-    MatButtonModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatSelectModule,
-    MatProgressSpinnerModule,
-    MatChipsModule,
-    MatPaginatorModule,
-    MatTooltipModule,
     DecimalPipe,
     DatePipe,
   ],
@@ -52,24 +30,14 @@ export class AgentTransactionsComponent implements OnInit, OnDestroy {
   statusFilter = 'All';
   selectedTransaction: TransactionResult | null = null;
 
-  displayedColumns: string[] = [
-    'referenceNumber',
-    'sender',
-    'receiver',
-    'sendAmount',
-    'receiveAmount',
-    'commission',
-    'status',
-    'createdAt',
-    'actions',
-  ];
-
   // Server-side pagination
   pageIndex = 0;
   pageSize = 20;
   totalCount = 0;
   searchDebounce = new Subject<string>();
   private destroy$ = new Subject<void>();
+
+  Math = Math;
 
   constructor(
     private api: ApiService,
@@ -122,7 +90,7 @@ export class AgentTransactionsComponent implements OnInit, OnDestroy {
     this.loadTransactions();
   }
 
-  onPageChange(event: PageEvent): void {
+  onPageChange(event: { pageIndex: number; pageSize: number; length: number; previousPageIndex?: number }): void {
     this.pageSize = event.pageSize;
     this.pageIndex = event.pageIndex;
     this.loadTransactions();
@@ -174,15 +142,15 @@ export class AgentTransactionsComponent implements OnInit, OnDestroy {
 
   getStatusClass(status: string): string {
     switch (status) {
-      case 'Completed': return 'status-completed';
-      case 'Pending': return 'status-pending';
+      case 'Completed': return 'bg-success-100 text-success-700 dark:bg-success-900/30 dark:text-success-400';
+      case 'Pending': return 'bg-warning-100 text-warning-700 dark:bg-warning-900/30 dark:text-warning-400';
       case 'Approved':
-      case 'Processing': return 'status-processing';
+      case 'Processing': return 'bg-brand-100 text-brand-700 dark:bg-brand-900/30 dark:text-brand-400';
       case 'Cancelled':
-      case 'Failed': return 'status-failed';
-      case 'OnHold': return 'status-onhold';
-      case 'Compliance': return 'status-compliance';
-      default: return 'status-default';
+      case 'Failed': return 'bg-danger-100 text-danger-700 dark:bg-danger-900/30 dark:text-danger-400';
+      case 'OnHold': return 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400';
+      case 'Compliance': return 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400';
+      default: return 'bg-surface-100 text-surface-600 dark:bg-surface-700 dark:text-surface-400';
     }
   }
 

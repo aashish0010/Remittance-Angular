@@ -1,17 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { MatTableModule } from '@angular/material/table';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatChipsModule } from '@angular/material/chips';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
-import { MatCardModule } from '@angular/material/card';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { Subject } from 'rxjs';
 import { debounceTime, takeUntil } from 'rxjs/operators';
 import { ApiService } from '../../../core/services/api.service';
@@ -21,7 +10,6 @@ import { NotificationService } from '../../../core/services/notification.service
 import { ExchangeRateModel } from '../../../core/models/exchange-rate.models';
 import { AgentModel } from '../../../core/models/agent.models';
 import { CountryInfo } from '../../../core/models/common.models';
-import { SearchableSelectDirective } from '../../../shared/searchable-select.directive';
 
 interface RateForm {
   agentId: number | null;
@@ -43,10 +31,7 @@ function emptyForm(): RateForm {
   selector: 'app-exchange-rates',
   standalone: true,
   imports: [
-    CommonModule, FormsModule, MatTableModule, MatButtonModule, MatIconModule,
-    MatTooltipModule, MatChipsModule, MatFormFieldModule, MatInputModule,
-    MatSelectModule, MatCardModule, MatProgressSpinnerModule, MatPaginatorModule,
-    DecimalPipe,
+    CommonModule, FormsModule, DecimalPipe,
   ],
   templateUrl: './exchange-rates.component.html',
   styleUrl: './exchange-rates.component.scss',
@@ -56,7 +41,6 @@ export class ExchangeRatesComponent implements OnInit, OnDestroy {
   agents: AgentModel[] = [];
   countries: CountryInfo[] = [];
   currencies: string[] = [];
-  displayedColumns = ['agentName', 'sourceCurrency', 'destinationCurrency', 'rate', 'margin', 'isActive', 'actions'];
   searchString = '';
   loading = true;
 
@@ -64,6 +48,10 @@ export class ExchangeRatesComponent implements OnInit, OnDestroy {
   pageIndex = 0;
   pageSize = 20;
   totalCount = 0;
+
+  get totalPages(): number {
+    return Math.ceil(this.totalCount / this.pageSize) || 1;
+  }
 
   // Server-side search with debounce
   private searchSubject = new Subject<string>();
@@ -164,9 +152,16 @@ export class ExchangeRatesComponent implements OnInit, OnDestroy {
     this.searchSubject.next(this.searchString);
   }
 
-  onPageChange(event: PageEvent): void {
-    this.pageIndex = event.pageIndex;
-    this.pageSize = event.pageSize;
+  // Pagination helpers
+  goToPage(index: number): void {
+    if (index < 0 || index >= this.totalPages) return;
+    this.pageIndex = index;
+    this.loadRates();
+  }
+
+  onPageSizeChange(newSize: string | number): void {
+    this.pageSize = +newSize;
+    this.pageIndex = 0;
     this.loadRates();
   }
 

@@ -1,17 +1,6 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { MatTableModule } from '@angular/material/table';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
-import { MatSlideToggleModule } from '@angular/material/slide-toggle';
-import { MatCardModule } from '@angular/material/card';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { Subject } from 'rxjs';
 import { debounceTime, takeUntil } from 'rxjs/operators';
 import { ApiService } from '../../../core/services/api.service';
@@ -63,17 +52,6 @@ function emptyForm(): CommissionForm {
   imports: [
     CommonModule,
     FormsModule,
-    MatTableModule,
-    MatButtonModule,
-    MatIconModule,
-    MatTooltipModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatSelectModule,
-    MatSlideToggleModule,
-    MatCardModule,
-    MatProgressSpinnerModule,
-    MatPaginatorModule,
     DecimalPipe,
     SearchableSelectDirective,
   ],
@@ -81,6 +59,8 @@ function emptyForm(): CommissionForm {
   styleUrl: './commissions.component.scss',
 })
 export class CommissionsComponent implements OnInit, OnDestroy {
+  Math = Math;
+
   commissions: CommissionRateModel[] = [];
   displayedColumns = [
     'sendingAgent', 'payoutAgent', 'sourceCountry', 'destCountry',
@@ -193,7 +173,18 @@ export class CommissionsComponent implements OnInit, OnDestroy {
     this.searchSubject.next(this.searchString);
   }
 
-  onPageChange(event: PageEvent): void {
+  onPageSizeChange(newSize: number): void {
+    this.pageSize = newSize;
+    this.pageIndex = 0;
+    this.loadCommissions();
+  }
+
+  goToPage(index: number): void {
+    this.pageIndex = index;
+    this.loadCommissions();
+  }
+
+  onPageChange(event: { pageIndex: number; pageSize: number }): void {
     this.pageIndex = event.pageIndex;
     this.pageSize = event.pageSize;
     this.loadCommissions();

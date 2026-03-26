@@ -1,19 +1,8 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { MatTableModule } from '@angular/material/table';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
-import { MatCardModule } from '@angular/material/card';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { PageEvent, MatPaginatorModule } from '@angular/material/paginator';
 import { Subject } from 'rxjs';
 import { debounceTime, takeUntil } from 'rxjs/operators';
-import { SearchableSelectDirective } from '../../../shared/searchable-select.directive';
 import { ApiService } from '../../../core/services/api.service';
 import { ExportService } from '../../../core/services/export.service';
 import { AuthStateService } from '../../../core/services/auth-state.service';
@@ -49,17 +38,6 @@ function emptyPartnerForm(): PartnerForm {
   imports: [
     CommonModule,
     FormsModule,
-    MatTableModule,
-    MatButtonModule,
-    MatIconModule,
-    MatTooltipModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatSelectModule,
-    MatCardModule,
-    MatProgressSpinnerModule,
-    MatPaginatorModule,
-    SearchableSelectDirective,
   ],
   templateUrl: './routing.component.html',
   styleUrl: './routing.component.scss',
@@ -77,6 +55,7 @@ export class RoutingComponent implements OnInit, OnDestroy {
   pageIndex = 0;
   pageSize = 20;
   totalCount = 0;
+  pageSizeOptions = [10, 20, 50, 100];
   searchDebounce = new Subject<string>();
   private destroy$ = new Subject<void>();
 
@@ -176,9 +155,38 @@ export class RoutingComponent implements OnInit, OnDestroy {
     });
   }
 
-  onPageChange(event: PageEvent): void {
-    this.pageIndex = event.pageIndex;
-    this.pageSize = event.pageSize;
+  // Custom pagination helpers
+  get totalPages(): number {
+    return Math.ceil(this.totalCount / this.pageSize) || 1;
+  }
+
+  goToFirstPage(): void {
+    this.pageIndex = 0;
+    this.loadCorridors();
+  }
+
+  goToPreviousPage(): void {
+    if (this.pageIndex > 0) {
+      this.pageIndex--;
+      this.loadCorridors();
+    }
+  }
+
+  goToNextPage(): void {
+    if (this.pageIndex < this.totalPages - 1) {
+      this.pageIndex++;
+      this.loadCorridors();
+    }
+  }
+
+  goToLastPage(): void {
+    this.pageIndex = this.totalPages - 1;
+    this.loadCorridors();
+  }
+
+  onPageSizeChange(newSize: string): void {
+    this.pageSize = Number(newSize);
+    this.pageIndex = 0;
     this.loadCorridors();
   }
 
@@ -368,6 +376,19 @@ export class RoutingComponent implements OnInit, OnDestroy {
         this.partnerSeverity = 'error';
       }
     });
+  }
+
+  isPaymentModeSelected(modeId: number): boolean {
+    return this.partnerForm.paymentModeIds.includes(modeId);
+  }
+
+  togglePaymentMode(modeId: number): void {
+    const idx = this.partnerForm.paymentModeIds.indexOf(modeId);
+    if (idx >= 0) {
+      this.partnerForm.paymentModeIds.splice(idx, 1);
+    } else {
+      this.partnerForm.paymentModeIds.push(modeId);
+    }
   }
 
   private refreshPartnerCorridor(): void {

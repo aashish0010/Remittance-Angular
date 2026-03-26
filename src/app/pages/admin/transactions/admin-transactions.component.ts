@@ -2,18 +2,6 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule, DecimalPipe, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterModule } from '@angular/router';
-import { MatTableModule } from '@angular/material/table';
-import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
-import { MatSortModule } from '@angular/material/sort';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
-import { MatIconModule } from '@angular/material/icon';
-import { MatButtonModule } from '@angular/material/button';
-import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatChipsModule } from '@angular/material/chips';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatCardModule } from '@angular/material/card';
 import { Subject } from 'rxjs';
 import { debounceTime, takeUntil } from 'rxjs/operators';
 import { ApiService } from '../../../core/services/api.service';
@@ -28,18 +16,6 @@ import { TransactionResult } from '../../../core/models/transaction.models';
   imports: [
     CommonModule,
     FormsModule,
-    MatTableModule,
-    MatPaginatorModule,
-    MatSortModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatSelectModule,
-    MatIconModule,
-    MatButtonModule,
-    MatTooltipModule,
-    MatChipsModule,
-    MatProgressSpinnerModule,
-    MatCardModule,
     RouterModule,
     DecimalPipe,
     DatePipe,
@@ -146,7 +122,9 @@ export class AdminTransactionsComponent implements OnInit, OnDestroy {
     this.loadTransactions();
   }
 
-  onPageChange(event: PageEvent): void {
+  Math = Math;
+
+  onPageChange(event: { pageIndex: number; pageSize: number }): void {
     this.pageIndex = event.pageIndex;
     this.pageSize = event.pageSize;
     this.loadTransactions();
@@ -198,15 +176,15 @@ export class AdminTransactionsComponent implements OnInit, OnDestroy {
 
   getStatusClass(status: string): string {
     switch (status) {
-      case 'Pending': return 'status-pending';
+      case 'Pending': return 'bg-warning-100 text-warning-700 dark:bg-warning-900/30 dark:text-warning-400';
       case 'Processing':
-      case 'Approved': return 'status-processing';
-      case 'Completed': return 'status-completed';
-      case 'Cancelled': return 'status-cancelled';
-      case 'Failed': return 'status-failed';
-      case 'OnHold': return 'status-onhold';
-      case 'Compliance': return 'status-compliance';
-      default: return 'status-default';
+      case 'Approved': return 'bg-brand-100 text-brand-700 dark:bg-brand-900/30 dark:text-brand-400';
+      case 'Completed': return 'bg-success-100 text-success-700 dark:bg-success-900/30 dark:text-success-400';
+      case 'Cancelled': return 'bg-danger-100 text-danger-700 dark:bg-danger-900/30 dark:text-danger-400';
+      case 'Failed': return 'bg-danger-100 text-danger-700 dark:bg-danger-900/30 dark:text-danger-400';
+      case 'OnHold': return 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400';
+      case 'Compliance': return 'bg-warning-100 text-warning-700 dark:bg-warning-900/30 dark:text-warning-400';
+      default: return 'bg-surface-100 text-surface-600 dark:bg-surface-700 dark:text-surface-400';
     }
   }
 

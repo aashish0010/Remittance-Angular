@@ -1,22 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule, DecimalPipe } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule, FormGroup, FormControl } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
-import { MatCardModule } from '@angular/material/card';
-import { MatStepperModule } from '@angular/material/stepper';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatProgressBarModule } from '@angular/material/progress-bar';
-import { MatDividerModule } from '@angular/material/divider';
+import { z } from 'zod';
 import { NotificationService } from '../../../core/services/notification.service';
-import { MatTabsModule } from '@angular/material/tabs';
-import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatDatepickerModule } from '@angular/material/datepicker';
-import { provideNativeDateAdapter } from '@angular/material/core';
 import { ApiService } from '../../../core/services/api.service';
 import { AuthStateService } from '../../../core/services/auth-state.service';
 import { SendTransactionModel, TransactionResult, CalculateTransferRequest, ComplianceViolation } from '../../../core/models/transaction.models';
@@ -26,7 +13,48 @@ import { CustomerModel, ReceiverModel } from '../../../core/models/customer.mode
 import { PaymentCorridorModel, CorridorPayoutPartnerModel } from '../../../core/models/routing.models';
 import { Subject } from 'rxjs';
 import { debounceTime } from 'rxjs/operators';
-import { SearchableSelectDirective } from '../../../shared/searchable-select.directive';
+import { SendMoneyStore } from './send-money.store';
+
+// ---------------------------------------------------------------------------
+// Zod Schemas
+// ---------------------------------------------------------------------------
+export const CustomerFormSchema = z.object({
+  fullName: z.string().min(1, 'Full name is required').max(100, 'Max 100 characters'),
+  phone: z.string().min(1, 'Phone is required').max(20, 'Max 20 characters'),
+  email: z.string().email('Invalid email').optional().or(z.literal('')),
+  dateOfBirth: z.string().optional().or(z.literal('')),
+  gender: z.string().optional().or(z.literal('')),
+  nationality: z.string().optional().or(z.literal('')),
+  country: z.string().min(1, 'Country is required'),
+  city: z.string().optional().or(z.literal('')),
+  state: z.string().optional().or(z.literal('')),
+  postalCode: z.string().optional().or(z.literal('')),
+  address: z.string().optional().or(z.literal('')),
+  idDocumentType: z.string().optional().or(z.literal('')),
+  idDocumentNumber: z.string().optional().or(z.literal('')),
+  docIssueDate: z.string().optional().or(z.literal('')),
+  docExpiryDate: z.string().optional().or(z.literal('')),
+  docIssuingCountry: z.string().optional().or(z.literal('')),
+});
+
+export const ReceiverFormSchema = z.object({
+  fullName: z.string().min(1, 'Full name is required').max(100, 'Max 100 characters'),
+  phone: z.string().min(1, 'Phone is required').max(20, 'Max 20 characters'),
+  email: z.string().email('Invalid email').optional().or(z.literal('')),
+  country: z.string().optional().or(z.literal('')),
+  city: z.string().optional().or(z.literal('')),
+  bankName: z.string().optional().or(z.literal('')),
+  bankCode: z.string().optional().or(z.literal('')),
+  accountNumber: z.string().optional().or(z.literal('')),
+  branchName: z.string().optional().or(z.literal('')),
+  branchCode: z.string().optional().or(z.literal('')),
+  bankId: z.number().nullable().optional(),
+  branchId: z.number().nullable().optional(),
+  relationship: z.string().optional().or(z.literal('')),
+});
+
+export type CustomerFormValue = z.infer<typeof CustomerFormSchema>;
+export type ReceiverFormValue = z.infer<typeof ReceiverFormSchema>;
 
 @Component({
   selector: 'app-send-money',
@@ -34,31 +62,21 @@ import { SearchableSelectDirective } from '../../../shared/searchable-select.dir
   imports: [
     CommonModule,
     FormsModule,
+    ReactiveFormsModule,
     RouterModule,
-    MatCardModule,
-    MatStepperModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatSelectModule,
-    MatButtonModule,
-    MatIconModule,
-    MatProgressSpinnerModule,
-    MatProgressBarModule,
-    MatDividerModule,
-
-    MatTabsModule,
-    MatTooltipModule,
-    MatDatepickerModule,
     DecimalPipe,
-    SearchableSelectDirective,
   ],
-  providers: [provideNativeDateAdapter()],
+  providers: [SendMoneyStore],
   templateUrl: './send-money.component.html',
   styleUrl: './send-money.component.scss',
 })
 export class SendMoneyComponent implements OnInit {
-  // Step tracking
-  step = 0;
+  readonly store = inject(SendMoneyStore);
+
+  // Step tracking (kept as local properties that sync with store)
+  get step(): number { return this.store.currentStep(); }
+  set step(v: number) { this.store.setStep(v); }
+
   submitting = false;
   successResult: TransactionResult | null = null;
 
@@ -92,9 +110,29 @@ export class SendMoneyComponent implements OnInit {
   selectedCustomerId: number | null = null;
   selectedCustomer: CustomerModel | null = null;
   showCreateCustomer = false;
-  newCustomer = this.emptyCustomerForm();
   customerFormError = '';
   savingCustomer = false;
+
+  // Customer Reactive Form
+  customerForm = new FormGroup({
+    fullName: new FormControl(''),
+    phone: new FormControl(''),
+    email: new FormControl(''),
+    dateOfBirth: new FormControl(''),
+    gender: new FormControl(''),
+    nationality: new FormControl(''),
+    country: new FormControl(''),
+    city: new FormControl(''),
+    state: new FormControl(''),
+    postalCode: new FormControl(''),
+    address: new FormControl(''),
+    idDocumentType: new FormControl(''),
+    idDocumentNumber: new FormControl(''),
+    docIssueDate: new FormControl(''),
+    docExpiryDate: new FormControl(''),
+    docIssuingCountry: new FormControl(''),
+  });
+  customerFormErrors: Record<string, string> = {};
 
   // Step 2: Amount & Calculation
   sendAmount = 0;
@@ -104,7 +142,7 @@ export class SendMoneyComponent implements OnInit {
   receiverCurrency = '';
   selectedPaymentMethodId: number | null = null;
 
-  // Route matching (internal — not exposed to user as "routing")
+  // Route matching
   matchedCorridor: PaymentCorridorModel | null = null;
   matchedPartners: CorridorPayoutPartnerModel[] = [];
   selectedPartnerId: number | null = null;
@@ -113,7 +151,7 @@ export class SendMoneyComponent implements OnInit {
   selectedPayoutModeId: number | null = null;
   routeError = '';
 
-  // Calculation results (from backend)
+  // Calculation results
   exchangeRate = 0;
   serviceCharge = 0;
   totalPayable = 0;
@@ -131,9 +169,26 @@ export class SendMoneyComponent implements OnInit {
   selectedReceiverId: number | null = null;
   selectedReceiver: ReceiverModel | null = null;
   showCreateReceiver = false;
-  newReceiver = this.emptyReceiverForm();
   receiverFormError = '';
   savingReceiver = false;
+
+  // Receiver Reactive Form
+  receiverForm = new FormGroup({
+    fullName: new FormControl(''),
+    phone: new FormControl(''),
+    email: new FormControl(''),
+    country: new FormControl(''),
+    city: new FormControl(''),
+    bankName: new FormControl(''),
+    bankCode: new FormControl(''),
+    accountNumber: new FormControl(''),
+    branchName: new FormControl(''),
+    branchCode: new FormControl(''),
+    bankId: new FormControl<number | null>(null),
+    branchId: new FormControl<number | null>(null),
+    relationship: new FormControl(''),
+  });
+  receiverFormErrors: Record<string, string> = {};
 
   // Payout location data
   payoutBanks: AgentBankModel[] = [];
@@ -170,6 +225,40 @@ export class SendMoneyComponent implements OnInit {
   }
 
   // ---------------------------------------------------------------------------
+  // Zod Validation Helpers
+  // ---------------------------------------------------------------------------
+
+  private validateCustomerForm(): boolean {
+    const result = CustomerFormSchema.safeParse(this.customerForm.getRawValue());
+    this.customerFormErrors = {};
+    if (!result.success) {
+      for (const issue of result.error.issues) {
+        const field = issue.path[0] as string;
+        if (!this.customerFormErrors[field]) {
+          this.customerFormErrors[field] = issue.message;
+        }
+      }
+      return false;
+    }
+    return true;
+  }
+
+  private validateReceiverForm(): boolean {
+    const result = ReceiverFormSchema.safeParse(this.receiverForm.getRawValue());
+    this.receiverFormErrors = {};
+    if (!result.success) {
+      for (const issue of result.error.issues) {
+        const field = issue.path[0] as string;
+        if (!this.receiverFormErrors[field]) {
+          this.receiverFormErrors[field] = issue.message;
+        }
+      }
+      return false;
+    }
+    return true;
+  }
+
+  // ---------------------------------------------------------------------------
   // Reference Data
   // ---------------------------------------------------------------------------
 
@@ -181,10 +270,10 @@ export class SendMoneyComponent implements OnInit {
         if (r.data.currency) {
           this.senderCurrency = r.data.currency;
         }
-        // Check if agent balance is zero or negative
         const available = r.data.creditLimit - r.data.currentBalance;
         if (available <= 0) {
           this.agentBalanceZero = true;
+          this.store.setAgentBalanceZero(true);
           this.notify.error('Insufficient balance. Your available balance is 0. Please contact admin to top up.');
         }
       }
@@ -229,15 +318,14 @@ export class SendMoneyComponent implements OnInit {
   selectCustomer(customer: CustomerModel): void {
     this.selectedCustomerId = customer.id;
     this.selectedCustomer = customer;
+    this.store.setSelectedCustomer(customer);
     this.kycWarning = '';
     this.dobWarning = '';
 
-    // KYC check
     if (!customer.isKycVerified) {
       this.kycWarning = 'This customer has not completed KYC verification. Transaction cannot proceed.';
     }
 
-    // DOB check (must be 16+)
     if (customer.dateOfBirth) {
       const dob = new Date(customer.dateOfBirth);
       const today = new Date();
@@ -250,31 +338,59 @@ export class SendMoneyComponent implements OnInit {
         this.dobWarning = `Customer is ${age} years old. Must be at least 16 years old to send a transaction.`;
       }
     }
+
+    this.store.setKycWarning(this.kycWarning);
+    this.store.setDobWarning(this.dobWarning);
   }
 
   clearSelectedCustomer(): void {
     this.selectedCustomerId = null;
     this.selectedCustomer = null;
+    this.store.setSelectedCustomer(null);
     this.kycWarning = '';
     this.dobWarning = '';
+    this.store.setKycWarning('');
+    this.store.setDobWarning('');
   }
 
   toggleCreateCustomer(): void {
     this.showCreateCustomer = !this.showCreateCustomer;
     this.customerFormError = '';
+    this.customerFormErrors = {};
     if (this.showCreateCustomer) {
-      this.newCustomer = this.emptyCustomerForm();
+      this.customerForm.reset();
     }
   }
 
   saveNewCustomer(): void {
     this.customerFormError = '';
-    if (!this.newCustomer.fullName?.trim()) { this.customerFormError = 'Full name is required.'; return; }
-    if (!this.newCustomer.phone?.trim()) { this.customerFormError = 'Phone is required.'; return; }
-    if (!this.newCustomer.country?.trim()) { this.customerFormError = 'Country is required.'; return; }
+    if (!this.validateCustomerForm()) {
+      this.customerFormError = 'Please fix the highlighted fields.';
+      return;
+    }
 
     this.savingCustomer = true;
-    this.api.createAgentCustomer(this.newCustomer).subscribe({
+    const formValue = this.customerForm.getRawValue();
+    const newCustomer = {
+      fullName: formValue.fullName || '',
+      email: formValue.email || '',
+      phone: formValue.phone || '',
+      dateOfBirth: formValue.dateOfBirth || '',
+      gender: formValue.gender || '',
+      nationality: formValue.nationality || '',
+      country: formValue.country || '',
+      city: formValue.city || '',
+      state: formValue.state || '',
+      postalCode: formValue.postalCode || '',
+      address: formValue.address || '',
+      idDocumentType: formValue.idDocumentType || '',
+      idDocumentNumber: formValue.idDocumentNumber || '',
+      docIssueDate: formValue.docIssueDate || '',
+      docExpiryDate: formValue.docExpiryDate || '',
+      docIssuingCountry: formValue.docIssuingCountry || '',
+    };
+
+    this.api.createAgentCustomer(newCustomer).subscribe({
       next: res => {
         if (res?.success && res.data) {
           this.customers.push(res.data);
@@ -294,15 +410,6 @@ export class SendMoneyComponent implements OnInit {
     });
   }
 
-  emptyCustomerForm() {
-    return {
-      fullName: '', email: '', phone: '', dateOfBirth: '', gender: '',
-      nationality: '', country: '', city: '', state: '', postalCode: '',
-      address: '', idDocumentType: '', idDocumentNumber: '',
-      docIssueDate: '', docExpiryDate: '', docIssuingCountry: '',
-    };
-  }
-
   // ---------------------------------------------------------------------------
   // Step 2: Amount Calculation (backend-driven)
   // ---------------------------------------------------------------------------
@@ -319,21 +426,25 @@ export class SendMoneyComponent implements OnInit {
   }
 
   onPaymentMethodChange(): void {
+    this.store.setSelectedPaymentMethodId(this.selectedPaymentMethodId);
     this.findRoute();
     this.triggerCalculation();
   }
 
   onAmountChange(): void {
+    this.store.setSendAmount(this.sendAmount);
     this.triggerCalculation();
   }
 
   private triggerCalculation(): void {
-    // Reset calculation when inputs change
     this.calculationDone = false;
+    this.store.setCalculationDone(false);
     this.calcError = '';
     this.complianceViolations = [];
     this.complianceBlocked = false;
+    this.store.setComplianceBlocked(false);
     this.balanceWarning = '';
+    this.store.setBalanceWarning('');
     this.agentAvailableBalance = null;
     if (this.canCalculate()) {
       this.calcTrigger$.next();
@@ -356,9 +467,6 @@ export class SendMoneyComponent implements OnInit {
     );
   }
 
-  /**
-   * Call backend to calculate exchange rate, receive amount, service charge, and total payable.
-   */
   private calculateViaBackend(): void {
     if (!this.canCalculate()) return;
 
@@ -392,26 +500,26 @@ export class SendMoneyComponent implements OnInit {
           this.balanceWarning = res.data.balanceWarning || '';
           this.calculationDone = true;
           this.calcError = '';
+          // Sync to store
+          this.store.setCalculationDone(true);
+          this.store.setComplianceBlocked(this.complianceBlocked);
+          this.store.setBalanceWarning(this.balanceWarning);
         } else {
           this.calcError = res?.message || 'Calculation failed.';
           this.calculationDone = false;
+          this.store.setCalculationDone(false);
         }
         this.loadingCalc = false;
       },
       error: err => {
         this.calcError = err?.error?.message || 'Failed to calculate. Please try again.';
         this.calculationDone = false;
+        this.store.setCalculationDone(false);
         this.loadingCalc = false;
       },
     });
   }
 
-  /**
-   * Auto-find corridor and payout partner based on:
-   * - Sender country/currency (from agent profile)
-   * - Receiver country/currency (from selection)
-   * - Selected payment method
-   */
   private findRoute(): void {
     this.matchedCorridor = null;
     this.matchedPartners = [];
@@ -450,8 +558,11 @@ export class SendMoneyComponent implements OnInit {
       this.availablePayoutModes = this.paymentMethods.filter(pm =>
         matchingPartner.paymentModeIds.includes(pm.id)
       );
+      // Sync to store
+      this.store.setRouteState(this.matchedCorridor, this.selectedPartner, this.selectedPayoutModeId);
     } else {
       this.routeError = `The selected payment method is not available for ${this.receiverCountry}. Please choose a different method.`;
+      this.store.setRouteState(null, null, null);
     }
   }
 
@@ -491,9 +602,7 @@ export class SendMoneyComponent implements OnInit {
     const bankNames = this.payoutBanks.map(b => b.bankName.toLowerCase());
 
     let filtered = this.receivers.filter(r => {
-      // Must match destination country
       if (r.country !== this.receiverCountry) return false;
-      // Must match a bank/location/wallet from the selected payment method's payout partner
       if (bankNames.length && r.bankName) {
         if (!bankNames.includes(r.bankName.toLowerCase())) return false;
       }
@@ -512,40 +621,63 @@ export class SendMoneyComponent implements OnInit {
   selectReceiver(receiver: ReceiverModel): void {
     this.selectedReceiverId = receiver.id;
     this.selectedReceiver = receiver;
+    this.store.setSelectedReceiver(receiver);
   }
 
   clearSelectedReceiver(): void {
     this.selectedReceiverId = null;
     this.selectedReceiver = null;
+    this.store.setSelectedReceiver(null);
   }
 
   toggleCreateReceiver(): void {
     this.showCreateReceiver = !this.showCreateReceiver;
     this.receiverFormError = '';
+    this.receiverFormErrors = {};
     if (this.showCreateReceiver) {
-      this.newReceiver = this.emptyReceiverForm();
-      this.newReceiver.country = this.receiverCountry;
+      this.receiverForm.reset();
+      this.receiverForm.patchValue({ country: this.receiverCountry });
     }
   }
 
   saveNewReceiver(): void {
     this.receiverFormError = '';
-    if (!this.newReceiver.fullName?.trim()) { this.receiverFormError = 'Full name is required.'; return; }
-    if (!this.newReceiver.phone?.trim()) { this.receiverFormError = 'Phone is required.'; return; }
+    if (!this.validateReceiverForm()) {
+      this.receiverFormError = 'Please fix the highlighted fields.';
+      return;
+    }
 
     this.savingReceiver = true;
+    const formValue = this.receiverForm.getRawValue();
+
+    const newReceiver: any = {
+      fullName: formValue.fullName || '',
+      phone: formValue.phone || '',
+      email: formValue.email || '',
+      country: formValue.country || '',
+      city: formValue.city || '',
+      bankName: formValue.bankName || '',
+      bankCode: formValue.bankCode || '',
+      accountNumber: formValue.accountNumber || '',
+      branchName: formValue.branchName || '',
+      branchCode: formValue.branchCode || '',
+      bankId: formValue.bankId || null,
+      branchId: formValue.branchId || null,
+      relationship: formValue.relationship || '',
+    };
+
     // Populate bank/branch IDs from selected payout bank/branch
     const selBank = this.selectedBankId ? this.payoutBanks.find(b => b.id === this.selectedBankId) : null;
     if (selBank) {
-      this.newReceiver.bankCode = selBank.bankCode || '';
-      this.newReceiver.bankId = selBank.id;
+      newReceiver.bankCode = selBank.bankCode || '';
+      newReceiver.bankId = selBank.id;
     }
     if (this.selectedBranch) {
-      this.newReceiver.branchName = this.selectedBranch.branchName;
-      this.newReceiver.branchCode = this.selectedBranch.branchCode || '';
-      this.newReceiver.branchId = this.selectedBranch.id;
+      newReceiver.branchName = this.selectedBranch.branchName;
+      newReceiver.branchCode = this.selectedBranch.branchCode || '';
+      newReceiver.branchId = this.selectedBranch.id;
     }
-    const dto = { ...this.newReceiver, customerId: this.selectedCustomerId };
+    const dto = { ...newReceiver, customerId: this.selectedCustomerId };
     this.api.createAgentReceiver(dto).subscribe({
       next: res => {
         if (res?.success && res.data) {
@@ -564,16 +696,6 @@ export class SendMoneyComponent implements OnInit {
         this.savingReceiver = false;
       },
     });
-  }
-
-  emptyReceiverForm() {
-    return {
-      fullName: '', phone: '', email: '', country: '', city: '',
-      bankName: '', bankCode: '', accountNumber: '',
-      branchName: '', branchCode: '',
-      bankId: null as number | null, branchId: null as number | null,
-      relationship: '',
-    };
   }
 
   getPayoutModeName(): string {
@@ -599,18 +721,22 @@ export class SendMoneyComponent implements OnInit {
     this.selectedBranch = null;
     const bank = this.payoutBanks.find(b => b.id === this.selectedBankId);
     if (bank) {
-      this.newReceiver.bankName = bank.bankName;
-      this.newReceiver.bankCode = bank.bankCode || '';
-      this.newReceiver.bankId = bank.id;
+      this.receiverForm.patchValue({
+        bankName: bank.bankName,
+        bankCode: bank.bankCode || '',
+        bankId: bank.id,
+      });
     }
   }
 
   onLocationSelected(): void {
     const loc = this.payoutLocations.find(l => l.id === this.selectedLocationId);
     if (loc) {
-      this.newReceiver.bankName = loc.locationName;
-      this.newReceiver.bankCode = loc.locationCode || '';
-      this.newReceiver.bankId = loc.id;
+      this.receiverForm.patchValue({
+        bankName: loc.locationName,
+        bankCode: loc.locationCode || '',
+        bankId: loc.id,
+      });
     }
   }
 
@@ -685,11 +811,11 @@ export class SendMoneyComponent implements OnInit {
       this.notify.error('Please select or create a receiver.');
       return;
     }
-    this.step++;
+    this.store.nextStep();
   }
 
   prevStep(): void {
-    if (this.step > 0) this.step--;
+    this.store.prevStep();
   }
 
   // ---------------------------------------------------------------------------
@@ -702,21 +828,18 @@ export class SendMoneyComponent implements OnInit {
       return;
     }
 
-    // Check PIN status before proceeding
     this.submitting = true;
     this.api.getTransactionPinStatus().subscribe({
       next: (res: any) => {
         this.submitting = false;
         const hasPin = res?.data?.hasPin ?? res?.hasPin ?? false;
         if (!hasPin) {
-          // No PIN set — prompt to create one
           this.pinMode = 'set';
           this.pinInput = '';
           this.pinConfirm = '';
           this.pinError = '';
           this.showPinDialog = true;
         } else {
-          // PIN exists — prompt to verify
           this.pinMode = 'verify';
           this.pinInput = '';
           this.pinError = '';
@@ -735,7 +858,7 @@ export class SendMoneyComponent implements OnInit {
 
     if (this.pinMode === 'set') {
       if (!this.pinInput || this.pinInput.length < 4 || this.pinInput.length > 6) {
-        this.pinError = 'PIN must be 4–6 digits.';
+        this.pinError = 'PIN must be 4-6 digits.';
         return;
       }
       if (!/^\d+$/.test(this.pinInput)) {
@@ -752,7 +875,6 @@ export class SendMoneyComponent implements OnInit {
           this.pinLoading = false;
           if (res?.success) {
             this.notify.success('Transaction PIN set successfully.');
-            // Now verify the PIN
             this.pinMode = 'verify';
             this.pinInput = '';
             this.pinError = '';
@@ -766,9 +888,8 @@ export class SendMoneyComponent implements OnInit {
         },
       });
     } else {
-      // Verify mode
       if (!this.pinInput || this.pinInput.length < 4 || this.pinInput.length > 6) {
-        this.pinError = 'Enter your 4–6 digit PIN.';
+        this.pinError = 'Enter your 4-6 digit PIN.';
         return;
       }
       this.pinLoading = true;
@@ -805,7 +926,6 @@ export class SendMoneyComponent implements OnInit {
 
     this.submitting = true;
 
-    // Resolve bank/location/branch details based on payout method
     const selectedBank = this.selectedBankId
       ? this.payoutBanks.find(b => b.id === this.selectedBankId)
       : null;
@@ -821,7 +941,6 @@ export class SendMoneyComponent implements OnInit {
     let receiverBranchId: number | undefined = undefined;
 
     if (this.isBankTransfer() && selectedBank) {
-      // Bank transfer: use bank details
       receiverBankName = receiverBankName || selectedBank.bankName;
       receiverBankCode = selectedBank.bankCode || '';
       receiverBankId = selectedBank.id;
@@ -831,23 +950,19 @@ export class SendMoneyComponent implements OnInit {
         receiverBranchId = this.selectedBranch.id;
       }
     } else if (this.isCashTransfer() && selectedLocation) {
-      // Cash pickup: location name → bankName, location code → bankCode
       receiverBankName = receiverBankName || selectedLocation.locationName;
       receiverBankCode = selectedLocation.locationCode || '';
       receiverBankId = selectedLocation.id;
     } else if (this.isWalletTransfer() && selectedLocation) {
-      // Wallet/Mobile money: location name → bankName, location code → bankCode
       receiverBankName = receiverBankName || selectedLocation.locationName;
       receiverBankCode = selectedLocation.locationCode || '';
       receiverBankId = selectedLocation.id;
     } else if (selectedBank) {
-      // Fallback to bank if available
       receiverBankName = receiverBankName || selectedBank.bankName;
       receiverBankCode = selectedBank.bankCode || '';
       receiverBankId = selectedBank.id;
     }
 
-    // Fallback to receiver's stored bank/branch info for existing receivers
     if (!receiverBankId && this.selectedReceiver.bankId) {
       receiverBankId = this.selectedReceiver.bankId;
     }
@@ -902,7 +1017,7 @@ export class SendMoneyComponent implements OnInit {
       next: res => {
         if (res?.success && res.data) {
           this.successResult = res.data;
-          this.step = 3;
+          this.store.setSuccessResult(res.data);
         } else {
           this.notify.error(res?.message || 'Failed to submit transaction.');
         }
@@ -972,7 +1087,7 @@ export class SendMoneyComponent implements OnInit {
   }
 
   startNewTransaction(): void {
-    this.step = 0;
+    this.store.reset();
     this.successResult = null;
     this.selectedCustomerId = null;
     this.selectedCustomer = null;
