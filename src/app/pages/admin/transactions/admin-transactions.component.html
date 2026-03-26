@@ -81,22 +81,23 @@
     <table class="w-full text-left text-sm">
       <thead>
         <tr class="border-b border-surface-200 dark:border-surface-700 bg-surface-50 dark:bg-surface-800/50">
-          <th class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-400 text-xs uppercase tracking-wider">Reference</th>
-          <th class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-400 text-xs uppercase tracking-wider">Sender</th>
-          <th class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-400 text-xs uppercase tracking-wider">Receiver</th>
-          <th class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-400 text-xs uppercase tracking-wider">Send Amount</th>
-          <th class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-400 text-xs uppercase tracking-wider">Receive Amount</th>
-          <th class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-400 text-xs uppercase tracking-wider">Rate</th>
-          <th class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-400 text-xs uppercase tracking-wider">Service Charge</th>
-          <th class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-400 text-xs uppercase tracking-wider">Status</th>
-          <th class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-400 text-xs uppercase tracking-wider">Date</th>
-          <th class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-400 text-xs uppercase tracking-wider text-center">Actions</th>
+          <th class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-400 text-xs tracking-wide">Reference</th>
+          <th class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-400 text-xs tracking-wide">Sender</th>
+          <th class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-400 text-xs tracking-wide">Receiver</th>
+          <th class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-400 text-xs tracking-wide">Send Amount</th>
+          <th class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-400 text-xs tracking-wide">Receive Amount</th>
+          <th class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-400 text-xs tracking-wide">Rate</th>
+          <th class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-400 text-xs tracking-wide">Service Charge</th>
+          <th class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-400 text-xs tracking-wide">Status</th>
+          <th class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-400 text-xs tracking-wide">Date</th>
+          <th class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-400 text-xs tracking-wide text-center">Actions</th>
         </tr>
       </thead>
       <tbody class="divide-y divide-surface-100 dark:divide-surface-700">
         <tr
-          *ngFor="let txn of transactions"
-          class="hover:bg-surface-50 dark:hover:bg-surface-700/50 transition-colors"
+          *ngFor="let txn of transactions; let odd = odd"
+          class="hover:bg-brand-50/40 dark:hover:bg-surface-700/50 transition-colors"
+          [ngClass]="{ 'bg-surface-50': odd }"
         >
           <td class="px-4 py-3 font-mono text-xs">
             <a [routerLink]="['/admin/transactions', txn.id]" class="text-brand-600 dark:text-brand-400 hover:underline">{{ txn.referenceNumber }}</a>
@@ -105,7 +106,7 @@
           <td class="px-4 py-3 text-surface-900 dark:text-surface-100">{{ txn.receiverName }}</td>
           <td class="px-4 py-3 text-surface-900 dark:text-surface-100">{{ txn.sendAmount | number:'1.2-2' }} {{ txn.sendCurrency }}</td>
           <td class="px-4 py-3 text-surface-900 dark:text-surface-100">{{ txn.receiveAmount | number:'1.2-2' }} {{ txn.receiveCurrency }}</td>
-          <td class="px-4 py-3 text-surface-900 dark:text-surface-100">{{ txn.exchangeRateApplied | number:'1.4-4' }}</td>
+          <td class="px-4 py-3 text-surface-900 dark:text-surface-100">{{ txn.exchangeRateApplied | number:'1.2-2' }}</td>
           <td class="px-4 py-3 text-surface-900 dark:text-surface-100">{{ txn.totalCommission | number:'1.2-2' }}</td>
           <td class="px-4 py-3">
             <span
@@ -117,53 +118,40 @@
           </td>
           <td class="px-4 py-3 text-surface-900 dark:text-surface-100 whitespace-nowrap">{{ txn.createdAt | date:'MMM dd, HH:mm' }}</td>
           <td class="px-4 py-3 text-center whitespace-nowrap">
-            <!-- View Details -->
-            <button
-              (click)="viewDetail(txn)"
-              title="View Details"
-              class="inline-flex items-center justify-center p-1.5 rounded-lg text-brand-600 dark:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-900/20 transition"
-            >
-              <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
-                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-              </svg>
-            </button>
+            <div class="inline-flex items-center gap-1">
+              <!-- View Details -->
+              <button
+                (click)="viewDetail(txn)"
+                class="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium text-brand-600 dark:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-900/20 transition">
+                <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                </svg>
+                View
+              </button>
 
-            <!-- Pending: Complete -->
-            <button
-              *ngIf="txn.status === 'Pending'"
-              (click)="completeTransaction(txn)"
-              title="Complete"
-              class="inline-flex items-center justify-center p-1.5 rounded-lg text-success-600 dark:text-success-400 hover:bg-success-50 dark:hover:bg-success-900/20 transition"
-            >
-              <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-              </svg>
-            </button>
+              <!-- Pending: Complete -->
+              <button
+                *ngIf="txn.status === 'Pending'"
+                (click)="completeTransaction(txn)"
+                class="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium text-success-600 dark:text-success-400 hover:bg-success-50 dark:hover:bg-success-900/20 transition">
+                <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                </svg>
+                Complete
+              </button>
 
-            <!-- Pending: Cancel -->
-            <button
-              *ngIf="txn.status === 'Pending'"
-              (click)="cancelTransaction(txn)"
-              title="Cancel"
-              class="inline-flex items-center justify-center p-1.5 rounded-lg text-danger-600 dark:text-danger-400 hover:bg-danger-50 dark:hover:bg-danger-900/20 transition"
-            >
-              <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-              </svg>
-            </button>
-
-            <!-- Completed: Cancel -->
-            <button
-              *ngIf="txn.status === 'Completed'"
-              (click)="cancelTransaction(txn)"
-              title="Cancel Transaction"
-              class="inline-flex items-center justify-center p-1.5 rounded-lg text-danger-600 dark:text-danger-400 hover:bg-danger-50 dark:hover:bg-danger-900/20 transition"
-            >
-              <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-              </svg>
-            </button>
+              <!-- Pending/Completed: Cancel -->
+              <button
+                *ngIf="txn.status === 'Pending' || txn.status === 'Completed'"
+                (click)="cancelTransaction(txn)"
+                class="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium text-danger-600 dark:text-danger-400 hover:bg-danger-50 dark:hover:bg-danger-900/20 transition">
+                <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                </svg>
+                Cancel
+              </button>
+            </div>
           </td>
         </tr>
 

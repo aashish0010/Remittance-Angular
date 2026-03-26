@@ -20,7 +20,7 @@ const ALL_NAV_ITEMS: NavItem[] = [
   { label: 'Dashboard', icon: 'dashboard', route: '/admin/dashboard' },
   { label: 'Agents', icon: 'people_outline', route: '/admin/agents', section: 'Agent Management' },
 
-  { label: 'Setup', icon: 'tune', route: '/admin/accounting', section: 'Agent Management' },
+  { label: 'Agent Setup', icon: 'tune', route: '/admin/accounting', section: 'Agent Management' },
   { label: 'Register', icon: 'person_add_alt', route: '/admin/customer-register', section: 'Customers' },
   { label: 'Report', icon: 'assessment', route: '/admin/customer-report', section: 'Customers' },
   { label: 'Receivers', icon: 'contact_phone', route: '/admin/receivers', section: 'Operations' },
@@ -28,7 +28,7 @@ const ALL_NAV_ITEMS: NavItem[] = [
   { label: 'Service Charges', icon: 'payments', route: '/admin/commissions', section: 'Operations' },
   { label: 'Routing', icon: 'alt_route', route: '/admin/routing', section: 'Operations' },
   { label: 'Transactions', icon: 'receipt_long', route: '/admin/transactions', section: 'Operations' },
-  { label: 'Setup', icon: 'tune', route: '/admin/compliance-setup', section: 'Compliance' },
+  { label: 'Compliance Setup', icon: 'tune', route: '/admin/compliance-setup', section: 'Compliance' },
   { label: 'Alerts', icon: 'security', route: '/admin/compliance', section: 'Compliance' },
   { label: 'Sanctions', icon: 'gavel', route: '/admin/sanctions', section: 'Compliance' },
   { label: 'Static Values', icon: 'dataset', route: '/admin/static-values', section: 'System' },

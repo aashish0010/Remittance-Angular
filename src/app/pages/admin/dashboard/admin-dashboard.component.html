@@ -4,7 +4,7 @@
   <!-- Page Header -->
   <div>
     <h2 class="text-2xl font-bold text-surface-900 dark:text-surface-50">Dashboard</h2>
-    <p class="mt-1 text-sm text-surface-500 dark:text-surface-400">{{ getGreeting() }}! Here's your overview.</p>
+    <p class="mt-1 text-sm text-surface-400 dark:text-surface-500">{{ getGreeting() }}! Here's your overview.</p>
   </div>
 
   <!-- Loading Skeleton -->
@@ -172,51 +172,60 @@
       </div>
     </div>
 
+    <!-- ── Requires Action Banner ── -->
+    <div *ngIf="dashboard.failedTransactions > 0 || dashboard.onHoldTransactions > 0"
+         class="rounded-2xl border border-danger-200 dark:border-danger-800 bg-danger-50 dark:bg-danger-900/20 p-4 shadow-soft">
+      <div class="flex items-center gap-3">
+        <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-danger-100 dark:bg-danger-800/40 text-danger-600 dark:text-danger-400 flex-shrink-0">
+          <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/></svg>
+        </div>
+        <div class="flex-1">
+          <p class="text-sm font-semibold text-danger-800 dark:text-danger-300">Requires Action</p>
+          <p class="text-xs text-danger-600 dark:text-danger-400 mt-0.5">
+            {{ dashboard.failedTransactions }} failed &middot; {{ dashboard.onHoldTransactions }} on hold
+          </p>
+        </div>
+        <a routerLink="/admin/transactions" [queryParams]="{status: 'Failed'}"
+           class="px-3 py-1.5 rounded-lg bg-danger-600 hover:bg-danger-700 text-white text-xs font-medium transition no-underline">
+          Review Now
+        </a>
+      </div>
+    </div>
+
     <!-- ── Transaction Status Overview ── -->
     <div class="rounded-2xl border border-surface-200 dark:border-surface-700 bg-white dark:bg-surface-800 p-6 shadow-soft">
       <h3 class="text-lg font-semibold text-surface-900 dark:text-surface-50 mb-4">Transaction Status Overview</h3>
-      <div class="flex flex-wrap gap-4">
-        <a routerLink="/admin/transactions" [queryParams]="{status: 'Pending'}"
-           class="flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-surface-50 dark:hover:bg-surface-700 transition-colors cursor-pointer no-underline">
-          <span class="inline-flex items-center justify-center min-w-[2.5rem] px-3 py-1 rounded-full text-sm font-semibold bg-warning-500 text-white">
-            {{ dashboard.pendingTransactions }}
-          </span>
-          <span class="text-sm text-surface-600 dark:text-surface-400">Pending</span>
-        </a>
-        <a routerLink="/admin/transactions" [queryParams]="{status: 'Processing'}"
-           class="flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-surface-50 dark:hover:bg-surface-700 transition-colors cursor-pointer no-underline">
-          <span class="inline-flex items-center justify-center min-w-[2.5rem] px-3 py-1 rounded-full text-sm font-semibold bg-brand-500 text-white">
-            {{ dashboard.processingTransactions }}
-          </span>
-          <span class="text-sm text-surface-600 dark:text-surface-400">Processing</span>
-        </a>
-        <a routerLink="/admin/transactions" [queryParams]="{status: 'Completed'}"
-           class="flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-surface-50 dark:hover:bg-surface-700 transition-colors cursor-pointer no-underline">
-          <span class="inline-flex items-center justify-center min-w-[2.5rem] px-3 py-1 rounded-full text-sm font-semibold bg-success-500 text-white">
-            {{ dashboard.completedTransactions }}
-          </span>
-          <span class="text-sm text-surface-600 dark:text-surface-400">Completed</span>
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+        <!-- Sorted by urgency: Failed > On Hold > Pending > Processing > Completed > Cancelled -->
+        <a routerLink="/admin/transactions" [queryParams]="{status: 'Failed'}"
+           class="flex flex-col items-center gap-2 p-3 rounded-xl border border-danger-200 dark:border-danger-800 bg-danger-50 dark:bg-danger-900/20 hover:bg-danger-100 dark:hover:bg-danger-900/30 transition-colors cursor-pointer no-underline">
+          <span class="text-2xl font-bold text-danger-600 dark:text-danger-400">{{ dashboard.failedTransactions }}</span>
+          <span class="text-xs font-medium text-danger-700 dark:text-danger-400">Failed</span>
         </a>
         <a routerLink="/admin/transactions" [queryParams]="{status: 'OnHold'}"
-           class="flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-surface-50 dark:hover:bg-surface-700 transition-colors cursor-pointer no-underline">
-          <span class="inline-flex items-center justify-center min-w-[2.5rem] px-3 py-1 rounded-full text-sm font-semibold bg-surface-500 text-white">
-            {{ dashboard.onHoldTransactions }}
-          </span>
-          <span class="text-sm text-surface-600 dark:text-surface-400">On Hold</span>
+           class="flex flex-col items-center gap-2 p-3 rounded-xl border border-warning-200 dark:border-warning-800 bg-warning-50 dark:bg-warning-900/20 hover:bg-warning-100 dark:hover:bg-warning-900/30 transition-colors cursor-pointer no-underline">
+          <span class="text-2xl font-bold text-warning-600 dark:text-warning-400">{{ dashboard.onHoldTransactions }}</span>
+          <span class="text-xs font-medium text-warning-700 dark:text-warning-400">On Hold</span>
+        </a>
+        <a routerLink="/admin/transactions" [queryParams]="{status: 'Pending'}"
+           class="flex flex-col items-center gap-2 p-3 rounded-xl border border-warning-200 dark:border-warning-800 bg-warning-50/50 dark:bg-warning-900/10 hover:bg-warning-100 dark:hover:bg-warning-900/20 transition-colors cursor-pointer no-underline">
+          <span class="text-2xl font-bold text-warning-600 dark:text-warning-400">{{ dashboard.pendingTransactions }}</span>
+          <span class="text-xs font-medium text-warning-700 dark:text-warning-400">Pending</span>
+        </a>
+        <a routerLink="/admin/transactions" [queryParams]="{status: 'Processing'}"
+           class="flex flex-col items-center gap-2 p-3 rounded-xl border border-brand-200 dark:border-brand-800 bg-brand-50 dark:bg-brand-900/20 hover:bg-brand-100 dark:hover:bg-brand-900/30 transition-colors cursor-pointer no-underline">
+          <span class="text-2xl font-bold text-brand-600 dark:text-brand-400">{{ dashboard.processingTransactions }}</span>
+          <span class="text-xs font-medium text-brand-700 dark:text-brand-400">Processing</span>
+        </a>
+        <a routerLink="/admin/transactions" [queryParams]="{status: 'Completed'}"
+           class="flex flex-col items-center gap-2 p-3 rounded-xl border border-success-200 dark:border-success-800 bg-success-50 dark:bg-success-900/20 hover:bg-success-100 dark:hover:bg-success-900/30 transition-colors cursor-pointer no-underline">
+          <span class="text-2xl font-bold text-success-600 dark:text-success-400">{{ dashboard.completedTransactions }}</span>
+          <span class="text-xs font-medium text-success-700 dark:text-success-400">Completed</span>
         </a>
         <a routerLink="/admin/transactions" [queryParams]="{status: 'Cancelled'}"
-           class="flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-surface-50 dark:hover:bg-surface-700 transition-colors cursor-pointer no-underline">
-          <span class="inline-flex items-center justify-center min-w-[2.5rem] px-3 py-1 rounded-full text-sm font-semibold bg-surface-400 text-white">
-            {{ dashboard.cancelledTransactions }}
-          </span>
-          <span class="text-sm text-surface-600 dark:text-surface-400">Cancelled</span>
-        </a>
-        <a routerLink="/admin/transactions" [queryParams]="{status: 'Failed'}"
-           class="flex items-center gap-2.5 px-3 py-2 rounded-xl hover:bg-surface-50 dark:hover:bg-surface-700 transition-colors cursor-pointer no-underline">
-          <span class="inline-flex items-center justify-center min-w-[2.5rem] px-3 py-1 rounded-full text-sm font-semibold bg-danger-500 text-white">
-            {{ dashboard.failedTransactions }}
-          </span>
-          <span class="text-sm text-surface-600 dark:text-surface-400">Failed</span>
+           class="flex flex-col items-center gap-2 p-3 rounded-xl border border-surface-200 dark:border-surface-700 bg-surface-50 dark:bg-surface-800 hover:bg-surface-100 dark:hover:bg-surface-700 transition-colors cursor-pointer no-underline">
+          <span class="text-2xl font-bold text-surface-500 dark:text-surface-400">{{ dashboard.cancelledTransactions }}</span>
+          <span class="text-xs font-medium text-surface-500 dark:text-surface-400">Cancelled</span>
         </a>
       </div>
     </div>
@@ -317,7 +326,10 @@
 
         <!-- Active Exchange Rates -->
         <div class="rounded-2xl border border-surface-200 dark:border-surface-700 bg-white dark:bg-surface-800 p-6 shadow-soft">
-          <h3 class="text-lg font-semibold text-surface-900 dark:text-surface-50 mb-4">Active Exchange Rates</h3>
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-surface-900 dark:text-surface-50">Active Exchange Rates</h3>
+            <a routerLink="/admin/rates" class="text-xs font-medium text-brand-600 dark:text-brand-400 hover:underline no-underline">Edit</a>
+          </div>
 
           <div *ngIf="dashboard.activeExchangeRates.length === 0" class="text-sm text-surface-500 dark:text-surface-400">
             No active rates configured.
@@ -326,9 +338,15 @@
           <div *ngIf="dashboard.activeExchangeRates.length > 0" class="divide-y divide-surface-100 dark:divide-surface-700">
             <div *ngFor="let rate of dashboard.activeExchangeRates"
                  class="flex items-center justify-between py-3">
-              <span class="text-sm font-medium text-surface-700 dark:text-surface-300">
-                {{ rate.sourceCurrency }} &rarr; {{ rate.destinationCurrency }}
-              </span>
+              <div class="flex items-center gap-1.5">
+                <span class="text-sm font-medium text-surface-700 dark:text-surface-300">
+                  {{ rate.sourceCurrency }}
+                </span>
+                <svg class="w-3.5 h-3.5 text-surface-400" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"/></svg>
+                <span class="text-sm font-medium text-surface-700 dark:text-surface-300">
+                  {{ rate.destinationCurrency }}
+                </span>
+              </div>
               <span class="text-sm font-semibold text-success-600 dark:text-success-400 font-mono">
                 {{ rate.rate | number:'1.2-4' }}
               </span>
@@ -339,34 +357,42 @@
         <!-- Quick Actions -->
         <div class="rounded-2xl border border-surface-200 dark:border-surface-700 bg-white dark:bg-surface-800 p-6 shadow-soft">
           <h3 class="text-lg font-semibold text-surface-900 dark:text-surface-50 mb-4">Quick Actions</h3>
-          <div class="space-y-2">
+          <div class="grid grid-cols-2 gap-3">
             <a routerLink="/admin/rates"
-               class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium
-                      text-brand-700 dark:text-brand-300 bg-brand-50 dark:bg-brand-950
-                      hover:bg-brand-100 dark:hover:bg-brand-900 transition-colors no-underline">
-              <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
-              Update Rates
+               class="flex flex-col items-center gap-2 p-4 rounded-xl text-center
+                      bg-brand-50 dark:bg-brand-950 hover:bg-brand-100 dark:hover:bg-brand-900 transition-colors no-underline">
+              <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-100 dark:bg-brand-900/50 text-brand-600 dark:text-brand-400">
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+              </div>
+              <span class="text-sm font-semibold text-brand-700 dark:text-brand-300">Update Rates</span>
+              <span class="text-[11px] text-brand-500 dark:text-brand-400 leading-tight">Set today's FX rates</span>
             </a>
             <a routerLink="/admin/agents"
-               class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium
-                      text-surface-700 dark:text-surface-300 bg-surface-50 dark:bg-surface-700
-                      hover:bg-surface-100 dark:hover:bg-surface-600 transition-colors no-underline">
-              <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.766Z"/></svg>
-              Add New Agent
+               class="flex flex-col items-center gap-2 p-4 rounded-xl text-center
+                      bg-surface-50 dark:bg-surface-700 hover:bg-surface-100 dark:hover:bg-surface-600 transition-colors no-underline">
+              <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-surface-200 dark:bg-surface-600 text-surface-600 dark:text-surface-300">
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.766Z"/></svg>
+              </div>
+              <span class="text-sm font-semibold text-surface-700 dark:text-surface-200">Add Agent</span>
+              <span class="text-[11px] text-surface-400 dark:text-surface-500 leading-tight">Onboard a new partner</span>
             </a>
             <a routerLink="/admin/compliance"
-               class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium
-                      text-danger-700 dark:text-danger-400 bg-danger-50 dark:bg-danger-700/20
-                      hover:bg-danger-100 dark:hover:bg-danger-700/30 transition-colors no-underline">
-              <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z"/></svg>
-              View Alerts
+               class="flex flex-col items-center gap-2 p-4 rounded-xl text-center
+                      bg-danger-50 dark:bg-danger-700/20 hover:bg-danger-100 dark:hover:bg-danger-700/30 transition-colors no-underline">
+              <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-danger-100 dark:bg-danger-800/40 text-danger-600 dark:text-danger-400">
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z"/></svg>
+              </div>
+              <span class="text-sm font-semibold text-danger-700 dark:text-danger-300">View Alerts</span>
+              <span class="text-[11px] text-danger-500 dark:text-danger-400 leading-tight">Review compliance flags</span>
             </a>
             <a routerLink="/admin/routing"
-               class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium
-                      text-surface-700 dark:text-surface-300 bg-surface-50 dark:bg-surface-700
-                      hover:bg-surface-100 dark:hover:bg-surface-600 transition-colors no-underline">
-              <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 21 3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5"/></svg>
-              Manage Routing
+               class="flex flex-col items-center gap-2 p-4 rounded-xl text-center
+                      bg-surface-50 dark:bg-surface-700 hover:bg-surface-100 dark:hover:bg-surface-600 transition-colors no-underline">
+              <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-surface-200 dark:bg-surface-600 text-surface-600 dark:text-surface-300">
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 21 3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5"/></svg>
+              </div>
+              <span class="text-sm font-semibold text-surface-700 dark:text-surface-200">Routing</span>
+              <span class="text-[11px] text-surface-400 dark:text-surface-500 leading-tight">Configure corridors</span>
             </a>
           </div>
         </div>

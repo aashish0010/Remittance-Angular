@@ -1,7 +1,7 @@
 <div class="layout-wrapper" [class.dark]="isDarkMode">
 
   <!-- ── Top Bar ── -->
-  <header class="fixed top-0 left-0 right-0 z-50 h-16 bg-white dark:bg-surface-900 border-b border-surface-200 dark:border-surface-700/50 shadow-soft flex items-center px-4 gap-2">
+  <header class="fixed top-0 left-0 right-0 z-50 h-[68px] bg-white dark:bg-surface-900 border-b border-surface-200 dark:border-surface-700/50 shadow-soft flex items-center px-4 gap-2">
 
     <!-- Hamburger -->
     <button
@@ -53,6 +53,8 @@
         <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0"/>
         </svg>
+        <!-- Badge -->
+        <span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-surface-300 dark:bg-surface-600 ring-2 ring-white dark:ring-surface-900"></span>
       </button>
 
       <!-- Divider -->
@@ -129,7 +131,7 @@
 
   <!-- ── Sidebar ── -->
   <aside
-    class="fixed top-16 bottom-0 left-0 z-40 bg-white dark:bg-surface-900 border-r border-surface-200 dark:border-surface-700/50 flex flex-col transition-all duration-300 overflow-hidden"
+    class="fixed top-[68px] bottom-0 left-0 z-40 bg-white dark:bg-surface-900 border-r border-surface-200 dark:border-surface-700/50 flex flex-col transition-all duration-300 overflow-hidden"
     [ngClass]="{
       'w-64': sidenavOpened,
       'w-0 lg:w-16': !sidenavOpened
@@ -145,7 +147,7 @@
           type="text"
           [(ngModel)]="searchQuery"
           (ngModelChange)="onSearchChange()"
-          placeholder="Search pages..."
+          placeholder="Search pages...  Ctrl+K"
           autocomplete="off"
           class="w-full bg-surface-50 dark:bg-surface-800 border-0 rounded-lg pl-9 pr-8 py-2 text-sm text-surface-900 dark:text-surface-100 placeholder-surface-400 dark:placeholder-surface-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30" />
         <button
@@ -222,7 +224,7 @@
 
   <!-- ── Main Content ── -->
   <main
-    class="pt-16 transition-all duration-300 min-h-screen bg-surface-50 dark:bg-surface-900/50"
+    class="pt-[68px] transition-all duration-300 min-h-screen bg-surface-50 dark:bg-surface-900/50"
     [ngClass]="{
       'lg:ml-64': sidenavOpened,
       'lg:ml-16': !sidenavOpened

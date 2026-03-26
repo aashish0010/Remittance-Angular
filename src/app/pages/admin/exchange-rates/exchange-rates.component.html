@@ -58,23 +58,29 @@
     <table class="w-full text-sm text-left">
       <thead>
         <tr
-          class="border-b border-surface-200 dark:border-surface-700 text-surface-500 dark:text-surface-400 text-xs uppercase tracking-wider">
+          class="border-b border-surface-200 dark:border-surface-700 text-surface-500 dark:text-surface-400 text-xs tracking-wide">
           <th class="px-4 py-3 font-semibold">Payout Agent</th>
-          <th class="px-4 py-3 font-semibold">Source Currency</th>
-          <th class="px-4 py-3 font-semibold">Dest. Currency</th>
+          <th class="px-4 py-3 font-semibold">Corridor</th>
           <th class="px-4 py-3 font-semibold">Rate</th>
           <th class="px-4 py-3 font-semibold">Margin</th>
-          <th class="px-4 py-3 font-semibold">Active</th>
+          <th class="px-4 py-3 font-semibold">Status</th>
           <th class="px-4 py-3 font-semibold">Actions</th>
         </tr>
       </thead>
       <tbody>
         <tr *ngFor="let r of rates"
           class="border-b border-surface-100 dark:border-surface-700 hover:bg-surface-50 dark:hover:bg-surface-750 transition-colors">
-          <td class="px-4 py-3 text-surface-900 dark:text-surface-100">{{ r.agentName }}</td>
-          <td class="px-4 py-3 text-surface-700 dark:text-surface-300">{{ r.sourceCurrency }}</td>
-          <td class="px-4 py-3 text-surface-700 dark:text-surface-300">{{ r.destinationCurrency }}</td>
-          <td class="px-4 py-3 text-surface-900 dark:text-surface-100 font-semibold">{{ r.rate | number:'1.4-4' }}</td>
+          <td class="px-4 py-3 text-surface-900 dark:text-surface-100 font-medium">{{ r.agentName }}</td>
+          <td class="px-4 py-3">
+            <span class="inline-flex items-center gap-1.5 text-surface-800 dark:text-surface-200 font-medium">
+              {{ r.sourceCurrency }}
+              <svg class="w-3.5 h-3.5 text-surface-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5-5 5M6 12h12" />
+              </svg>
+              {{ r.destinationCurrency }}
+            </span>
+          </td>
+          <td class="px-4 py-3 text-surface-900 dark:text-surface-100 font-semibold">{{ r.rate | number:'1.2-2' }}</td>
           <td class="px-4 py-3 text-surface-700 dark:text-surface-300">{{ r.margin | number:'1.2-2' }}</td>
           <td class="px-4 py-3">
             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium" [ngClass]="r.isActive
@@ -85,30 +91,30 @@
           </td>
           <td class="px-4 py-3">
             <div class="flex items-center gap-1">
-              <button title="View Details" (click)="viewDetail(r)"
-                class="p-1.5 rounded-lg text-brand-600 dark:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-900/20 transition">
-                <!-- eye icon -->
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <button (click)="viewDetail(r)"
+                class="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium text-brand-600 dark:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-900/20 transition">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                   <path stroke-linecap="round" stroke-linejoin="round"
                     d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                 </svg>
+                View
               </button>
-              <button title="Edit" (click)="openEditPopup(r)"
-                class="p-1.5 rounded-lg text-brand-600 dark:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-900/20 transition">
-                <!-- pencil icon -->
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <button (click)="openEditPopup(r)"
+                class="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium text-brand-600 dark:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-900/20 transition">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round"
                     d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                 </svg>
+                Edit
               </button>
-              <button title="Delete" (click)="deleteRate(r)"
-                class="p-1.5 rounded-lg text-danger-600 dark:text-danger-400 hover:bg-danger-50 dark:hover:bg-danger-900/20 transition">
-                <!-- trash icon -->
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <button (click)="deleteRate(r)"
+                class="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium text-danger-600 dark:text-danger-400 hover:bg-danger-50 dark:hover:bg-danger-900/20 transition">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round"
                     d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                 </svg>
+                Delete
               </button>
             </div>
           </td>
