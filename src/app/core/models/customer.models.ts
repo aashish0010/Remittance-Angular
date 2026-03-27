@@ -14,6 +14,7 @@ export interface CustomerModel {
   idDocumentType?: string;
   idDocumentNumber?: string;
   isKycVerified: boolean;
+  isActive: boolean;
   createdAt: string;
   documents: CustomerDocumentModel[];
 }

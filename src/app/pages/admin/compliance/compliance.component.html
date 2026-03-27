@@ -320,11 +320,11 @@
       </div>
       <div>
         <span class="block text-xs text-surface-500 dark:text-surface-400">Alert Created</span>
-        <span class="text-sm text-surface-900 dark:text-surface-100">{{ selectedAlert.createdAt | date:'yyyy-MM-dd HH:mm' }}</span>
+        <span class="text-sm text-surface-900 dark:text-surface-100">{{ selectedAlert.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
       </div>
       <div *ngIf="selectedAlert.resolvedAt">
         <span class="block text-xs text-surface-500 dark:text-surface-400">Resolved At</span>
-        <span class="text-sm text-surface-900 dark:text-surface-100">{{ selectedAlert.resolvedAt | date:'yyyy-MM-dd HH:mm' }}</span>
+        <span class="text-sm text-surface-900 dark:text-surface-100">{{ selectedAlert.resolvedAt | date:'dd/MM/yyyy HH:mm' }}</span>
       </div>
     </div>
 

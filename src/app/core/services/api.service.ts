@@ -350,6 +350,10 @@ export class ApiService {
     return this.delete<boolean>(`api/admin/customers/${id}`);
   }
 
+  toggleCustomerStatus(id: number): Observable<ApiResponse<CustomerModel>> {
+    return this.put<CustomerModel>(`api/admin/customers/${id}/toggle-status`);
+  }
+
   // ---------------------------------------------------------------------------
   // Receivers
   // ---------------------------------------------------------------------------
@@ -372,6 +376,10 @@ export class ApiService {
 
   deleteReceiver(id: number): Observable<ApiResponse<boolean>> {
     return this.delete<boolean>(`api/admin/receivers/${id}`);
+  }
+
+  toggleReceiverStatus(id: number): Observable<ApiResponse<ReceiverModel>> {
+    return this.put<ReceiverModel>(`api/admin/receivers/${id}/toggle-status`);
   }
 
   // ---------------------------------------------------------------------------

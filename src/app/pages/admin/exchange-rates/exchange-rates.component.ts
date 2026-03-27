@@ -182,6 +182,13 @@ export class ExchangeRatesComponent implements OnInit, OnDestroy {
   // ---------------------------------------------------------------------------
   // Create / Edit
   // ---------------------------------------------------------------------------
+  onCountryChange(): void {
+    const country = this.countries.find(c => c.name === this.form.country);
+    if (country?.currency) {
+      this.form.destinationCurrency = country.currency;
+    }
+  }
+
   openCreatePopup(): void {
     this.form = emptyForm();
     this.isEditing = false;

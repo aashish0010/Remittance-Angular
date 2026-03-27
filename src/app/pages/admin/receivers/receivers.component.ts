@@ -208,11 +208,38 @@ export class ReceiversComponent implements OnInit, OnDestroy {
 
   closeFormPopup(): void { this.showFormPopup = false; }
 
+  // Validation patterns
+  private safeNamePattern = /^[\p{L}\s\-'.]+$/u;
+  private safePhonePattern = /^[\d\s\+\-()]+$/;
+  private safeAlphanumPattern = /^[\p{L}\d\s\-]+$/u;
+
+  private validateSpecialChars(value: string, pattern: RegExp, fieldName: string): string | null {
+    if (value && !pattern.test(value)) {
+      return `${fieldName} contains invalid special characters.`;
+    }
+    return null;
+  }
+
   saveReceiver(): void {
     this.formError = '';
     const f = this.form;
     if (!f.customerId) { this.formError = 'Please select a customer.'; return; }
     if (!f.fullName || !f.phone || !f.country) { this.formError = 'Full Name, Phone and Country are required.'; return; }
+
+    // Special character validation
+    const checks = [
+      this.validateSpecialChars(f.fullName, this.safeNamePattern, 'Full Name'),
+      this.validateSpecialChars(f.phone, this.safePhonePattern, 'Phone'),
+      this.validateSpecialChars(f.city, this.safeNamePattern, 'City'),
+      this.validateSpecialChars(f.bankName, this.safeNamePattern, 'Bank Name'),
+      this.validateSpecialChars(f.accountNumber, this.safeAlphanumPattern, 'Account Number'),
+      this.validateSpecialChars(f.relationship, this.safeNamePattern, 'Relationship'),
+    ];
+    const firstError = checks.find(e => e !== null);
+    if (firstError) {
+      this.formError = firstError;
+      return;
+    }
 
     this.saving = true;
     const dto: any = {
@@ -246,6 +273,21 @@ export class ReceiversComponent implements OnInit, OnDestroy {
         this.formError = 'Server error.';
         this.saving = false;
       },
+    });
+  }
+
+  // ---------------------------------------------------------------------------
+  // Toggle Status
+  // ---------------------------------------------------------------------------
+  toggleReceiverStatus(receiver: ReceiverModel): void {
+    this.api.toggleReceiverStatus(receiver.id).subscribe(r => {
+      if (r?.success) {
+        const status = receiver.isActive ? 'disabled' : 'enabled';
+        this.notify.success(`Receiver '${receiver.fullName}' ${status}.`);
+        this.loadReceivers();
+      } else {
+        this.notify.error(r?.message || 'Failed.');
+      }
     });
   }
 

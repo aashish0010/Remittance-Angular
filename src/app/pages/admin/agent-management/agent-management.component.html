@@ -125,7 +125,7 @@
         <span class="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full" [ngClass]="{'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400': detailAgent.status === 'Approved','bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400': detailAgent.status === 'Blocked','bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400': detailAgent.status !== 'Approved' && detailAgent.status !== 'Blocked'}">{{ detailAgent.status }}</span>
       </div>
       <div class="col-span-2"><span class="block text-xs text-surface-400 mb-0.5">Address</span><span class="text-surface-900 dark:text-surface-100">{{ detailAgent.address || '-' }}</span></div>
-      <div><span class="block text-xs text-surface-400 mb-0.5">Created</span><span class="text-surface-900 dark:text-surface-100">{{ detailAgent.createdAt | date:'yyyy-MM-dd' }}</span></div>
+      <div><span class="block text-xs text-surface-400 mb-0.5">Created</span><span class="text-surface-900 dark:text-surface-100">{{ detailAgent.createdAt | date:'dd/MM/yyyy' }}</span></div>
     </div>
   </div>
 </div>

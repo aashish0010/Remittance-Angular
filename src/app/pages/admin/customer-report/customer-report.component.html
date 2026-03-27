@@ -91,7 +91,7 @@
               {{ c.isKycVerified ? 'Verified' : 'Pending' }}
             </span>
           </td>
-          <td class="px-4 py-3 text-surface-700 dark:text-surface-300">{{ c.createdAt | date:'yyyy-MM-dd' }}</td>
+          <td class="px-4 py-3 text-surface-700 dark:text-surface-300">{{ c.createdAt | date:'dd/MM/yyyy' }}</td>
           <td class="px-4 py-3">
             <div class="flex items-center gap-1">
               <!-- View Details -->
@@ -184,7 +184,7 @@
         {{ detailCustomer.isKycVerified ? 'Verified' : 'Pending' }}
       </span>
     </div>
-    <div class="flex flex-col gap-1"><span class="text-xs font-medium text-surface-500 dark:text-surface-400">Created</span><span class="text-sm text-surface-900 dark:text-surface-100">{{ detailCustomer.createdAt | date:'yyyy-MM-dd' }}</span></div>
+    <div class="flex flex-col gap-1"><span class="text-xs font-medium text-surface-500 dark:text-surface-400">Created</span><span class="text-sm text-surface-900 dark:text-surface-100">{{ detailCustomer.createdAt | date:'dd/MM/yyyy' }}</span></div>
   </div>
 </div>
 

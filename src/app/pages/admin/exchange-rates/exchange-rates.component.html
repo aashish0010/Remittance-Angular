@@ -63,6 +63,7 @@
           <th class="px-4 py-3 font-semibold">Corridor</th>
           <th class="px-4 py-3 font-semibold">Rate</th>
           <th class="px-4 py-3 font-semibold">Margin</th>
+          <th class="px-4 py-3 font-semibold">Customer Rate</th>
           <th class="px-4 py-3 font-semibold">Status</th>
           <th class="px-4 py-3 font-semibold">Actions</th>
         </tr>
@@ -82,6 +83,7 @@
           </td>
           <td class="px-4 py-3 text-surface-900 dark:text-surface-100 font-semibold">{{ r.rate | number:'1.2-2' }}</td>
           <td class="px-4 py-3 text-surface-700 dark:text-surface-300">{{ r.margin | number:'1.2-2' }}</td>
+          <td class="px-4 py-3 text-brand-600 dark:text-brand-400 font-semibold">{{ r.rate - (r.margin || 0) | number:'1.2-2' }}</td>
           <td class="px-4 py-3">
             <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium" [ngClass]="r.isActive
                 ? 'bg-success-100 text-success-800 dark:bg-success-900/30 dark:text-success-400'
@@ -213,6 +215,10 @@
       <span class="block text-sm text-surface-900 dark:text-surface-100">{{ detailRate.margin | number:'1.2-2' }}</span>
     </div>
     <div class="space-y-1 col-span-2">
+      <span class="block text-xs font-medium text-surface-500 dark:text-surface-400">Customer Rate</span>
+      <span class="block text-sm font-semibold text-brand-600 dark:text-brand-400">{{ detailRate.rate - (detailRate.margin || 0) | number:'1.4-4' }}</span>
+    </div>
+    <div class="space-y-1 col-span-2">
       <span class="block text-xs font-medium text-surface-500 dark:text-surface-400">Status</span>
       <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium" [ngClass]="detailRate.isActive
           ? 'bg-success-100 text-success-800 dark:bg-success-900/30 dark:text-success-400'
@@ -258,8 +264,9 @@
     <!-- Payout Country -->
     <div class="sm:col-span-2">
       <label class="block text-xs font-medium text-surface-600 dark:text-surface-400 mb-1">Payout Country</label>
-      <select [(ngModel)]="form.country"
+      <select [(ngModel)]="form.country" (ngModelChange)="onCountryChange()"
         class="w-full px-3 py-2 rounded-lg border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-700 text-surface-900 dark:text-surface-100 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition text-sm">
+        <option value="">-- Select Country --</option>
         <option *ngFor="let c of countries" [value]="c.name">{{ c.name }}</option>
       </select>
     </div>

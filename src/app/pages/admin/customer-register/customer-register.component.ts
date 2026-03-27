@@ -16,6 +16,8 @@ interface DocumentUpload {
   documentNumber: string;
   requiredSides: number;
   issuingCountry: string;
+  issueDate: string;
+  expiryDate: string;
   frontImage: File | null;
   backImage: File | null;
   frontPreview: string | null;
@@ -249,6 +251,27 @@ export class CustomerRegisterComponent implements OnInit, OnDestroy {
 
   closeFormPopup(): void { this.showFormPopup = false; }
 
+  // Validation patterns
+  private safeNamePattern = /^[\p{L}\s\-'.]+$/u;
+  private safePhonePattern = /^[\d\s\+\-()]+$/;
+  private safeAddressPattern = /^[\p{L}\d\s\-'.,/#]+$/u;
+  private safePostalCodePattern = /^[\p{L}\d\s\-]+$/u;
+
+  getTodayDate(): string {
+    return new Date().toISOString().split('T')[0];
+  }
+
+  validateSpecialChars(value: string, pattern: RegExp, fieldName: string): string | null {
+    if (value && !pattern.test(value)) {
+      return `${fieldName} contains invalid special characters.`;
+    }
+    return null;
+  }
+
+  onCountryChange(): void {
+    // Auto-set nationality to match country if empty
+  }
+
   saveCustomer(): void {
     this.formError = '';
     const f = this.form;
@@ -260,6 +283,45 @@ export class CustomerRegisterComponent implements OnInit, OnDestroy {
       this.formError = 'Nationality is required.';
       return;
     }
+
+    // Special character validation
+    const checks = [
+      this.validateSpecialChars(f.fullName, this.safeNamePattern, 'Full Name'),
+      this.validateSpecialChars(f.phone, this.safePhonePattern, 'Phone'),
+      this.validateSpecialChars(f.nationality, this.safeNamePattern, 'Nationality'),
+      this.validateSpecialChars(f.city, this.safeNamePattern, 'City'),
+      this.validateSpecialChars(f.state, this.safeNamePattern, 'State'),
+      this.validateSpecialChars(f.postalCode, this.safePostalCodePattern, 'Postal Code'),
+      this.validateSpecialChars(f.address, this.safeAddressPattern, 'Address'),
+    ];
+    const firstError = checks.find(e => e !== null);
+    if (firstError) {
+      this.formError = firstError;
+      return;
+    }
+
+    // Date validations
+    if (f.dateOfBirth && new Date(f.dateOfBirth) >= new Date()) {
+      this.formError = 'Date of Birth must be a past date.';
+      this.activeTab = 'Personal';
+      return;
+    }
+
+    // Document date validations
+    const today = new Date();
+    for (const doc of this.documentUploads) {
+      if (doc.issueDate && new Date(doc.issueDate) >= today) {
+        this.formError = 'Document issue date must be in the past.';
+        this.activeTab = 'Documents';
+        return;
+      }
+      if (doc.expiryDate && new Date(doc.expiryDate) <= today) {
+        this.formError = 'Document expiry date must be in the future.';
+        this.activeTab = 'Documents';
+        return;
+      }
+    }
+
     // At least one document with front image is mandatory for new customers
     if (!this.isEditing) {
       const hasValidDoc = this.documentUploads.some(d => d.documentType && d.documentNumber && d.frontImage);
@@ -357,6 +419,8 @@ export class CustomerRegisterComponent implements OnInit, OnDestroy {
       documentNumber: '',
       requiredSides: 1,
       issuingCountry: '',
+      issueDate: '',
+      expiryDate: '',
       frontImage: null,
       backImage: null,
       frontPreview: null,
@@ -397,6 +461,8 @@ export class CustomerRegisterComponent implements OnInit, OnDestroy {
       formData.append('documentNumber', doc.documentNumber);
       formData.append('requiredSides', doc.requiredSides.toString());
       formData.append('issuingCountry', doc.issuingCountry || '');
+      if (doc.issueDate) formData.append('issueDate', doc.issueDate);
+      if (doc.expiryDate) formData.append('expiryDate', doc.expiryDate);
       formData.append('frontImage', doc.frontImage);
       if (doc.backImage && doc.requiredSides >= 2) {
         formData.append('backImage', doc.backImage);
@@ -467,6 +533,21 @@ export class CustomerRegisterComponent implements OnInit, OnDestroy {
       if (r?.success) {
         customer.isKycVerified = false;
         this.notify.warn(`KYC rejected for '${customer.fullName}'.`);
+      } else {
+        this.notify.error(r?.message || 'Failed.');
+      }
+    });
+  }
+
+  // ---------------------------------------------------------------------------
+  // Toggle Status
+  // ---------------------------------------------------------------------------
+  toggleCustomerStatus(customer: CustomerModel): void {
+    this.api.toggleCustomerStatus(customer.id).subscribe(r => {
+      if (r?.success) {
+        const status = customer.isActive ? 'disabled' : 'enabled';
+        this.notify.success(`Customer '${customer.fullName}' ${status}.`);
+        this.loadCustomers();
       } else {
         this.notify.error(r?.message || 'Failed.');
       }
