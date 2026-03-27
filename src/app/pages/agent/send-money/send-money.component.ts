@@ -24,14 +24,14 @@ export const CustomerFormSchema = z.object({
   email: z.string().email('Invalid email').optional().or(z.literal('')),
   dateOfBirth: z.string().optional().or(z.literal('')),
   gender: z.string().optional().or(z.literal('')),
-  nationality: z.string().optional().or(z.literal('')),
+  nationality: z.string().min(1, 'Nationality is required'),
   country: z.string().min(1, 'Country is required'),
   city: z.string().optional().or(z.literal('')),
   state: z.string().optional().or(z.literal('')),
   postalCode: z.string().optional().or(z.literal('')),
   address: z.string().optional().or(z.literal('')),
-  idDocumentType: z.string().optional().or(z.literal('')),
-  idDocumentNumber: z.string().optional().or(z.literal('')),
+  idDocumentType: z.string().min(1, 'Document type is required'),
+  idDocumentNumber: z.string().min(1, 'Document number is required'),
   docIssueDate: z.string().optional().or(z.literal('')),
   docExpiryDate: z.string().optional().or(z.literal('')),
   docIssuingCountry: z.string().optional().or(z.literal('')),
@@ -114,6 +114,12 @@ export class SendMoneyComponent implements OnInit {
   savingCustomer = false;
 
   // Customer Reactive Form
+  // Document upload
+  frontImageFile: File | null = null;
+  backImageFile: File | null = null;
+  frontImagePreview: string | null = null;
+  backImagePreview: string | null = null;
+
   customerForm = new FormGroup({
     fullName: new FormControl(''),
     phone: new FormControl(''),
@@ -359,13 +365,73 @@ export class SendMoneyComponent implements OnInit {
     this.customerFormErrors = {};
     if (this.showCreateCustomer) {
       this.customerForm.reset();
+      this.frontImageFile = null;
+      this.backImageFile = null;
+      this.frontImagePreview = null;
+      this.backImagePreview = null;
     }
+  }
+
+  onFrontImageSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files[0]) {
+      this.frontImageFile = input.files[0];
+      const reader = new FileReader();
+      reader.onload = (e) => this.frontImagePreview = e.target?.result as string;
+      reader.readAsDataURL(this.frontImageFile);
+    }
+  }
+
+  onBackImageSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files[0]) {
+      this.backImageFile = input.files[0];
+      const reader = new FileReader();
+      reader.onload = (e) => this.backImagePreview = e.target?.result as string;
+      reader.readAsDataURL(this.backImageFile);
+    }
+  }
+
+  private uploadDocumentsForCustomer(customerId: number): void {
+    const formValue = this.customerForm.getRawValue();
+    if (!this.frontImageFile && !this.backImageFile) return;
+    if (!formValue.idDocumentType || !formValue.idDocumentNumber) return;
+
+    const formData = new FormData();
+    formData.append('customerId', customerId.toString());
+    formData.append('documentType', formValue.idDocumentType);
+    formData.append('documentNumber', formValue.idDocumentNumber);
+    formData.append('requiredSides', this.backImageFile ? '2' : '1');
+    if (formValue.docIssuingCountry) {
+      formData.append('issuingCountry', formValue.docIssuingCountry);
+    }
+    if (this.frontImageFile) {
+      formData.append('frontImage', this.frontImageFile);
+    }
+    if (this.backImageFile) {
+      formData.append('backImage', this.backImageFile);
+    }
+
+    this.api.uploadDocument(formData).subscribe({
+      next: (res) => {
+        if (res?.success) {
+          this.notify.success('Document uploaded successfully.');
+        }
+      },
+      error: () => {
+        this.notify.error('Customer created but document upload failed. You can upload later from admin.');
+      },
+    });
   }
 
   saveNewCustomer(): void {
     this.customerFormError = '';
     if (!this.validateCustomerForm()) {
       this.customerFormError = 'Please fix the highlighted fields.';
+      return;
+    }
+    if (!this.frontImageFile) {
+      this.customerFormError = 'Please upload at least the front image of the ID document.';
       return;
     }
 
@@ -396,6 +462,7 @@ export class SendMoneyComponent implements OnInit {
           this.customers.push(res.data);
           this.filteredCustomers = [...this.customers];
           this.selectCustomer(res.data);
+          this.uploadDocumentsForCustomer(res.data.id);
           this.showCreateCustomer = false;
           this.notify.success('Customer created!');
         } else {

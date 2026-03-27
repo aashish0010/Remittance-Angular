@@ -256,6 +256,28 @@ export class CustomerRegisterComponent implements OnInit, OnDestroy {
       this.formError = 'Full Name and Country are required.';
       return;
     }
+    if (!f.nationality) {
+      this.formError = 'Nationality is required.';
+      return;
+    }
+    // At least one document with front image is mandatory for new customers
+    if (!this.isEditing) {
+      const hasValidDoc = this.documentUploads.some(d => d.documentType && d.documentNumber && d.frontImage);
+      if (!hasValidDoc) {
+        this.formError = 'At least one document with type, number, and front image is required.';
+        this.activeTab = 'Documents';
+        return;
+      }
+    }
+    // For editing, require a document if none exist yet
+    if (this.isEditing && this.existingDocs.length === 0) {
+      const hasValidDoc = this.documentUploads.some(d => d.documentType && d.documentNumber && d.frontImage);
+      if (!hasValidDoc) {
+        this.formError = 'At least one document with type, number, and front image is required.';
+        this.activeTab = 'Documents';
+        return;
+      }
+    }
     this.saving = true;
     const dto: any = {
       fullName: f.fullName,

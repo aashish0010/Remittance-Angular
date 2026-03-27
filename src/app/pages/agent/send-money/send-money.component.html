@@ -162,8 +162,9 @@
               </select>
             </div>
             <div>
-              <label class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-1">Nationality</label>
-              <input formControlName="nationality" type="text" placeholder="Nationality" class="w-full px-3 py-2.5 rounded-lg border border-surface-300 dark:border-surface-600 text-sm bg-white dark:bg-surface-800 text-surface-900 dark:text-surface-100 placeholder-surface-400 focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500 transition-colors" />
+              <label class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-1">Nationality *</label>
+              <input formControlName="nationality" type="text" placeholder="Nationality" class="w-full px-3 py-2.5 rounded-lg border text-sm bg-white dark:bg-surface-800 text-surface-900 dark:text-surface-100 placeholder-surface-400 focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500 transition-colors" [ngClass]="customerFormErrors['nationality'] ? 'border-danger-400' : 'border-surface-300 dark:border-surface-600'" />
+              <p *ngIf="customerFormErrors['nationality']" class="text-xs text-danger-500 mt-1">{{ customerFormErrors['nationality'] }}</p>
             </div>
           </div>
           <div class="text-xs font-semibold uppercase tracking-wider text-brand-600 dark:text-brand-400 mb-3 pb-1 border-b border-surface-100 dark:border-surface-700">Address</div>
@@ -181,6 +182,14 @@
               <input formControlName="city" type="text" placeholder="City" class="w-full px-3 py-2.5 rounded-lg border border-surface-300 dark:border-surface-600 text-sm bg-white dark:bg-surface-800 text-surface-900 dark:text-surface-100 placeholder-surface-400 focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500 transition-colors" />
             </div>
             <div>
+              <label class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-1">State</label>
+              <input formControlName="state" type="text" placeholder="State / Province" class="w-full px-3 py-2.5 rounded-lg border border-surface-300 dark:border-surface-600 text-sm bg-white dark:bg-surface-800 text-surface-900 dark:text-surface-100 placeholder-surface-400 focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500 transition-colors" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-1">Postal Code</label>
+              <input formControlName="postalCode" type="text" placeholder="Postal / ZIP code" class="w-full px-3 py-2.5 rounded-lg border border-surface-300 dark:border-surface-600 text-sm bg-white dark:bg-surface-800 text-surface-900 dark:text-surface-100 placeholder-surface-400 focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500 transition-colors" />
+            </div>
+            <div>
               <label class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-1">Address</label>
               <input formControlName="address" type="text" placeholder="Street address" class="w-full px-3 py-2.5 rounded-lg border border-surface-300 dark:border-surface-600 text-sm bg-white dark:bg-surface-800 text-surface-900 dark:text-surface-100 placeholder-surface-400 focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500 transition-colors" />
             </div>
@@ -188,15 +197,17 @@
           <div class="text-xs font-semibold uppercase tracking-wider text-brand-600 dark:text-brand-400 mb-3 pb-1 border-b border-surface-100 dark:border-surface-700">Identification</div>
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-5">
             <div>
-              <label class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-1">ID Document Type</label>
-              <select formControlName="idDocumentType" class="w-full px-3 py-2.5 rounded-lg border border-surface-300 dark:border-surface-600 text-sm bg-white dark:bg-surface-800 text-surface-900 dark:text-surface-100 focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500 transition-colors">
+              <label class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-1">ID Document Type *</label>
+              <select formControlName="idDocumentType" class="w-full px-3 py-2.5 rounded-lg border text-sm bg-white dark:bg-surface-800 text-surface-900 dark:text-surface-100 focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500 transition-colors" [ngClass]="customerFormErrors['idDocumentType'] ? 'border-danger-400' : 'border-surface-300 dark:border-surface-600'">
                 <option value="">Select type</option>
                 <option *ngFor="let t of idTypes" [value]="t">{{ t }}</option>
               </select>
+              <p *ngIf="customerFormErrors['idDocumentType']" class="text-xs text-danger-500 mt-1">{{ customerFormErrors['idDocumentType'] }}</p>
             </div>
             <div>
-              <label class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-1">ID Document Number</label>
-              <input formControlName="idDocumentNumber" type="text" placeholder="Document number" class="w-full px-3 py-2.5 rounded-lg border border-surface-300 dark:border-surface-600 text-sm bg-white dark:bg-surface-800 text-surface-900 dark:text-surface-100 placeholder-surface-400 focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500 transition-colors" />
+              <label class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-1">ID Document Number *</label>
+              <input formControlName="idDocumentNumber" type="text" placeholder="Document number" class="w-full px-3 py-2.5 rounded-lg border text-sm bg-white dark:bg-surface-800 text-surface-900 dark:text-surface-100 placeholder-surface-400 focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500 transition-colors" [ngClass]="customerFormErrors['idDocumentNumber'] ? 'border-danger-400' : 'border-surface-300 dark:border-surface-600'" />
+              <p *ngIf="customerFormErrors['idDocumentNumber']" class="text-xs text-danger-500 mt-1">{{ customerFormErrors['idDocumentNumber'] }}</p>
             </div>
             <div>
               <label class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-1">Issuing Country</label>
@@ -212,6 +223,30 @@
             <div>
               <label class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-1">Expiry Date</label>
               <input formControlName="docExpiryDate" type="date" class="w-full px-3 py-2.5 rounded-lg border border-surface-300 dark:border-surface-600 text-sm bg-white dark:bg-surface-800 text-surface-900 dark:text-surface-100 focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500 transition-colors" />
+            </div>
+          </div>
+
+          <!-- Document Upload Section -->
+          <div class="text-xs font-semibold uppercase tracking-wider text-brand-600 dark:text-brand-400 mb-3 pb-1 border-b border-surface-100 dark:border-surface-700">Document Upload</div>
+          <p class="text-xs text-surface-500 dark:text-surface-400 mb-3">Upload front (required) and back images of the ID document.</p>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
+            <div>
+              <label class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-1">Front Image *</label>
+              <div class="relative">
+                <input type="file" accept="image/*" (change)="onFrontImageSelected($event)" class="w-full px-3 py-2 rounded-lg border border-surface-300 dark:border-surface-600 text-sm bg-white dark:bg-surface-800 text-surface-900 dark:text-surface-100 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-brand-50 file:text-brand-700 dark:file:bg-brand-900/30 dark:file:text-brand-300 hover:file:bg-brand-100 transition-colors cursor-pointer" />
+              </div>
+              <div *ngIf="frontImagePreview" class="mt-2">
+                <img [src]="frontImagePreview" alt="Front preview" class="w-24 h-16 object-cover rounded-lg border border-surface-200 dark:border-surface-700" />
+              </div>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-1">Back Image</label>
+              <div class="relative">
+                <input type="file" accept="image/*" (change)="onBackImageSelected($event)" class="w-full px-3 py-2 rounded-lg border border-surface-300 dark:border-surface-600 text-sm bg-white dark:bg-surface-800 text-surface-900 dark:text-surface-100 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-brand-50 file:text-brand-700 dark:file:bg-brand-900/30 dark:file:text-brand-300 hover:file:bg-brand-100 transition-colors cursor-pointer" />
+              </div>
+              <div *ngIf="backImagePreview" class="mt-2">
+                <img [src]="backImagePreview" alt="Back preview" class="w-24 h-16 object-cover rounded-lg border border-surface-200 dark:border-surface-700" />
+              </div>
             </div>
           </div>
         </form>
