@@ -150,7 +150,7 @@
             </div>
             <div>
               <label class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-1">Date of Birth</label>
-              <p-datepicker formControlName="dateOfBirth" [maxDate]="maxDobDate" dateFormat="dd/mm/yy"
+              <p-datepicker appendTo="body" formControlName="dateOfBirth" [maxDate]="maxDobDate" dateFormat="dd/mm/yy"
                 [showIcon]="true" [showClear]="true" placeholder="DD/MM/YYYY"
                 styleClass="w-full"
                 inputStyleClass="w-full px-3 py-2.5 rounded-lg border border-surface-300 dark:border-surface-600 text-sm bg-white dark:bg-surface-800 text-surface-900 dark:text-surface-100 focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500 transition-colors" />
@@ -221,14 +221,14 @@
             </div>
             <div>
               <label class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-1">Issue Date</label>
-              <p-datepicker formControlName="docIssueDate" [maxDate]="todayDate" dateFormat="dd/mm/yy"
+              <p-datepicker appendTo="body" formControlName="docIssueDate" [maxDate]="todayDate" dateFormat="dd/mm/yy"
                 [showIcon]="true" [showClear]="true" placeholder="DD/MM/YYYY"
                 styleClass="w-full"
                 inputStyleClass="w-full px-3 py-2.5 rounded-lg border border-surface-300 dark:border-surface-600 text-sm bg-white dark:bg-surface-800 text-surface-900 dark:text-surface-100 focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500 transition-colors" />
             </div>
             <div>
               <label class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-1">Expiry Date</label>
-              <p-datepicker formControlName="docExpiryDate" [minDate]="todayDate" dateFormat="dd/mm/yy"
+              <p-datepicker appendTo="body" formControlName="docExpiryDate" [minDate]="todayDate" dateFormat="dd/mm/yy"
                 [showIcon]="true" [showClear]="true" placeholder="DD/MM/YYYY"
                 styleClass="w-full"
                 inputStyleClass="w-full px-3 py-2.5 rounded-lg border border-surface-300 dark:border-surface-600 text-sm bg-white dark:bg-surface-800 text-surface-900 dark:text-surface-100 focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-500 transition-colors" />

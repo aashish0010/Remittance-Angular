@@ -6,7 +6,7 @@
     <!-- Start Date -->
     <div class="flex flex-col gap-1.5">
       <label for="startDate" class="text-sm font-medium text-surface-700 dark:text-surface-300">Start Date</label>
-      <p-datepicker
+      <p-datepicker appendTo="body"
         [(ngModel)]="startDate"
         dateFormat="dd/mm/yy"
         [showIcon]="true"
@@ -20,7 +20,7 @@
     <!-- End Date -->
     <div class="flex flex-col gap-1.5">
       <label for="endDate" class="text-sm font-medium text-surface-700 dark:text-surface-300">End Date</label>
-      <p-datepicker
+      <p-datepicker appendTo="body"
         [(ngModel)]="endDate"
         dateFormat="dd/mm/yy"
         [showIcon]="true"
