@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["src/app/pages/agent/send-money/send-money.component.scss"],
+  "sourcesContent": ["// ---------------------------------------------------------------------------\r\n// Send Money Styles — Tailwind-first, minimal SCSS overrides\r\n// ---------------------------------------------------------------------------\r\n\r\n:host {\r\n  display: block;\r\n\r\n  a {\r\n    text-decoration: none;\r\n    color: inherit;\r\n  }\r\n}\r\n\r\n.no-underline {\r\n  text-decoration: none;\r\n}\r\n"],
+  "mappings": ";AAIA;AACE,WAAA;;AAEA,MAAA;AACE,mBAAA;AACA,SAAA;;AAIJ,CAAA;AACE,mBAAA;;",
+  "names": []
+}

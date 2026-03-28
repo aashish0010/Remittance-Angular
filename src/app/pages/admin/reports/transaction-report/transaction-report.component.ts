@@ -2,6 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule, DecimalPipe, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
+import { DatePicker } from 'primeng/datepicker';
+
 import { ApiService } from '../../../../core/services/api.service';
 import { ExportService } from '../../../../core/services/export.service';
 import { NotificationService } from '../../../../core/services/notification.service';
@@ -43,6 +45,7 @@ interface TransactionReportData {
     FormsModule,
     DecimalPipe,
     DatePipe,
+    DatePicker,
   ],
   templateUrl: './transaction-report.component.html',
   styleUrls: ['./transaction-report.component.scss'],
@@ -51,8 +54,8 @@ export class TransactionReportComponent implements OnInit {
   Math = Math;
 
   // Filters
-  startDate: string = '';
-  endDate: string = '';
+  startDate: Date | null = null;
+  endDate: Date | null = null;
   agentId?: number;
   status?: string;
 
@@ -131,8 +134,8 @@ export class TransactionReportComponent implements OnInit {
     this.pageIndex = 0;
 
     const params: any = {};
-    if (this.startDate) params.startDate = this.startDate;
-    if (this.endDate) params.endDate = this.endDate;
+    if (this.startDate) params.startDate = this.formatDate(this.startDate);
+    if (this.endDate) params.endDate = this.formatDate(this.endDate);
     if (this.agentId) params.agentId = this.agentId;
     if (this.status) params.status = this.status;
 
@@ -152,10 +155,18 @@ export class TransactionReportComponent implements OnInit {
     });
   }
 
+  private formatDate(d: Date | null): string {
+    if (!d) return '';
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  }
+
   exportReport(format: string): void {
     const params: any = {};
-    if (this.startDate) params.startDate = this.startDate;
-    if (this.endDate) params.endDate = this.endDate;
+    if (this.startDate) params.startDate = this.formatDate(this.startDate);
+    if (this.endDate) params.endDate = this.formatDate(this.endDate);
     if (this.agentId) params.agentId = this.agentId;
     if (this.status) params.status = this.status;
     this.exportService.export('api/admin/reports/transactions/export', params, format as any);

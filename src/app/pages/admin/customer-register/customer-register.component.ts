@@ -3,6 +3,7 @@ import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subject } from 'rxjs';
 import { debounceTime, takeUntil } from 'rxjs/operators';
+import { DatePicker } from 'primeng/datepicker';
 import { ApiService } from '../../../core/services/api.service';
 import { ExportService } from '../../../core/services/export.service';
 import { AuthStateService } from '../../../core/services/auth-state.service';
@@ -16,8 +17,8 @@ interface DocumentUpload {
   documentNumber: string;
   requiredSides: number;
   issuingCountry: string;
-  issueDate: string;
-  expiryDate: string;
+  issueDate: Date | null;
+  expiryDate: Date | null;
   frontImage: File | null;
   backImage: File | null;
   frontPreview: string | null;
@@ -26,7 +27,7 @@ interface DocumentUpload {
 
 interface CustomerForm {
   fullName: string;
-  dateOfBirth: string;
+  dateOfBirth: Date | null;
   gender: string;
   nationality: string;
   email: string;
@@ -41,7 +42,7 @@ interface CustomerForm {
 
 function emptyForm(): CustomerForm {
   return {
-    fullName: '', dateOfBirth: '', gender: 'Male', nationality: '',
+    fullName: '', dateOfBirth: null, gender: 'Male', nationality: '',
     email: '', phone: '', country: '', contactCountry: '', city: '', state: '', postalCode: '', address: '',
   };
 }
@@ -50,7 +51,7 @@ function emptyForm(): CustomerForm {
   selector: 'app-customer-register',
   standalone: true,
   imports: [
-    CommonModule, FormsModule, DatePipe, SearchableSelectDirective,
+    CommonModule, FormsModule, DatePipe, SearchableSelectDirective, DatePicker,
   ],
   templateUrl: './customer-register.component.html',
   styleUrl: './customer-register.component.scss',
@@ -216,7 +217,7 @@ export class CustomerRegisterComponent implements OnInit, OnDestroy {
     this.editingId = customer.id;
     this.form = {
       fullName: customer.fullName,
-      dateOfBirth: customer.dateOfBirth || '',
+      dateOfBirth: customer.dateOfBirth ? new Date(customer.dateOfBirth) : null,
       gender: customer.gender || 'Male',
       nationality: customer.nationality || '',
       email: customer.email || '',
@@ -257,8 +258,21 @@ export class CustomerRegisterComponent implements OnInit, OnDestroy {
   private safeAddressPattern = /^[\p{L}\d\s\-'.,/#]+$/u;
   private safePostalCodePattern = /^[\p{L}\d\s\-]+$/u;
 
-  getTodayDate(): string {
-    return new Date().toISOString().split('T')[0];
+  // Date constraints for PrimeNG DatePicker
+  today = new Date();
+  maxDobDate: Date = (() => {
+    const d = new Date();
+    d.setFullYear(d.getFullYear() - 16);
+    return d;
+  })();
+  minExpiryDate: Date = new Date();
+
+  private formatDate(d: Date | null): string | null {
+    if (!d) return null;
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
   }
 
   validateSpecialChars(value: string, pattern: RegExp, fieldName: string): string | null {
@@ -301,21 +315,21 @@ export class CustomerRegisterComponent implements OnInit, OnDestroy {
     }
 
     // Date validations
-    if (f.dateOfBirth && new Date(f.dateOfBirth) >= new Date()) {
-      this.formError = 'Date of Birth must be a past date.';
+    if (f.dateOfBirth && f.dateOfBirth > this.maxDobDate) {
+      this.formError = 'Customer must be at least 16 years old.';
       this.activeTab = 'Personal';
       return;
     }
 
     // Document date validations
-    const today = new Date();
+    const now = new Date();
     for (const doc of this.documentUploads) {
-      if (doc.issueDate && new Date(doc.issueDate) >= today) {
+      if (doc.issueDate && doc.issueDate >= now) {
         this.formError = 'Document issue date must be in the past.';
         this.activeTab = 'Documents';
         return;
       }
-      if (doc.expiryDate && new Date(doc.expiryDate) <= today) {
+      if (doc.expiryDate && doc.expiryDate <= now) {
         this.formError = 'Document expiry date must be in the future.';
         this.activeTab = 'Documents';
         return;
@@ -343,7 +357,7 @@ export class CustomerRegisterComponent implements OnInit, OnDestroy {
     this.saving = true;
     const dto: any = {
       fullName: f.fullName,
-      dateOfBirth: f.dateOfBirth || null,
+      dateOfBirth: this.formatDate(f.dateOfBirth),
       gender: f.gender || null,
       nationality: f.nationality || null,
       email: f.email || null,
@@ -419,8 +433,8 @@ export class CustomerRegisterComponent implements OnInit, OnDestroy {
       documentNumber: '',
       requiredSides: 1,
       issuingCountry: '',
-      issueDate: '',
-      expiryDate: '',
+      issueDate: null,
+      expiryDate: null,
       frontImage: null,
       backImage: null,
       frontPreview: null,
@@ -461,8 +475,10 @@ export class CustomerRegisterComponent implements OnInit, OnDestroy {
       formData.append('documentNumber', doc.documentNumber);
       formData.append('requiredSides', doc.requiredSides.toString());
       formData.append('issuingCountry', doc.issuingCountry || '');
-      if (doc.issueDate) formData.append('issueDate', doc.issueDate);
-      if (doc.expiryDate) formData.append('expiryDate', doc.expiryDate);
+      const issueDateStr = this.formatDate(doc.issueDate);
+      const expiryDateStr = this.formatDate(doc.expiryDate);
+      if (issueDateStr) formData.append('issueDate', issueDateStr);
+      if (expiryDateStr) formData.append('expiryDate', expiryDateStr);
       formData.append('frontImage', doc.frontImage);
       if (doc.backImage && doc.requiredSides >= 2) {
         formData.append('backImage', doc.backImage);

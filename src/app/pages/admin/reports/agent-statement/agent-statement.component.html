@@ -7,22 +7,28 @@
       <!-- Start Date -->
       <div>
         <label class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-1.5">Start Date</label>
-        <input
-          type="date"
-          [value]="startDateStr"
-          (change)="onStartDateChange($any($event.target).value)"
-          class="w-full px-4 py-2.5 rounded-xl border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-700 text-surface-900 dark:text-surface-100 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors text-sm outline-none"
+        <p-datepicker
+          [(ngModel)]="startDateObj"
+          dateFormat="dd/mm/yy"
+          [showIcon]="true"
+          [showClear]="true"
+          placeholder="DD/MM/YYYY"
+          styleClass="w-full"
+          inputStyleClass="w-full px-4 py-2.5 rounded-xl border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-700 text-surface-900 dark:text-surface-100 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors text-sm outline-none"
         />
       </div>
 
       <!-- End Date -->
       <div>
         <label class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-1.5">End Date</label>
-        <input
-          type="date"
-          [value]="endDateStr"
-          (change)="onEndDateChange($any($event.target).value)"
-          class="w-full px-4 py-2.5 rounded-xl border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-700 text-surface-900 dark:text-surface-100 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors text-sm outline-none"
+        <p-datepicker
+          [(ngModel)]="endDateObj"
+          dateFormat="dd/mm/yy"
+          [showIcon]="true"
+          [showClear]="true"
+          placeholder="DD/MM/YYYY"
+          styleClass="w-full"
+          inputStyleClass="w-full px-4 py-2.5 rounded-xl border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-700 text-surface-900 dark:text-surface-100 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors text-sm outline-none"
         />
       </div>
 

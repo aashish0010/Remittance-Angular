@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule, DecimalPipe, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { DatePicker } from 'primeng/datepicker';
 import { ApiService } from '../../../../core/services/api.service';
 import { NotificationService } from '../../../../core/services/notification.service';
 
@@ -10,6 +11,7 @@ import { NotificationService } from '../../../../core/services/notification.serv
   imports: [
     CommonModule,
     FormsModule,
+    DatePicker,
   ],
   providers: [DecimalPipe, DatePipe],
   templateUrl: './agent-statement.component.html',
@@ -20,8 +22,6 @@ export class AgentStatementComponent implements OnInit {
   selectedAgentId: number = 0;
   startDateObj: Date | null = null;
   endDateObj: Date | null = null;
-  startDateStr: string = '';
-  endDateStr: string = '';
   loading = false;
 
   report: any = null;
@@ -56,8 +56,6 @@ export class AgentStatementComponent implements OnInit {
     thirtyDaysAgo.setDate(today.getDate() - 30);
     this.endDateObj = today;
     this.startDateObj = thirtyDaysAgo;
-    this.startDateStr = this.formatDate(this.startDateObj);
-    this.endDateStr = this.formatDate(this.endDateObj);
   }
 
   private formatDate(d: Date | null): string {
@@ -66,16 +64,6 @@ export class AgentStatementComponent implements OnInit {
     const month = String(d.getMonth() + 1).padStart(2, '0');
     const day = String(d.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
-  }
-
-  onStartDateChange(value: string): void {
-    this.startDateStr = value;
-    this.startDateObj = value ? new Date(value + 'T00:00:00') : null;
-  }
-
-  onEndDateChange(value: string): void {
-    this.endDateStr = value;
-    this.endDateObj = value ? new Date(value + 'T00:00:00') : null;
   }
 
   loadAgents(): void {

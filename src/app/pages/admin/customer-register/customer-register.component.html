@@ -238,8 +238,10 @@
       </div>
       <div>
         <label class="block text-xs font-medium text-surface-600 dark:text-surface-400 mb-1">Date of Birth</label>
-        <input type="date" [(ngModel)]="form.dateOfBirth" [max]="getTodayDate()"
-          class="w-full px-3 py-2 rounded-lg border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-700 text-surface-900 dark:text-surface-100 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition text-sm" />
+        <p-datepicker [(ngModel)]="form.dateOfBirth" [maxDate]="maxDobDate" dateFormat="dd/mm/yy"
+          [showIcon]="true" [showClear]="true" placeholder="DD/MM/YYYY"
+          styleClass="w-full"
+          inputStyleClass="w-full px-3 py-2 rounded-lg border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-700 text-surface-900 dark:text-surface-100 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition text-sm" />
       </div>
       <div>
         <label class="block text-xs font-medium text-surface-600 dark:text-surface-400 mb-1">Gender</label>
@@ -409,15 +411,17 @@
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
         <div>
           <label class="block text-xs font-medium text-surface-600 dark:text-surface-400 mb-1">Issue Date</label>
-          <input type="date" [(ngModel)]="doc.issueDate" [max]="getTodayDate()"
-            class="w-full px-3 py-2 rounded-lg border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-700 text-surface-900 dark:text-surface-100 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition text-sm" />
-          <span *ngIf="doc.issueDate && doc.issueDate > getTodayDate()" class="text-xs text-danger-600 dark:text-danger-400">Issue date must be in the past</span>
+          <p-datepicker [(ngModel)]="doc.issueDate" [maxDate]="today" dateFormat="dd/mm/yy"
+            [showIcon]="true" [showClear]="true" placeholder="DD/MM/YYYY"
+            styleClass="w-full"
+            inputStyleClass="w-full px-3 py-2 rounded-lg border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-700 text-surface-900 dark:text-surface-100 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition text-sm" />
         </div>
         <div>
           <label class="block text-xs font-medium text-surface-600 dark:text-surface-400 mb-1">Expiry Date</label>
-          <input type="date" [(ngModel)]="doc.expiryDate" [min]="getTodayDate()"
-            class="w-full px-3 py-2 rounded-lg border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-700 text-surface-900 dark:text-surface-100 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition text-sm" />
-          <span *ngIf="doc.expiryDate && doc.expiryDate < getTodayDate()" class="text-xs text-danger-600 dark:text-danger-400">Expiry date must be in the future</span>
+          <p-datepicker [(ngModel)]="doc.expiryDate" [minDate]="today" dateFormat="dd/mm/yy"
+            [showIcon]="true" [showClear]="true" placeholder="DD/MM/YYYY"
+            styleClass="w-full"
+            inputStyleClass="w-full px-3 py-2 rounded-lg border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-700 text-surface-900 dark:text-surface-100 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition text-sm" />
         </div>
       </div>
 

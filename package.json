@@ -24,6 +24,7 @@
     "@hugeicons/core-free-icons": "^4.0.0",
     "@jsverse/transloco": "^7.6.1",
     "@ngrx/signals": "^19.2.1",
+    "@primeng/themes": "^21.0.4",
     "@tanstack/angular-table": "^8.21.3",
     "@tanstack/table-core": "^8.21.3",
     "chart.js": "^4.5.1",

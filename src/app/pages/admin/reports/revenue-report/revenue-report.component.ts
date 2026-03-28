@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule, DecimalPipe, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { DatePicker } from 'primeng/datepicker';
 import { ApiService } from '../../../../core/services/api.service';
 import { ExportService } from '../../../../core/services/export.service';
 import { NotificationService } from '../../../../core/services/notification.service';
@@ -44,13 +45,14 @@ interface RevenueReport {
     FormsModule,
     DecimalPipe,
     DatePipe,
+    DatePicker,
   ],
   templateUrl: './revenue-report.component.html',
   styleUrls: ['./revenue-report.component.scss'],
 })
 export class RevenueReportComponent {
-  startDate = '';
-  endDate = '';
+  startDate: Date | null = null;
+  endDate: Date | null = null;
   loading = false;
   report: RevenueReport | null = null;
 
@@ -63,8 +65,8 @@ export class RevenueReportComponent {
   loadReport(): void {
     this.loading = true;
     const params: { startDate?: string; endDate?: string } = {};
-    if (this.startDate) params.startDate = this.startDate;
-    if (this.endDate) params.endDate = this.endDate;
+    if (this.startDate) params.startDate = this.formatDate(this.startDate);
+    if (this.endDate) params.endDate = this.formatDate(this.endDate);
 
     this.api.getRevenueReport(params).subscribe({
       next: (res) => {
@@ -87,10 +89,18 @@ export class RevenueReportComponent {
     return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short' });
   }
 
+  private formatDate(d: Date | null): string {
+    if (!d) return '';
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  }
+
   exportReport(format: string): void {
     const params: any = {};
-    if (this.startDate) params.startDate = this.startDate;
-    if (this.endDate) params.endDate = this.endDate;
+    if (this.startDate) params.startDate = this.formatDate(this.startDate);
+    if (this.endDate) params.endDate = this.formatDate(this.endDate);
     this.exportService.export('api/admin/reports/revenue/export', params, format as any);
   }
 }

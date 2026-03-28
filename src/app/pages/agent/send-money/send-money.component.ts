@@ -2,6 +2,7 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule, DecimalPipe } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormGroup, FormControl } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
+import { DatePicker } from 'primeng/datepicker';
 import { z } from 'zod';
 import { NotificationService } from '../../../core/services/notification.service';
 import { ApiService } from '../../../core/services/api.service';
@@ -22,7 +23,7 @@ export const CustomerFormSchema = z.object({
   fullName: z.string().min(1, 'Full name is required').max(100, 'Max 100 characters'),
   phone: z.string().min(1, 'Phone is required').max(20, 'Max 20 characters'),
   email: z.string().email('Invalid email').optional().or(z.literal('')),
-  dateOfBirth: z.string().optional().or(z.literal('')),
+  dateOfBirth: z.union([z.date(), z.string(), z.null()]).optional(),
   gender: z.string().optional().or(z.literal('')),
   nationality: z.string().min(1, 'Nationality is required'),
   country: z.string().min(1, 'Country is required'),
@@ -32,8 +33,8 @@ export const CustomerFormSchema = z.object({
   address: z.string().optional().or(z.literal('')),
   idDocumentType: z.string().min(1, 'Document type is required'),
   idDocumentNumber: z.string().min(1, 'Document number is required'),
-  docIssueDate: z.string().optional().or(z.literal('')),
-  docExpiryDate: z.string().optional().or(z.literal('')),
+  docIssueDate: z.union([z.date(), z.string(), z.null()]).optional(),
+  docExpiryDate: z.union([z.date(), z.string(), z.null()]).optional(),
   docIssuingCountry: z.string().optional().or(z.literal('')),
 });
 
@@ -65,6 +66,7 @@ export type ReceiverFormValue = z.infer<typeof ReceiverFormSchema>;
     ReactiveFormsModule,
     RouterModule,
     DecimalPipe,
+    DatePicker,
   ],
   providers: [SendMoneyStore],
   templateUrl: './send-money.component.html',
@@ -98,6 +100,15 @@ export class SendMoneyComponent implements OnInit {
   kycWarning = '';
   dobWarning = '';
 
+  // Date constraints for PrimeNG DatePicker
+  todayDate = new Date();
+  maxDobDate: Date = (() => {
+    const d = new Date();
+    d.setFullYear(d.getFullYear() - 16);
+    return d;
+  })();
+  minExpiryDate: Date = new Date();
+
   // Reference data
   countries: CountryInfo[] = [];
   paymentMethods: PaymentMethodModel[] = [];
@@ -124,7 +135,7 @@ export class SendMoneyComponent implements OnInit {
     fullName: new FormControl(''),
     phone: new FormControl(''),
     email: new FormControl(''),
-    dateOfBirth: new FormControl(''),
+    dateOfBirth: new FormControl<Date | null>(null),
     gender: new FormControl(''),
     nationality: new FormControl(''),
     country: new FormControl(''),
@@ -134,8 +145,8 @@ export class SendMoneyComponent implements OnInit {
     address: new FormControl(''),
     idDocumentType: new FormControl(''),
     idDocumentNumber: new FormControl(''),
-    docIssueDate: new FormControl(''),
-    docExpiryDate: new FormControl(''),
+    docIssueDate: new FormControl<Date | null>(null),
+    docExpiryDate: new FormControl<Date | null>(null),
     docIssuingCountry: new FormControl(''),
   });
   customerFormErrors: Record<string, string> = {};
@@ -424,6 +435,14 @@ export class SendMoneyComponent implements OnInit {
     });
   }
 
+  private formatDate(d: Date | null | undefined): string {
+    if (!d) return '';
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  }
+
   saveNewCustomer(): void {
     this.customerFormError = '';
     if (!this.validateCustomerForm()) {
@@ -441,7 +460,7 @@ export class SendMoneyComponent implements OnInit {
       fullName: formValue.fullName || '',
       email: formValue.email || '',
       phone: formValue.phone || '',
-      dateOfBirth: formValue.dateOfBirth || '',
+      dateOfBirth: this.formatDate(formValue.dateOfBirth),
       gender: formValue.gender || '',
       nationality: formValue.nationality || '',
       country: formValue.country || '',
@@ -451,8 +470,8 @@ export class SendMoneyComponent implements OnInit {
       address: formValue.address || '',
       idDocumentType: formValue.idDocumentType || '',
       idDocumentNumber: formValue.idDocumentNumber || '',
-      docIssueDate: formValue.docIssueDate || '',
-      docExpiryDate: formValue.docExpiryDate || '',
+      docIssueDate: this.formatDate(formValue.docIssueDate),
+      docExpiryDate: this.formatDate(formValue.docExpiryDate),
       docIssuingCountry: formValue.docIssuingCountry || '',
     };
 

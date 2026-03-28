@@ -7,17 +7,13 @@
       <!-- Start Date -->
       <div class="flex-1 min-w-[160px]">
         <label class="block text-xs font-medium text-surface-600 dark:text-surface-400 mb-1">Start Date</label>
-        <input type="date"
-               [(ngModel)]="startDate"
-               class="w-full px-4 py-2.5 rounded-xl border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-700 text-surface-900 dark:text-surface-100 focus:ring-2 focus:ring-brand-500 transition-colors text-sm" />
+        <p-datepicker [(ngModel)]="startDate" dateFormat="dd/mm/yy" [showIcon]="true" [showClear]="true" placeholder="DD/MM/YYYY" styleClass="w-full" inputStyleClass="w-full px-4 py-2.5 rounded-xl border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-700 text-surface-900 dark:text-surface-100 focus:ring-2 focus:ring-brand-500 transition-colors text-sm" />
       </div>
 
       <!-- End Date -->
       <div class="flex-1 min-w-[160px]">
         <label class="block text-xs font-medium text-surface-600 dark:text-surface-400 mb-1">End Date</label>
-        <input type="date"
-               [(ngModel)]="endDate"
-               class="w-full px-4 py-2.5 rounded-xl border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-700 text-surface-900 dark:text-surface-100 focus:ring-2 focus:ring-brand-500 transition-colors text-sm" />
+        <p-datepicker [(ngModel)]="endDate" dateFormat="dd/mm/yy" [showIcon]="true" [showClear]="true" placeholder="DD/MM/YYYY" styleClass="w-full" inputStyleClass="w-full px-4 py-2.5 rounded-xl border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-700 text-surface-900 dark:text-surface-100 focus:ring-2 focus:ring-brand-500 transition-colors text-sm" />
       </div>
 
       <!-- Generate Button -->

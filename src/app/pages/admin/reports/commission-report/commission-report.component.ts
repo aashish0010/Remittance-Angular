@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule, DecimalPipe, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { DatePicker } from 'primeng/datepicker';
 import { ApiService } from '../../../../core/services/api.service';
 import { ExportService } from '../../../../core/services/export.service';
 import { NotificationService } from '../../../../core/services/notification.service';
@@ -11,6 +12,7 @@ import { NotificationService } from '../../../../core/services/notification.serv
   imports: [
     CommonModule,
     FormsModule,
+    DatePicker,
   ],
   providers: [DecimalPipe, DatePipe],
   templateUrl: './commission-report.component.html',
@@ -18,8 +20,8 @@ import { NotificationService } from '../../../../core/services/notification.serv
 })
 export class CommissionReportComponent implements OnInit {
   agents: { id: number; businessName: string; agentType: string }[] = [];
-  startDate: string = '';
-  endDate: string = '';
+  startDate: Date | null = null;
+  endDate: Date | null = null;
   agentId: number | null = null;
   loading = false;
 
@@ -47,8 +49,8 @@ export class CommissionReportComponent implements OnInit {
     const today = new Date();
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(today.getDate() - 30);
-    this.endDate = this.toDateString(today);
-    this.startDate = this.toDateString(thirtyDaysAgo);
+    this.endDate = today;
+    this.startDate = thirtyDaysAgo;
   }
 
   private toDateString(d: Date): string {
@@ -72,8 +74,8 @@ export class CommissionReportComponent implements OnInit {
   loadReport(): void {
     this.loading = true;
     const params: { startDate?: string; endDate?: string; agentId?: number } = {
-      startDate: this.startDate,
-      endDate: this.endDate,
+      startDate: this.startDate ? this.toDateString(this.startDate) : undefined,
+      endDate: this.endDate ? this.toDateString(this.endDate) : undefined,
     };
     if (this.agentId) {
       params.agentId = this.agentId;
@@ -99,8 +101,8 @@ export class CommissionReportComponent implements OnInit {
 
   exportReport(format: string): void {
     const params: any = {
-      startDate: this.startDate,
-      endDate: this.endDate,
+      startDate: this.startDate ? this.toDateString(this.startDate) : undefined,
+      endDate: this.endDate ? this.toDateString(this.endDate) : undefined,
     };
     if (this.agentId) params.agentId = this.agentId;
     this.exportService.export('api/admin/reports/commissions/export', params, format as any);

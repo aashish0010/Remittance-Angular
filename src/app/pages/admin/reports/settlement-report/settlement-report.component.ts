@@ -1,6 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { DatePicker } from 'primeng/datepicker';
 import { ApiService } from '../../../../core/services/api.service';
 import { ExportService } from '../../../../core/services/export.service';
 import { NotificationService } from '../../../../core/services/notification.service';
@@ -27,7 +28,8 @@ interface Settlement {
   imports: [
     CommonModule,
     FormsModule,
-    DecimalPipe
+    DecimalPipe,
+    DatePicker
   ],
   templateUrl: './settlement-report.component.html',
   styleUrls: ['./settlement-report.component.scss']
@@ -37,8 +39,8 @@ export class SettlementReportComponent {
   private exportService = inject(ExportService);
   private notification = inject(NotificationService);
 
-  startDate: string = '';
-  endDate: string = '';
+  startDate: Date | null = null;
+  endDate: Date | null = null;
   loading = false;
 
   totalAgents = 0;
@@ -46,11 +48,19 @@ export class SettlementReportComponent {
   totalCommissionPaid = 0;
   settlements: Settlement[] = [];
 
+  private formatDate(d: Date | null): string {
+    if (!d) return '';
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  }
+
   loadReport(): void {
     this.loading = true;
     const params: { startDate?: string; endDate?: string } = {};
-    if (this.startDate) params.startDate = this.startDate;
-    if (this.endDate) params.endDate = this.endDate;
+    if (this.startDate) params.startDate = this.formatDate(this.startDate);
+    if (this.endDate) params.endDate = this.formatDate(this.endDate);
 
     this.api.getSettlementReport(params).subscribe({
       next: (res) => {
@@ -73,8 +83,8 @@ export class SettlementReportComponent {
 
   exportReport(format: string): void {
     const params: any = {};
-    if (this.startDate) params.startDate = this.startDate;
-    if (this.endDate) params.endDate = this.endDate;
+    if (this.startDate) params.startDate = this.formatDate(this.startDate);
+    if (this.endDate) params.endDate = this.formatDate(this.endDate);
     this.exportService.export('api/admin/reports/settlement/export', params, format as any);
   }
 }

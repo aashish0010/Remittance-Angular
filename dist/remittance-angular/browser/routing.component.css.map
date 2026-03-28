@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["src/app/pages/admin/routing/routing.component.scss"],
+  "sourcesContent": [":host { display: block; }\r\n"],
+  "mappings": ";AAAA;AAAQ,WAAA;;",
+  "names": []
+}
