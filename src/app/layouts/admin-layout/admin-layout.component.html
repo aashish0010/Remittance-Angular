@@ -1,5 +1,14 @@
 <div class="layout-wrapper" [class.dark]="isDarkMode">
 
+  <!-- ── Maintenance Mode Banner (system.maintenanceMode = true) ── -->
+  <div *ngIf="appSettings.maintenanceMode"
+       class="fixed top-0 left-0 right-0 z-[60] bg-warning-600 text-white text-sm font-medium flex items-center justify-center gap-2 px-4 py-2">
+    <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/>
+    </svg>
+    <span>{{ appSettings.maintenanceMessage }}</span>
+  </div>
+
   <!-- ── Top Bar ── -->
   <header class="fixed top-0 left-0 right-0 z-50 h-[68px] bg-white dark:bg-surface-900 border-b border-surface-200 dark:border-surface-700/50 shadow-soft flex items-center px-4 gap-2">
 
@@ -21,7 +30,7 @@
         </svg>
       </div>
       <div class="flex flex-col leading-none">
-        <span class="text-[15px] font-bold text-surface-900 dark:text-surface-100 tracking-tight">RemitAdmin</span>
+        <span class="text-[15px] font-bold text-surface-900 dark:text-surface-100 tracking-tight">{{ appSettings.companyName || 'RemitAdmin' }}</span>
         <span class="text-[10px] font-medium uppercase tracking-wider text-surface-400 dark:text-surface-500 mt-0.5">Management Portal</span>
       </div>
     </div>

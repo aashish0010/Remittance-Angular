@@ -1,10 +1,11 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormGroup, FormControl } from '@angular/forms';
 import { Router } from '@angular/router';
 import { z } from 'zod';
 import { ApiService } from '../../../core/services/api.service';
 import { AuthStateService } from '../../../core/services/auth-state.service';
+import { AppSettingsService } from '../../../core/services/app-settings.service';
 
 interface PortalOption {
   key: string;
@@ -59,7 +60,7 @@ type LoginForm = z.infer<typeof loginSchema>;
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss',
 })
-export class LoginComponent implements OnInit {
+export class LoginComponent implements OnInit, OnDestroy {
   loginForm = new FormGroup({
     email: new FormControl('', { nonNullable: true }),
     password: new FormControl('', { nonNullable: true }),
@@ -81,13 +82,23 @@ export class LoginComponent implements OnInit {
   appName = 'Remittance';
   currentYear = new Date().getFullYear();
 
+  // Login attempt lockout
+  failedAttempts = 0;
+  isLockedOut = false;
+  private lockoutTimer?: ReturnType<typeof setTimeout>;
+
   private storedLoginData: any = null;
 
   constructor(
     private api: ApiService,
     private auth: AuthStateService,
     private router: Router,
+    private appSettings: AppSettingsService,
   ) { }
+
+  ngOnDestroy(): void {
+    if (this.lockoutTimer) clearTimeout(this.lockoutTimer);
+  }
 
   ngOnInit(): void {
     // Clear field errors on value change
@@ -113,6 +124,8 @@ export class LoginComponent implements OnInit {
   }
 
   login(): void {
+    if (this.isLockedOut) return;
+
     const data = this.validateForm();
     if (!data) {
       return;
@@ -126,9 +139,25 @@ export class LoginComponent implements OnInit {
         this.loading = false;
 
         if (!res?.success || !res.data) {
-          this.errorMessage = res?.message || 'Invalid credentials. Please try again.';
+          this.failedAttempts++;
+          const maxAttempts = this.appSettings.maxLoginAttempts;
+          const remaining = maxAttempts - this.failedAttempts;
+          if (this.failedAttempts >= maxAttempts) {
+            this.isLockedOut = true;
+            this.errorMessage = `Account locked after ${maxAttempts} failed attempts. Please try again in 5 minutes.`;
+            this.lockoutTimer = setTimeout(() => {
+              this.isLockedOut = false;
+              this.failedAttempts = 0;
+              this.errorMessage = '';
+            }, 5 * 60 * 1000);
+          } else {
+            this.errorMessage = `${res?.message || 'Invalid credentials.'} ${remaining} attempt${remaining === 1 ? '' : 's'} remaining.`;
+          }
           return;
         }
+
+        // Successful login — reset failure counter
+        this.failedAttempts = 0;
 
         const d = res.data;
         this.storedLoginData = d;
@@ -159,6 +188,7 @@ export class LoginComponent implements OnInit {
       error: () => {
         this.loading = false;
         this.errorMessage = 'Unable to connect to server. Please check your connection.';
+        // Network errors don't count as failed login attempts
       },
     });
   }
@@ -167,11 +197,14 @@ export class LoginComponent implements OnInit {
     this.setAuthAndNavigate(portal.route);
   }
 
+  get loginDisabled(): boolean { return this.loading || this.isLockedOut; }
+
   backToLogin(): void {
     this.showPortalSelection = false;
     this.storedLoginData = null;
     this.availablePortals = [];
     this.errorMessage = '';
+    this.failedAttempts = 0;
     this.loginForm.patchValue({ password: '' });
   }
 

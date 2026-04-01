@@ -150,6 +150,7 @@ export class AgentTransactionsComponent implements OnInit, OnDestroy {
       case 'Failed': return 'bg-danger-100 text-danger-700 dark:bg-danger-900/30 dark:text-danger-400';
       case 'OnHold': return 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400';
       case 'Compliance': return 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400';
+      case 'PendingApproval': return 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400';
       default: return 'bg-surface-100 text-surface-600 dark:bg-surface-700 dark:text-surface-400';
     }
   }
@@ -157,6 +158,7 @@ export class AgentTransactionsComponent implements OnInit, OnDestroy {
   getStatusLabel(status: string): string {
     switch (status) {
       case 'OnHold': return 'On Hold';
+      case 'PendingApproval': return 'Pending Approval';
       default: return status;
     }
   }

@@ -141,9 +141,9 @@
                 Complete
               </button>
 
-              <!-- Pending/Completed: Cancel -->
+              <!-- Pending/Completed: Cancel (hidden when transaction.cancellationAllowed = false) -->
               <button
-                *ngIf="txn.status === 'Pending' || txn.status === 'Completed'"
+                *ngIf="(txn.status === 'Pending' || txn.status === 'Completed') && appSettings.cancellationAllowed"
                 (click)="cancelTransaction(txn)"
                 class="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium text-danger-600 dark:text-danger-400 hover:bg-danger-50 dark:hover:bg-danger-900/20 transition">
                 <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">

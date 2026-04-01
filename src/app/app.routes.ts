@@ -39,6 +39,7 @@ export const routes: Routes = [
       { path: 'reports/settlement', loadComponent: () => import('./pages/admin/reports/settlement-report/settlement-report.component').then(m => m.SettlementReportComponent) },
       { path: 'user-management/roles', loadComponent: () => import('./pages/admin/user-management/roles/roles.component').then(m => m.RolesComponent) },
       { path: 'user-management/users', loadComponent: () => import('./pages/admin/user-management/users/users.component').then(m => m.UsersComponent) },
+      { path: 'settings', loadComponent: () => import('./pages/admin/settings/settings.component').then(m => m.SettingsComponent) },
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
     ]
   },

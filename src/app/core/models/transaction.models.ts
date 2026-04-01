@@ -110,4 +110,5 @@ export interface SendTransactionModel {
   customerId?: number;
   receiverId?: number;
   purpose?: string;
+  sourceOfFunds?: string;
 }

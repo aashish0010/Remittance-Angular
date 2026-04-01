@@ -8,6 +8,7 @@ import { ApiService } from '../../../core/services/api.service';
 import { ExportService } from '../../../core/services/export.service';
 import { AuthStateService } from '../../../core/services/auth-state.service';
 import { NotificationService } from '../../../core/services/notification.service';
+import { AppSettingsService } from '../../../core/services/app-settings.service';
 import { TransactionResult } from '../../../core/models/transaction.models';
 
 @Component({
@@ -58,6 +59,7 @@ export class AdminTransactionsComponent implements OnInit, OnDestroy {
     private auth: AuthStateService,
     private notify: NotificationService,
     private route: ActivatedRoute,
+    public appSettings: AppSettingsService,
   ) {}
 
   ngOnInit(): void {
@@ -184,6 +186,7 @@ export class AdminTransactionsComponent implements OnInit, OnDestroy {
       case 'Failed': return 'bg-danger-100 text-danger-700 dark:bg-danger-900/30 dark:text-danger-400';
       case 'OnHold': return 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400';
       case 'Compliance': return 'bg-warning-100 text-warning-700 dark:bg-warning-900/30 dark:text-warning-400';
+      case 'PendingApproval': return 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400';
       default: return 'bg-surface-100 text-surface-600 dark:bg-surface-700 dark:text-surface-400';
     }
   }
@@ -191,6 +194,7 @@ export class AdminTransactionsComponent implements OnInit, OnDestroy {
   getStatusLabel(status: string): string {
     switch (status) {
       case 'OnHold': return 'On Hold';
+      case 'PendingApproval': return 'Pending Approval';
       default: return status;
     }
   }

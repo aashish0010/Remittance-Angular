@@ -8,6 +8,7 @@ import { ApiService } from '../../../core/services/api.service';
 import { ExportService } from '../../../core/services/export.service';
 import { AuthStateService } from '../../../core/services/auth-state.service';
 import { NotificationService } from '../../../core/services/notification.service';
+import { AppSettingsService } from '../../../core/services/app-settings.service';
 import { CustomerModel } from '../../../core/models/customer.models';
 import { CountryInfo } from '../../../core/models/common.models';
 import { SearchableSelectDirective } from '../../../shared/searchable-select.directive';
@@ -102,9 +103,20 @@ export class CustomerRegisterComponent implements OnInit, OnDestroy {
     private auth: AuthStateService,
     private notify: NotificationService,
     private exportService: ExportService,
+    public appSettings: AppSettingsService,
   ) {}
 
+  /** Tabs shown in the create/edit popup — Documents tab hidden when skipDocumentUpload or KYC disabled */
+  get availableTabs(): string[] {
+    const tabs = ['Personal', 'Contact'];
+    if (this.appSettings.kycEnabled && !this.appSettings.skipDocumentUpload) {
+      tabs.push('Documents');
+    }
+    return tabs;
+  }
+
   ngOnInit(): void {
+    this.appSettings.load();
     this.auth.loadFromSession();
     this.searchDebounce.pipe(debounceTime(400), takeUntil(this.destroy$)).subscribe(s => {
       this.searchString = s;
@@ -260,11 +272,11 @@ export class CustomerRegisterComponent implements OnInit, OnDestroy {
 
   // Date constraints for PrimeNG DatePicker
   today = new Date();
-  maxDobDate: Date = (() => {
+  get maxDobDate(): Date {
     const d = new Date();
-    d.setFullYear(d.getFullYear() - 16);
+    d.setFullYear(d.getFullYear() - this.appSettings.minimumAge);
     return d;
-  })();
+  }
   minExpiryDate: Date = new Date();
 
   private formatDate(d: Date | null): string | null {
@@ -315,8 +327,9 @@ export class CustomerRegisterComponent implements OnInit, OnDestroy {
     }
 
     // Date validations
+    const minAge = this.appSettings.minimumAge;
     if (f.dateOfBirth && f.dateOfBirth > this.maxDobDate) {
-      this.formError = 'Customer must be at least 16 years old.';
+      this.formError = `Customer must be at least ${minAge} years old.`;
       this.activeTab = 'Personal';
       return;
     }
@@ -336,22 +349,26 @@ export class CustomerRegisterComponent implements OnInit, OnDestroy {
       }
     }
 
-    // At least one document with front image is mandatory for new customers
-    if (!this.isEditing) {
-      const hasValidDoc = this.documentUploads.some(d => d.documentType && d.documentNumber && d.frontImage);
-      if (!hasValidDoc) {
-        this.formError = 'At least one document with type, number, and front image is required.';
-        this.activeTab = 'Documents';
-        return;
+    // Document validation — skipped when KYC is disabled or skipDocumentUpload is on
+    const docRequired = this.appSettings.kycEnabled && !this.appSettings.skipDocumentUpload;
+    if (docRequired) {
+      // At least one document with front image is mandatory for new customers
+      if (!this.isEditing) {
+        const hasValidDoc = this.documentUploads.some(d => d.documentType && d.documentNumber && d.frontImage);
+        if (!hasValidDoc) {
+          this.formError = 'At least one document with type, number, and front image is required.';
+          this.activeTab = 'Documents';
+          return;
+        }
       }
-    }
-    // For editing, require a document if none exist yet
-    if (this.isEditing && this.existingDocs.length === 0) {
-      const hasValidDoc = this.documentUploads.some(d => d.documentType && d.documentNumber && d.frontImage);
-      if (!hasValidDoc) {
-        this.formError = 'At least one document with type, number, and front image is required.';
-        this.activeTab = 'Documents';
-        return;
+      // For editing, require a document if none exist yet
+      if (this.isEditing && this.existingDocs.length === 0) {
+        const hasValidDoc = this.documentUploads.some(d => d.documentType && d.documentNumber && d.frontImage);
+        if (!hasValidDoc) {
+          this.formError = 'At least one document with type, number, and front image is required.';
+          this.activeTab = 'Documents';
+          return;
+        }
       }
     }
     this.saving = true;

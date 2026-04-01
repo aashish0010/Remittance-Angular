@@ -726,6 +726,22 @@ export class ApiService {
     return this.delete<boolean>(`api/admin/setup-fields/settings/${id}`);
   }
 
+  // ---------------------------------------------------------------------------
+  // System Configuration Settings (all 14 sections)
+  // ---------------------------------------------------------------------------
+
+  getAllSettings(): Observable<ApiResponse<Record<string, string>>> {
+    return this.get<Record<string, string>>('api/admin/settings');
+  }
+
+  batchSaveSettings(settings: Record<string, string>): Observable<ApiResponse<boolean>> {
+    return this.post<boolean>('api/admin/settings/batch', settings);
+  }
+
+  getSettingDefaults(): Observable<ApiResponse<Record<string, string>>> {
+    return this.get<Record<string, string>>('api/admin/settings/defaults');
+  }
+
   // Reference data (dynamic)
   getReferenceSetupFields(category?: string): Observable<ApiResponse<any[]>> {
     const q = category ? `?category=${category}` : '';

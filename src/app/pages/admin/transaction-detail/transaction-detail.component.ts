@@ -3,6 +3,7 @@ import { CommonModule, DecimalPipe, DatePipe } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { ApiService } from '../../../core/services/api.service';
 import { NotificationService } from '../../../core/services/notification.service';
+import { AppSettingsService } from '../../../core/services/app-settings.service';
 import { TransactionResult } from '../../../core/models/transaction.models';
 
 @Component({
@@ -22,6 +23,7 @@ export class TransactionDetailComponent implements OnInit {
   private router = inject(Router);
   private api = inject(ApiService);
   private notify = inject(NotificationService);
+  readonly appSettings = inject(AppSettingsService);
 
   txn: TransactionResult | null = null;
   loading = true;
@@ -114,6 +116,7 @@ export class TransactionDetailComponent implements OnInit {
       case 'Failed': return 'bg-danger-100 text-danger-700 dark:bg-danger-900/30 dark:text-danger-400';
       case 'Cancelled': return 'bg-surface-200 text-surface-600 dark:bg-surface-700 dark:text-surface-300';
       case 'Compliance': return 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400';
+      case 'PendingApproval': return 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400';
       default: return '';
     }
   }
@@ -121,12 +124,17 @@ export class TransactionDetailComponent implements OnInit {
   getStatusLabel(status: string): string {
     if (status === 'OnHold') return 'On Hold';
     if (status === 'Compliance') return 'Under Review';
+    if (status === 'PendingApproval') return 'Pending Approval';
     return status;
   }
 
-  canApprove(): boolean { return this.txn?.status === 'Pending'; }
+  canApprove(): boolean { return this.txn?.status === 'Pending' || this.txn?.status === 'PendingApproval'; }
   canComplete(): boolean { return this.txn?.status === 'Pending' || this.txn?.status === 'Approved'; }
   canCancel(): boolean {
-    return !!this.txn && this.txn.status !== 'Completed' && this.txn.status !== 'Cancelled' && this.txn.status !== 'Failed';
+    return this.appSettings.cancellationAllowed
+      && !!this.txn
+      && this.txn.status !== 'Completed'
+      && this.txn.status !== 'Cancelled'
+      && this.txn.status !== 'Failed';
   }
 }

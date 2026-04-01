@@ -168,12 +168,15 @@ export class ComplianceComponent implements OnInit, OnDestroy {
       case 'Pending': return 'chip-warning';
       case 'OnHold': return 'chip-info';
       case 'Compliance': return 'chip-compliance';
+      case 'PendingApproval': return 'chip-warning';
       case 'Cancelled': case 'Failed': return 'chip-error';
       default: return 'chip-default';
     }
   }
 
   getTxnStatusLabel(status: string): string {
-    return status === 'OnHold' ? 'On Hold' : status;
+    if (status === 'OnHold') return 'On Hold';
+    if (status === 'PendingApproval') return 'Pending Approval';
+    return status;
   }
 }

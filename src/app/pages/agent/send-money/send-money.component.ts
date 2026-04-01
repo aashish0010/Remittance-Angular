@@ -7,6 +7,7 @@ import { z } from 'zod';
 import { NotificationService } from '../../../core/services/notification.service';
 import { ApiService } from '../../../core/services/api.service';
 import { AuthStateService } from '../../../core/services/auth-state.service';
+import { AppSettingsService } from '../../../core/services/app-settings.service';
 import { SendTransactionModel, TransactionResult, CalculateTransferRequest, ComplianceViolation } from '../../../core/models/transaction.models';
 import { CountryInfo } from '../../../core/models/common.models';
 import { AgentModel, PaymentMethodModel, AgentBankModel, AgentBankBranchModel, AgentLocationModel } from '../../../core/models/agent.models';
@@ -225,14 +226,35 @@ export class SendMoneyComponent implements OnInit {
 
   private calcTrigger$ = new Subject<void>();
 
+  // Transaction meta fields (shown/required based on settings)
+  purpose = '';
+  sourceOfFunds = '';
+
+  get requirePurpose(): boolean { return this.appSettings.requirePurpose; }
+  get requireSourceOfFunds(): boolean { return this.appSettings.requireSourceOfFunds; }
+  get requireManagerApproval(): boolean { return this.appSettings.requireManagerApproval; }
+  get managerApprovalThreshold(): number { return this.appSettings.managerApprovalThreshold; }
+  get needsManagerApproval(): boolean {
+    return this.requireManagerApproval
+      && this.managerApprovalThreshold > 0
+      && this.sendAmount > this.managerApprovalThreshold;
+  }
+  get singleTxnLimit(): number { return this.appSettings.singleTransactionLimit; }
+  get dailyTxnLimit(): number  { return this.appSettings.dailyLimit; }
+  get exceedsSingleLimit(): boolean {
+    return this.singleTxnLimit > 0 && this.sendAmount > this.singleTxnLimit;
+  }
+
   constructor(
     private api: ApiService,
     private auth: AuthStateService,
     private router: Router,
     private notify: NotificationService,
+    public appSettings: AppSettingsService,
   ) {}
 
   ngOnInit(): void {
+    this.appSettings.load();
     this.auth.loadFromSession();
     this.loadReferenceData();
 
@@ -641,8 +663,10 @@ export class SendMoneyComponent implements OnInit {
       this.selectedPartnerId = matchingPartner.id;
       this.selectedPartner = matchingPartner;
       this.selectedPayoutModeId = this.selectedPaymentMethodId;
+      const allowedMethods = this.appSettings.availablePayoutMethods; // e.g. ['CashPickup', 'BankDeposit']
       this.availablePayoutModes = this.paymentMethods.filter(pm =>
-        matchingPartner.paymentModeIds.includes(pm.id)
+        matchingPartner.paymentModeIds.includes(pm.id) &&
+        (allowedMethods.length === 0 || allowedMethods.some(m => pm.name.toLowerCase().includes(m.toLowerCase())))
       );
       // Sync to store
       this.store.setRouteState(this.matchedCorridor, this.selectedPartner, this.selectedPayoutModeId);
@@ -874,11 +898,14 @@ export class SendMoneyComponent implements OnInit {
     return this.calculationDone && !this.complianceBlocked && !this.balanceWarning
       && !!this.selectedPartner && !!this.selectedPayoutModeId
       && this.sendAmount > 0 && !!this.selectedPaymentMethodId
-      && !this.agentBalanceZero;
+      && !this.agentBalanceZero && !this.exceedsSingleLimit;
   }
 
   canProceedStep3(): boolean {
-    return !!this.selectedReceiver;
+    if (!this.selectedReceiver) return false;
+    if (this.requirePurpose && !this.purpose.trim()) return false;
+    if (this.requireSourceOfFunds && !this.sourceOfFunds.trim()) return false;
+    return true;
   }
 
   nextStep(): void {
@@ -1096,7 +1123,8 @@ export class SendMoneyComponent implements OnInit {
       payoutPartnerId: this.selectedPartner?.payoutAgentId,
       customerId: this.selectedCustomerId || undefined,
       receiverId: this.selectedReceiverId || undefined,
-      purpose: '',
+      purpose: this.purpose || undefined,
+      sourceOfFunds: this.sourceOfFunds || undefined,
     };
 
     this.api.sendTransaction(model).subscribe({
@@ -1125,10 +1153,10 @@ export class SendMoneyComponent implements OnInit {
     const tx = this.successResult;
 
     const content = `
-      <html><head><title>Transaction Receipt</title>
+      <html><head><title>${this.appSettings.txnNumberPrefix} Receipt</title>
       <style>
         body { font-family: Arial, sans-serif; padding: 40px; color: #333; max-width: 600px; margin: 0 auto; }
-        h1 { text-align: center; color: #1a56db; font-size: 22px; margin-bottom: 4px; }
+        h1 { text-align: center; color: #1a56db; font-size: 22px; margin-bottom: 4px; text-transform: uppercase; }
         .subtitle { text-align: center; color: #666; font-size: 13px; margin-bottom: 30px; }
         .ref { text-align: center; font-size: 16px; font-weight: bold; background: #f0f4ff; padding: 10px; border-radius: 8px; margin-bottom: 20px; }
         table { width: 100%; border-collapse: collapse; margin: 16px 0; }
@@ -1138,8 +1166,8 @@ export class SendMoneyComponent implements OnInit {
         .amount { font-size: 18px; font-weight: 700; color: #2e7d32; }
         .footer { text-align: center; margin-top: 30px; font-size: 11px; color: #999; }
       </style></head><body>
-      <h1>RemitAgent</h1>
-      <div class="subtitle">Transaction Receipt</div>
+      <h1>${this.appSettings.companyName || 'RemitAgent'}</h1>
+      <div class="subtitle">${this.appSettings.txnNumberPrefix} Receipt</div>
       <div class="ref">Reference: ${tx.referenceNumber}</div>
       <div class="section">Transaction Details</div>
       <table>
@@ -1208,6 +1236,7 @@ export class SendMoneyComponent implements OnInit {
     switch (status) {
       case 'OnHold': return 'On Hold';
       case 'Compliance': return 'Under Review';
+      case 'PendingApproval': return 'Pending Approval';
       default: return status;
     }
   }

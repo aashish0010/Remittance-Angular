@@ -312,6 +312,8 @@ export class AdminDashboardComponent implements OnInit {
         return 'bg-brand-100 text-brand-700';
       case 'OnHold':
         return 'bg-surface-200 text-surface-700';
+      case 'PendingApproval':
+        return 'bg-orange-100 text-orange-700';
       case 'Failed':
         return 'bg-danger-100 text-danger-700';
       case 'Cancelled':
@@ -331,6 +333,8 @@ export class AdminDashboardComponent implements OnInit {
         return 'bg-success-500 text-white';
       case 'OnHold':
         return 'bg-surface-500 text-white';
+      case 'PendingApproval':
+        return 'bg-orange-500 text-white';
       case 'Failed':
         return 'bg-danger-500 text-white';
       case 'Cancelled':

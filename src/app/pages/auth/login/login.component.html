@@ -103,12 +103,12 @@
         <!-- Submit Button -->
         <button
           type="submit"
-          [disabled]="loading"
+          [disabled]="loginDisabled"
           class="mt-2 flex w-full items-center justify-center gap-2 rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-semibold text-white
                  hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500/40 focus:ring-offset-2 dark:focus:ring-offset-surface-800
                  disabled:opacity-60 disabled:cursor-not-allowed
                  transition-all duration-150 ease-in-out">
-          <ng-container *ngIf="!loading; else loader">Sign In</ng-container>
+          <ng-container *ngIf="!loading; else loader">{{ isLockedOut ? 'Account Locked' : 'Sign In' }}</ng-container>
           <ng-template #loader>
             <svg class="h-5 w-5 animate-spin text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
