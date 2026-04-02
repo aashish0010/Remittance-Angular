@@ -28,13 +28,6 @@ export interface DocumentTypeModel {
   sortOrder: number;
 }
 
-export interface SystemSettingModel {
-  id: number;
-  key: string;
-  value: string;
-  description: string;
-}
-
 // ---------------------------------------------------------------------------
 // Tab configuration
 // ---------------------------------------------------------------------------
@@ -63,10 +56,6 @@ function emptySetupField(category: string): SetupFieldModel {
 
 function emptyDocumentType(): DocumentTypeModel {
   return { id: 0, name: '', code: '', requiredSides: 1, isActive: true, sortOrder: 0 };
-}
-
-function emptySystemSetting(): SystemSettingModel {
-  return { id: 0, key: '', value: '', description: '' };
 }
 
 // ---------------------------------------------------------------------------
@@ -116,33 +105,9 @@ export class SetupFieldsComponent implements OnInit {
   docTypeForm: DocumentTypeModel = emptyDocumentType();
   savingDocType = false;
 
-  // ---------------------------------------------------------------------------
-  // System Settings state (tab 7)
-  // ---------------------------------------------------------------------------
-  systemSettings: SystemSettingModel[] = [];
-  loadingSettings = false;
-
-  editingSettingId: number | null = null;
-  addingSetting = false;
-  settingForm: SystemSettingModel = emptySystemSetting();
-  savingSetting = false;
-
-  predefinedSettingKeys = [
-    'MinRegistrationAge',
-    'MaxRegistrationAge',
-    'MaxDailyTransactionAmount',
-    'MaxSingleTransactionAmount',
-    'DefaultCurrency',
-    'SessionTimeoutMinutes',
-    'PasswordMinLength',
-    'RequireEmailVerification',
-    'MaintenanceMode',
-    'SupportEmail',
-  ];
-
   // Delete confirmation
   confirmDeleteId: number | null = null;
-  confirmDeleteType: 'setupField' | 'docType' | 'setting' | null = null;
+  confirmDeleteType: 'setupField' | 'docType' | null = null;
 
   constructor(
     private api: ApiService,
@@ -180,8 +145,6 @@ export class SetupFieldsComponent implements OnInit {
       this.loadSetupFields(this.setupTabs[this.activeTabIndex].category);
     } else if (this.activeTabIndex === 6) {
       this.loadDocumentTypes();
-    } else if (this.activeTabIndex === 7) {
-      this.loadSystemSettings();
     }
   }
 
@@ -190,8 +153,6 @@ export class SetupFieldsComponent implements OnInit {
     this.addingSetupField = false;
     this.editingDocTypeId = null;
     this.addingDocType = false;
-    this.editingSettingId = null;
-    this.addingSetting = false;
     this.confirmDeleteId = null;
     this.confirmDeleteType = null;
   }
@@ -400,100 +361,6 @@ export class SetupFieldsComponent implements OnInit {
   }
 
   // ---------------------------------------------------------------------------
-  // System Settings CRUD
-  // ---------------------------------------------------------------------------
-
-  loadSystemSettings(): void {
-    this.loadingSettings = true;
-    this.api.getSystemSettings().subscribe({
-      next: res => {
-        this.systemSettings = res?.success && res.data ? res.data : [];
-        if (!res?.success) this.notify.error(res?.message || 'Failed to load settings.');
-        this.loadingSettings = false;
-      },
-      error: () => {
-        this.systemSettings = [];
-        this.notify.error('Could not connect to server.');
-        this.loadingSettings = false;
-      },
-    });
-  }
-
-  startAddSetting(): void {
-    this.cancelAllEditing();
-    this.addingSetting = true;
-    this.settingForm = emptySystemSetting();
-  }
-
-  startEditSetting(item: SystemSettingModel): void {
-    this.cancelAllEditing();
-    this.editingSettingId = item.id;
-    this.settingForm = { ...item };
-  }
-
-  cancelSettingEdit(): void {
-    this.editingSettingId = null;
-    this.addingSetting = false;
-  }
-
-  saveSetting(): void {
-    if (!this.settingForm.key?.trim() || !this.settingForm.value?.trim()) {
-      this.notify.error('Key and Value are required.');
-      return;
-    }
-
-    this.savingSetting = true;
-    const dto = {
-      id: this.addingSetting ? 0 : this.editingSettingId,
-      key: this.settingForm.key.trim(),
-      value: this.settingForm.value.trim(),
-      description: this.settingForm.description?.trim() || '',
-    };
-
-    this.api.saveSystemSetting(dto).subscribe({
-      next: res => {
-        if (res?.success) {
-          this.notify.success(this.addingSetting ? 'Setting created.' : 'Setting updated.');
-          this.cancelSettingEdit();
-          this.loadSystemSettings();
-        } else {
-          this.notify.error(res?.message || 'Failed to save.');
-        }
-        this.savingSetting = false;
-      },
-      error: () => {
-        this.notify.error('Server error.');
-        this.savingSetting = false;
-      },
-    });
-  }
-
-  confirmDeleteSetting(item: SystemSettingModel): void {
-    this.confirmDeleteId = item.id;
-    this.confirmDeleteType = 'setting';
-  }
-
-  deleteSetting(id: number): void {
-    this.api.deleteSystemSetting(id).subscribe({
-      next: res => {
-        if (res?.success) {
-          this.notify.success('Setting deleted.');
-          this.loadSystemSettings();
-        } else {
-          this.notify.error(res?.message || 'Failed to delete.');
-        }
-        this.confirmDeleteId = null;
-        this.confirmDeleteType = null;
-      },
-      error: () => {
-        this.notify.error('Server error.');
-        this.confirmDeleteId = null;
-        this.confirmDeleteType = null;
-      },
-    });
-  }
-
-  // ---------------------------------------------------------------------------
   // Delete confirmation helpers
   // ---------------------------------------------------------------------------
 
@@ -512,42 +379,7 @@ export class SetupFieldsComponent implements OnInit {
     switch (this.confirmDeleteType) {
       case 'setupField': this.deleteSetupField(id); break;
       case 'docType': this.deleteDocType(id); break;
-      case 'setting': this.deleteSetting(id); break;
     }
   }
 
-  // ---------------------------------------------------------------------------
-  // Utility: available predefined keys (filter out already used ones)
-  // ---------------------------------------------------------------------------
-
-  get availableSettingKeys(): string[] {
-    const usedKeys = new Set(this.systemSettings.map(s => s.key));
-    // When editing, keep the current key available
-    if (this.editingSettingId !== null) {
-      usedKeys.delete(this.settingForm.key);
-    }
-    return this.predefinedSettingKeys.filter(k => !usedKeys.has(k));
-  }
-
-  getDefaultValueForKey(key: string): string {
-    const defaults: Record<string, string> = {
-      MinRegistrationAge: '16',
-      MaxRegistrationAge: '99',
-      MaxDailyTransactionAmount: '10000',
-      MaxSingleTransactionAmount: '5000',
-      DefaultCurrency: 'USD',
-      SessionTimeoutMinutes: '30',
-      PasswordMinLength: '8',
-      RequireEmailVerification: 'true',
-      MaintenanceMode: 'false',
-      SupportEmail: 'support@example.com',
-    };
-    return defaults[key] || '';
-  }
-
-  onSettingKeySelected(key: string): void {
-    if (!this.settingForm.value) {
-      this.settingForm.value = this.getDefaultValueForKey(key);
-    }
-  }
 }

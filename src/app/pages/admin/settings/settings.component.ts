@@ -34,8 +34,12 @@ interface SettingSection {
 const DEFAULTS: Record<string, string> = {
   // General
   'general.companyName': '',
+  'general.supportEmail': '',
+  'general.defaultCurrency': 'USD',
   // KYC
   'kyc.enabled': 'true',
+  'kyc.requireEmailVerification': 'false',
+  'kyc.maxAge': '99',
   'kyc.skipDocumentUpload': 'false',
   'kyc.mandatoryIdTypes': 'Passport,DriverLicense',
   'kyc.minimumAge': '18',
@@ -111,7 +115,9 @@ export class SettingsComponent implements OnInit {
     {
       id: 'general', title: 'General Info', icon: 'building', expanded: true, saving: false,
       fields: [
-        { key: 'general.companyName', label: 'Company Name', description: 'Legal registered name shown in the admin header and on receipts.', type: 'text', placeholder: 'e.g. Remit Global Pty Ltd' },
+        { key: 'general.companyName',    label: 'Company Name',    description: 'Legal registered name shown in the admin header and on receipts.', type: 'text',  placeholder: 'e.g. Remit Global Pty Ltd' },
+        { key: 'general.supportEmail',   label: 'Support Email',   description: 'Contact email address shown on receipts and error pages.', type: 'email', placeholder: 'support@example.com' },
+        { key: 'general.defaultCurrency', label: 'Default Currency', description: 'Base currency code used when no corridor-specific currency is configured (e.g. USD, EUR, AUD).', type: 'text', placeholder: 'e.g. USD' },
       ],
     },
 
@@ -119,12 +125,14 @@ export class SettingsComponent implements OnInit {
     {
       id: 'kyc', title: 'Customer / KYC Settings', icon: 'shield', expanded: false, saving: false,
       fields: [
-        { key: 'kyc.enabled',            label: 'KYC Enabled',              description: 'Enforce KYC verification before a transaction can be processed. Disable only if using external KYC software.', type: 'toggle' },
-        { key: 'kyc.skipDocumentUpload', label: 'Skip Document Upload',     description: 'Allow customer registration without uploading ID documents (staff-verified manually).', type: 'toggle' },
-        { key: 'kyc.mandatoryIdTypes',   label: 'Mandatory ID Types',       description: 'Accepted identity document types for verification.', type: 'multiselect', options: ID_TYPES_OPTIONS },
-        { key: 'kyc.minimumAge',         label: 'Minimum Age',              description: 'Minimum customer age required to send remittance.', type: 'number', min: 0, max: 99 },
-        { key: 'kyc.duplicateCheck',     label: 'Duplicate Customer Check', description: 'Block registration if a customer with the same name + DOB + ID already exists.', type: 'toggle' },
-        { key: 'kyc.reverificationPeriod', label: 'KYC Re-verification Period (days)', description: 'Force customers to re-verify their identity after this many days. Set 0 to disable.', type: 'number', min: 0, max: 1825 },
+        { key: 'kyc.enabled',                  label: 'KYC Enabled',                       description: 'Enforce KYC verification before a transaction can be processed. Disable only if using external KYC software.', type: 'toggle' },
+        { key: 'kyc.skipDocumentUpload',       label: 'Skip Document Upload',              description: 'Allow customer registration without uploading ID documents (staff-verified manually).', type: 'toggle' },
+        { key: 'kyc.requireEmailVerification', label: 'Require Email Verification',        description: 'Send a verification email to new customers before they can transact.', type: 'toggle' },
+        { key: 'kyc.mandatoryIdTypes',         label: 'Mandatory ID Types',                description: 'Accepted identity document types for verification.', type: 'multiselect', options: ID_TYPES_OPTIONS },
+        { key: 'kyc.minimumAge',               label: 'Minimum Age',                       description: 'Minimum customer age required to register and send remittance.', type: 'number', min: 0, max: 120 },
+        { key: 'kyc.maxAge',                   label: 'Maximum Age',                       description: 'Maximum customer age allowed to register. Set 0 to disable the upper limit.', type: 'number', min: 0, max: 120 },
+        { key: 'kyc.duplicateCheck',           label: 'Duplicate Customer Check',          description: 'Block registration if a customer with the same name + DOB + ID already exists.', type: 'toggle' },
+        { key: 'kyc.reverificationPeriod',     label: 'KYC Re-verification Period (days)', description: 'Force customers to re-verify their identity after this many days. Set 0 to disable.', type: 'number', min: 0, max: 1825 },
       ],
     },
 
