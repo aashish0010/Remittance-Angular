@@ -156,7 +156,7 @@ export class SetupFieldsComponent implements OnInit {
     if (path === 'static-values') {
       this.mode = 'static';
       this.pageTitle = 'Static Values';
-      this.activeTabIndex = 7; // Default to System Settings tab
+      this.activeTabIndex = 0; // Default to first tab (Payment Types)
     } else {
       this.mode = 'setup';
       this.pageTitle = 'Setup';
