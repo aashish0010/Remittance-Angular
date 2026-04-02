@@ -100,7 +100,7 @@ export class AdminLayoutComponent implements OnInit, OnDestroy {
     private elRef: ElementRef,
     private sanitizer: DomSanitizer,
     public idleTimeout: IdleTimeoutService,
-    private appSettings: AppSettingsService,
+    public appSettings: AppSettingsService,
   ) { }
 
   ngOnInit(): void {
