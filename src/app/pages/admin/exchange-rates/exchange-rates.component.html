@@ -59,13 +59,13 @@
       <thead>
         <tr
           class="border-b border-surface-200 dark:border-surface-700 text-surface-500 dark:text-surface-400 text-xs tracking-wide">
-          <th class="px-4 py-3 font-semibold">Payout Agent</th>
-          <th class="px-4 py-3 font-semibold">Corridor</th>
-          <th class="px-4 py-3 font-semibold">Rate</th>
-          <th class="px-4 py-3 font-semibold">Margin</th>
-          <th class="px-4 py-3 font-semibold">Customer Rate</th>
-          <th class="px-4 py-3 font-semibold">Status</th>
-          <th class="px-4 py-3 font-semibold">Actions</th>
+          <th scope="col" class="px-4 py-3 font-semibold">Payout Agent</th>
+          <th scope="col" class="px-4 py-3 font-semibold">Corridor</th>
+          <th scope="col" class="px-4 py-3 font-semibold">Rate</th>
+          <th scope="col" class="px-4 py-3 font-semibold">Margin</th>
+          <th scope="col" class="px-4 py-3 font-semibold">Customer Rate</th>
+          <th scope="col" class="px-4 py-3 font-semibold">Status</th>
+          <th scope="col" class="px-4 py-3 font-semibold">Actions</th>
         </tr>
       </thead>
       <tbody>
@@ -110,14 +110,25 @@
                 </svg>
                 Edit
               </button>
-              <button (click)="deleteRate(r)"
-                class="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium text-danger-600 dark:text-danger-400 hover:bg-danger-50 dark:hover:bg-danger-900/20 transition">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round"
-                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
-                Delete
-              </button>
+              <!-- Delete with inline confirmation -->
+              <ng-container *ngIf="deleteConfirmId !== r.id">
+                <button (click)="deleteConfirmId = r.id"
+                  aria-label="Delete exchange rate"
+                  class="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium text-danger-600 dark:text-danger-400 hover:bg-danger-50 dark:hover:bg-danger-900/20 transition">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                  Delete
+                </button>
+              </ng-container>
+              <span *ngIf="deleteConfirmId === r.id" class="inline-flex items-center gap-1.5 text-xs">
+                <span class="text-danger-700 dark:text-danger-400 font-medium">Delete?</span>
+                <button (click)="deleteRate(r); deleteConfirmId = null"
+                  class="px-2 py-0.5 bg-danger-600 hover:bg-danger-700 text-white rounded-lg text-xs font-medium transition-colors">Yes</button>
+                <button (click)="deleteConfirmId = null"
+                  class="px-2 py-0.5 border border-surface-300 dark:border-surface-600 text-surface-600 dark:text-surface-300 rounded-lg text-xs font-medium hover:bg-surface-50 dark:hover:bg-surface-700 transition-colors">No</button>
+              </span>
             </div>
           </td>
         </tr>
@@ -145,25 +156,25 @@
         <option [value]="50">50</option>
       </select>
       <div class="flex items-center gap-1">
-        <button (click)="goToPage(0)" [disabled]="pageIndex === 0" title="First page"
+        <button (click)="goToPage(0)" [disabled]="pageIndex === 0" aria-label="First page"
           class="p-1.5 rounded-lg border border-surface-300 dark:border-surface-600 text-surface-600 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 disabled:opacity-40 disabled:cursor-not-allowed transition">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
           </svg>
         </button>
-        <button (click)="goToPage(pageIndex - 1)" [disabled]="pageIndex === 0" title="Previous page"
+        <button (click)="goToPage(pageIndex - 1)" [disabled]="pageIndex === 0" aria-label="Previous page"
           class="p-1.5 rounded-lg border border-surface-300 dark:border-surface-600 text-surface-600 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 disabled:opacity-40 disabled:cursor-not-allowed transition">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
           </svg>
         </button>
-        <button (click)="goToPage(pageIndex + 1)" [disabled]="pageIndex >= totalPages - 1" title="Next page"
+        <button (click)="goToPage(pageIndex + 1)" [disabled]="pageIndex >= totalPages - 1" aria-label="Next page"
           class="p-1.5 rounded-lg border border-surface-300 dark:border-surface-600 text-surface-600 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 disabled:opacity-40 disabled:cursor-not-allowed transition">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
           </svg>
         </button>
-        <button (click)="goToPage(totalPages - 1)" [disabled]="pageIndex >= totalPages - 1" title="Last page"
+        <button (click)="goToPage(totalPages - 1)" [disabled]="pageIndex >= totalPages - 1" aria-label="Last page"
           class="p-1.5 rounded-lg border border-surface-300 dark:border-surface-600 text-surface-600 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 disabled:opacity-40 disabled:cursor-not-allowed transition">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
@@ -178,10 +189,11 @@
 <div *ngIf="showDetail && detailRate" class="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm" (click)="closeDetail()">
 </div>
 <div *ngIf="showDetail && detailRate"
+  role="dialog" aria-modal="true" aria-labelledby="rate-detail-title"
   class="fixed z-50 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-md rounded-2xl border border-surface-200 dark:border-surface-700 bg-white dark:bg-surface-800 p-6 shadow-soft">
   <div class="flex items-center justify-between mb-5">
-    <h3 class="text-lg font-semibold text-surface-900 dark:text-surface-100">Exchange Rate Details</h3>
-    <button (click)="closeDetail()"
+    <h3 id="rate-detail-title" class="text-lg font-semibold text-surface-900 dark:text-surface-100">Exchange Rate Details</h3>
+    <button (click)="closeDetail()" aria-label="Close dialog"
       class="p-1.5 rounded-lg text-surface-400 hover:text-surface-600 dark:hover:text-surface-200 hover:bg-surface-100 dark:hover:bg-surface-700 transition">
       <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -232,11 +244,12 @@
 <!-- Create / Edit Rate Popup -->
 <div *ngIf="showFormPopup" class="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm" (click)="closeFormPopup()"></div>
 <div *ngIf="showFormPopup"
+  role="dialog" aria-modal="true" aria-labelledby="rate-form-title"
   class="fixed z-50 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg rounded-2xl border border-surface-200 dark:border-surface-700 bg-white dark:bg-surface-800 p-6 shadow-soft">
   <div class="flex items-center justify-between mb-5">
-    <h3 class="text-lg font-semibold text-surface-900 dark:text-surface-100">{{ isEditing ? 'Edit Exchange Rate' : 'Add
+    <h3 id="rate-form-title" class="text-lg font-semibold text-surface-900 dark:text-surface-100">{{ isEditing ? 'Edit Exchange Rate' : 'Add
       New Exchange Rate' }}</h3>
-    <button (click)="closeFormPopup()"
+    <button (click)="closeFormPopup()" aria-label="Close dialog"
       class="p-1.5 rounded-lg text-surface-400 hover:text-surface-600 dark:hover:text-surface-200 hover:bg-surface-100 dark:hover:bg-surface-700 transition">
       <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -246,6 +259,7 @@
 
   <!-- Error banner -->
   <div *ngIf="formError"
+    role="alert" aria-live="assertive"
     class="mb-4 px-4 py-3 rounded-lg bg-danger-50 dark:bg-danger-900/20 border border-danger-200 dark:border-danger-800 text-danger-700 dark:text-danger-400 text-sm">
     {{ formError }}
   </div>

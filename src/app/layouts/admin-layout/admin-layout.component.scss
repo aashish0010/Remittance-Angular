@@ -31,8 +31,8 @@ $sidebar-section: #9ca3af;
 
 // Active nav link (Tailwind + routerLinkActive)
 .nav-link.active-link {
-  background: #ebf0ff;
-  color: #1a56db;
+  background: #eff6ff;
+  color: #1d4ed8;
   font-weight: 600;
 
   &::before {
@@ -43,15 +43,15 @@ $sidebar-section: #9ca3af;
     transform: translateY(-50%);
     width: 3px;
     height: 20px;
-    background: #1a56db;
+    background: #2563eb;
     border-radius: 0 3px 3px 0;
   }
 }
 
 :host-context(.dark) .nav-link.active-link,
 .dark .nav-link.active-link {
-  background: rgba(26, 86, 219, 0.15);
-  color: #93c5fd;
+  background: rgba(37, 99, 235, 0.15);
+  color: #bfdbfe;
 
   &::before {
     background: #93c5fd;

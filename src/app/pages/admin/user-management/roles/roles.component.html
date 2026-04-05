@@ -130,12 +130,12 @@
       <table class="w-full text-sm text-left whitespace-nowrap">
         <thead class="bg-surface-50 dark:bg-surface-700/50">
           <tr class="border-b border-surface-200 dark:border-surface-700 text-surface-600 dark:text-surface-300">
-            <th class="px-4 py-3 font-semibold">Role</th>
-            <th class="px-4 py-3 font-semibold">Portal</th>
-            <th class="px-4 py-3 font-semibold text-center">Users</th>
-            <th class="px-4 py-3 font-semibold text-center">Permissions</th>
-            <th class="px-4 py-3 font-semibold">Status</th>
-            <th class="px-4 py-3 font-semibold text-right">Actions</th>
+            <th scope="col" class="px-4 py-3 font-semibold">Role</th>
+            <th scope="col" class="px-4 py-3 font-semibold">Portal</th>
+            <th scope="col" class="px-4 py-3 font-semibold text-center">Users</th>
+            <th scope="col" class="px-4 py-3 font-semibold text-center">Permissions</th>
+            <th scope="col" class="px-4 py-3 font-semibold">Status</th>
+            <th scope="col" class="px-4 py-3 font-semibold text-right">Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -171,19 +171,19 @@
             <td class="px-4 py-3 text-right">
               <ng-container *ngIf="role.roleType !== 'SystemAdmin'">
                 <div class="flex items-center justify-end gap-1">
-                  <button title="Edit" (click)="openEdit(role)"
+                  <button aria-label="Edit" (click)="openEdit(role)"
                     class="p-1.5 rounded-lg text-brand-600 dark:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-colors">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                       <path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
                     </svg>
                   </button>
-                  <button title="Permissions" (click)="openPermissions(role)"
+                  <button aria-label="Permissions" (click)="openPermissions(role)"
                     class="p-1.5 rounded-lg text-surface-600 dark:text-surface-400 hover:bg-surface-100 dark:hover:bg-surface-700 transition-colors">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                       <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
                     </svg>
                   </button>
-                  <button title="Delete" (click)="deleteRole(role)" [disabled]="role.userCount > 0"
+                  <button aria-label="Delete" (click)="deleteRole(role)" [disabled]="role.userCount > 0"
                     class="p-1.5 rounded-lg text-danger-500 dark:text-danger-400 hover:bg-danger-50 dark:hover:bg-danger-900/20 transition-colors disabled:opacity-40 disabled:cursor-not-allowed">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                       <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>

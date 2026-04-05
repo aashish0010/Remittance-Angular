@@ -23,36 +23,36 @@ import { SendMoneyStore } from './send-money.store';
 export const CustomerFormSchema = z.object({
   fullName: z.string().min(1, 'Full name is required').max(100, 'Max 100 characters'),
   phone: z.string().min(1, 'Phone is required').max(20, 'Max 20 characters'),
-  email: z.string().email('Invalid email').optional().or(z.literal('')),
+  email: z.union([z.string().email('Invalid email'), z.literal(''), z.null(), z.undefined()]),
   dateOfBirth: z.union([z.date(), z.string(), z.null()]).optional(),
-  gender: z.string().optional().or(z.literal('')),
+  gender: z.string().nullish(),
   nationality: z.string().min(1, 'Nationality is required'),
   country: z.string().min(1, 'Country is required'),
-  city: z.string().optional().or(z.literal('')),
-  state: z.string().optional().or(z.literal('')),
-  postalCode: z.string().optional().or(z.literal('')),
-  address: z.string().optional().or(z.literal('')),
+  city: z.string().nullish(),
+  state: z.string().nullish(),
+  postalCode: z.string().nullish(),
+  address: z.string().nullish(),
   idDocumentType: z.string().min(1, 'Document type is required'),
   idDocumentNumber: z.string().min(1, 'Document number is required'),
   docIssueDate: z.union([z.date(), z.string(), z.null()]).optional(),
   docExpiryDate: z.union([z.date(), z.string(), z.null()]).optional(),
-  docIssuingCountry: z.string().optional().or(z.literal('')),
+  docIssuingCountry: z.string().nullish(),
 });
 
 export const ReceiverFormSchema = z.object({
   fullName: z.string().min(1, 'Full name is required').max(100, 'Max 100 characters'),
   phone: z.string().min(1, 'Phone is required').max(20, 'Max 20 characters'),
-  email: z.string().email('Invalid email').optional().or(z.literal('')),
-  country: z.string().optional().or(z.literal('')),
-  city: z.string().optional().or(z.literal('')),
-  bankName: z.string().optional().or(z.literal('')),
-  bankCode: z.string().optional().or(z.literal('')),
-  accountNumber: z.string().optional().or(z.literal('')),
-  branchName: z.string().optional().or(z.literal('')),
-  branchCode: z.string().optional().or(z.literal('')),
+  email: z.union([z.string().email('Invalid email'), z.literal(''), z.null(), z.undefined()]),
+  country: z.string().nullish(),
+  city: z.string().nullish(),
+  bankName: z.string().nullish(),
+  bankCode: z.string().nullish(),
+  accountNumber: z.string().nullish(),
+  branchName: z.string().nullish(),
+  branchCode: z.string().nullish(),
   bankId: z.number().nullable().optional(),
   branchId: z.number().nullable().optional(),
-  relationship: z.string().optional().or(z.literal('')),
+  relationship: z.string().nullish(),
 });
 
 export type CustomerFormValue = z.infer<typeof CustomerFormSchema>;
@@ -101,13 +101,16 @@ export class SendMoneyComponent implements OnInit {
   kycWarning = '';
   dobWarning = '';
 
+  // Customer search dropdown control
+  showCustomerDropdown = false;
+
   // Date constraints for PrimeNG DatePicker
   todayDate = new Date();
-  maxDobDate: Date = (() => {
+  get maxDobDate(): Date {
     const d = new Date();
-    d.setFullYear(d.getFullYear() - 16);
+    d.setFullYear(d.getFullYear() - this.appSettings.minimumAge);
     return d;
-  })();
+  }
   minExpiryDate: Date = new Date();
 
   // Reference data
@@ -357,11 +360,13 @@ export class SendMoneyComponent implements OnInit {
   selectCustomer(customer: CustomerModel): void {
     this.selectedCustomerId = customer.id;
     this.selectedCustomer = customer;
+    this.customerSearch = '';
+    this.showCustomerDropdown = false;
     this.store.setSelectedCustomer(customer);
     this.kycWarning = '';
     this.dobWarning = '';
 
-    if (!customer.isKycVerified) {
+    if (this.appSettings.kycEnabled && !customer.isKycVerified) {
       this.kycWarning = 'This customer has not completed KYC verification. Transaction cannot proceed.';
     }
 
@@ -373,13 +378,19 @@ export class SendMoneyComponent implements OnInit {
       if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
         age--;
       }
-      if (age < 16) {
-        this.dobWarning = `Customer is ${age} years old. Must be at least 16 years old to send a transaction.`;
+      const minAge = this.appSettings.minimumAge;
+      if (age < minAge) {
+        this.dobWarning = `Customer is ${age} years old. Must be at least ${minAge} years old to send a transaction.`;
       }
     }
 
     this.store.setKycWarning(this.kycWarning);
     this.store.setDobWarning(this.dobWarning);
+
+    // Load receivers immediately after customer selection
+    this.receivers = [];
+    this.filteredReceivers = [];
+    this.loadReceivers();
   }
 
   clearSelectedCustomer(): void {
@@ -390,6 +401,9 @@ export class SendMoneyComponent implements OnInit {
     this.dobWarning = '';
     this.store.setKycWarning('');
     this.store.setDobWarning('');
+    this.showCustomerDropdown = false;
+    this.receivers = [];
+    this.filteredReceivers = [];
   }
 
   toggleCreateCustomer(): void {
@@ -471,7 +485,7 @@ export class SendMoneyComponent implements OnInit {
       this.customerFormError = 'Please fix the highlighted fields.';
       return;
     }
-    if (!this.frontImageFile) {
+    if (!this.appSettings.skipDocumentUpload && !this.frontImageFile) {
       this.customerFormError = 'Please upload at least the front image of the ID document.';
       return;
     }
@@ -612,6 +626,11 @@ export class SendMoneyComponent implements OnInit {
           this.store.setCalculationDone(true);
           this.store.setComplianceBlocked(this.complianceBlocked);
           this.store.setBalanceWarning(this.balanceWarning);
+          // Auto-advance to receiver section on first successful calculation
+          if (this.selectedCustomerId && this.step < 2 && !this.complianceBlocked && !this.balanceWarning) {
+            this.store.setStep(2);
+            this.loadReceivers();
+          }
         } else {
           this.calcError = res?.message || 'Calculation failed.';
           this.calculationDone = false;
@@ -682,7 +701,10 @@ export class SendMoneyComponent implements OnInit {
 
   loadReceivers(): void {
     if (!this.selectedCustomerId) return;
-    this.api.getAgentReceiversByCustomer(this.selectedCustomerId).subscribe(r => {
+    const loadingForCustomerId = this.selectedCustomerId;
+    this.api.getAgentReceiversByCustomer(loadingForCustomerId).subscribe(r => {
+      // Guard: discard response if customer changed while request was in-flight
+      if (this.selectedCustomerId !== loadingForCustomerId) return;
       if (r?.success && r.data) {
         this.receivers = r.data.filter(rec => rec.isActive);
         this.filterReceivers();
@@ -712,7 +734,8 @@ export class SendMoneyComponent implements OnInit {
     const bankNames = this.payoutBanks.map(b => b.bankName.toLowerCase());
 
     let filtered = this.receivers.filter(r => {
-      if (r.country !== this.receiverCountry) return false;
+      // Only filter by country when a destination country has been selected
+      if (this.receiverCountry && r.country !== this.receiverCountry) return false;
       if (bankNames.length && r.bankName) {
         if (!bankNames.includes(r.bankName.toLowerCase())) return false;
       }
@@ -752,8 +775,70 @@ export class SendMoneyComponent implements OnInit {
 
   saveNewReceiver(): void {
     this.receiverFormError = '';
+    this.receiverFormErrors = {};
+
+    // Zod validation
     if (!this.validateReceiverForm()) {
       this.receiverFormError = 'Please fix the highlighted fields.';
+      return;
+    }
+
+    // Bank transfer: bank name + account number mandatory
+    if (this.isBankTransfer()) {
+      const fv = this.receiverForm.getRawValue();
+      let hasFieldErrors = false;
+      if (!this.selectedBankId && !fv.bankName?.trim()) {
+        this.receiverFormErrors['bankName'] = 'Bank name is required.';
+        hasFieldErrors = true;
+      }
+      if (!fv.accountNumber?.trim()) {
+        this.receiverFormErrors['accountNumber'] = 'Account number is required.';
+        hasFieldErrors = true;
+      }
+      if (hasFieldErrors) {
+        this.receiverFormError = 'Please fix the highlighted fields.';
+        return;
+      }
+    }
+
+    // Compliance fields (if required by settings)
+    if (this.requirePurpose && !this.purpose.trim()) {
+      this.receiverFormError = 'Purpose of remittance is required.';
+      return;
+    }
+    if (this.requireSourceOfFunds && !this.sourceOfFunds.trim()) {
+      this.receiverFormError = 'Source of funds is required.';
+      return;
+    }
+
+    // Duplicate receiver check
+    const fvDup = this.receiverForm.getRawValue();
+    const dupName = (fvDup.fullName || '').trim().toLowerCase();
+    const dupPhone = (fvDup.phone || '').trim();
+    const dupAccount = (fvDup.accountNumber || '').trim();
+    const dupBankCode = (() => {
+      if (this.selectedBankId) {
+        return this.payoutBanks.find(b => b.id === this.selectedBankId)?.bankCode?.trim() || '';
+      }
+      return (fvDup.bankCode || '').trim();
+    })();
+    const dupCountry = (fvDup.country || this.receiverCountry || '').trim();
+
+    const isDuplicate = this.receivers.some(r => {
+      const rName = r.fullName.trim().toLowerCase();
+      if (rName !== dupName) return false;
+      if (this.isBankTransfer()) {
+        const rAccount = (r.accountNumber || '').trim();
+        const rBankCode = (r.bankCode || '').trim();
+        return rAccount === dupAccount && rBankCode === dupBankCode;
+      } else {
+        // Cash / Wallet: match by name + country + phone
+        return (r.country || '').trim() === dupCountry && (r.phone || '').trim() === dupPhone;
+      }
+    });
+
+    if (isDuplicate) {
+      this.receiverFormError = 'A receiver with the same details already exists. Please select them from the list instead.';
       return;
     }
 
@@ -903,8 +988,9 @@ export class SendMoneyComponent implements OnInit {
 
   canProceedStep3(): boolean {
     if (!this.selectedReceiver) return false;
-    if (this.requirePurpose && !this.purpose.trim()) return false;
-    if (this.requireSourceOfFunds && !this.sourceOfFunds.trim()) return false;
+    // Compliance fields are always required (purpose + source of funds)
+    if (!this.purpose.trim()) return false;
+    if (!this.sourceOfFunds.trim()) return false;
     return true;
   }
 
@@ -921,7 +1007,13 @@ export class SendMoneyComponent implements OnInit {
       this.loadReceivers();
     }
     if (this.step === 2 && !this.canProceedStep3()) {
-      this.notify.error('Please select or create a receiver.');
+      if (!this.selectedReceiver) {
+        this.notify.error('Please select or create a receiver.');
+      } else if (this.requirePurpose && !this.purpose.trim()) {
+        this.notify.error('Purpose of remittance is required.');
+      } else if (this.requireSourceOfFunds && !this.sourceOfFunds.trim()) {
+        this.notify.error('Source of funds is required.');
+      }
       return;
     }
     this.store.nextStep();
@@ -945,7 +1037,7 @@ export class SendMoneyComponent implements OnInit {
     this.api.getTransactionPinStatus().subscribe({
       next: (res: any) => {
         this.submitting = false;
-        const hasPin = res?.data?.hasPin ?? res?.hasPin ?? false;
+        const hasPin = res?.data ?? false;
         if (!hasPin) {
           this.pinMode = 'set';
           this.pinInput = '';

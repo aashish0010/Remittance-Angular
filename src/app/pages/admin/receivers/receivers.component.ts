@@ -46,6 +46,7 @@ export class ReceiversComponent implements OnInit, OnDestroy {
   displayedColumns = ['customerName', 'fullName', 'phone', 'country', 'bankName', 'accountNumber', 'status', 'actions'];
   searchString = '';
   loading = true;
+  deleteConfirmId: number | null = null;
 
   // Server-side pagination
   pageIndex = 0;

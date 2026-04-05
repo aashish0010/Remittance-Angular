@@ -90,6 +90,10 @@ export class CustomerRegisterComponent implements OnInit, OnDestroy {
   existingDocs: any[] = [];
   loadingExistingDocs = false;
 
+  // Action menu / delete confirm
+  actionMenuId: number | null = null;
+  deleteConfirmId: number | null = null;
+
   // Document viewer
   showDocViewer = false;
   docViewerCustomer: CustomerModel | null = null;

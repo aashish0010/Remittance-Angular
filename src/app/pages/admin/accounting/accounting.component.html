@@ -30,13 +30,13 @@
     <table class="w-full text-sm text-left">
       <thead>
         <tr class="border-b border-surface-200 dark:border-surface-700">
-          <th class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-300">Agent</th>
-          <th class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-300">Type</th>
-          <th class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-300">Service Charge</th>
-          <th class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-300 text-right">Effective Limit</th>
-          <th class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-300 text-right">Available</th>
-          <th class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-300">Status</th>
-          <th class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-300">Actions</th>
+          <th scope="col" class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-300">Agent</th>
+          <th scope="col" class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-300">Type</th>
+          <th scope="col" class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-300">Service Charge</th>
+          <th scope="col" class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-300 text-right">Effective Limit</th>
+          <th scope="col" class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-300 text-right">Available</th>
+          <th scope="col" class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-300">Status</th>
+          <th scope="col" class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-300">Actions</th>
         </tr>
       </thead>
       <tbody>
@@ -70,9 +70,9 @@
           </td>
           <td class="px-4 py-3">
             <div class="flex items-center gap-0.5">
-              <button title="View Details" (click)="viewDetail(a)" class="p-1.5 rounded text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/20"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg></button>
-              <button *ngIf="a.agentType === 'SendingAgent'" title="Adjust Limit" (click)="openAdjustments(a)" class="p-1.5 rounded text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/20"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75"/></svg></button>
-              <button title="Commission" (click)="openCommissionSetup(a)" class="p-1.5 rounded text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/20"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></button>
+              <button aria-label="View Details" (click)="viewDetail(a)" class="p-1.5 rounded text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/20"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg></button>
+              <button *ngIf="a.agentType === 'SendingAgent'" aria-label="Adjust Limit" (click)="openAdjustments(a)" class="p-1.5 rounded text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/20"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75"/></svg></button>
+              <button aria-label="Commission" (click)="openCommissionSetup(a)" class="p-1.5 rounded text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/20"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></button>
             </div>
           </td>
         </tr>
@@ -113,7 +113,7 @@
 <!-- Agent Detail Popup                                            -->
 <!-- ============================================================ -->
 <div *ngIf="showDetailPopup && detailAgent" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm" (click)="closeDetailPopup()"></div>
-<div *ngIf="showDetailPopup && detailAgent" class="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
+<div *ngIf="showDetailPopup && detailAgent" role="dialog" aria-modal="true" class="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
   <div class="bg-white dark:bg-surface-800 rounded-2xl shadow-xl w-full max-w-lg pointer-events-auto max-h-[90vh] overflow-y-auto">
     <div class="flex items-center justify-between px-6 py-4 border-b border-surface-100 dark:border-surface-700">
       <h3 class="text-base font-semibold text-surface-900 dark:text-surface-100">{{ detailAgent.businessName }} — Setup</h3>
@@ -151,7 +151,7 @@
 <!-- Adjust Limit Popup                                            -->
 <!-- ============================================================ -->
 <div *ngIf="showAdjustmentForm" class="fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm" (click)="closeAdjustmentForm()"></div>
-<div *ngIf="showAdjustmentForm" class="fixed inset-0 z-[60] flex items-center justify-center p-4 pointer-events-none">
+<div *ngIf="showAdjustmentForm" role="dialog" aria-modal="true" class="fixed inset-0 z-[60] flex items-center justify-center p-4 pointer-events-none">
   <div class="bg-white dark:bg-surface-800 rounded-2xl shadow-xl w-full max-w-md pointer-events-auto max-h-[90vh] overflow-y-auto">
     <div class="flex items-center justify-between px-6 py-4 border-b border-surface-100 dark:border-surface-700">
       <h3 class="text-base font-semibold text-surface-900 dark:text-surface-100">Adjust Limit — {{ adjustmentAgent?.businessName }}</h3>
@@ -159,13 +159,13 @@
     </div>
     <div class="p-6 space-y-4">
       <div *ngIf="adjustmentFormError" class="px-4 py-2 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 text-sm rounded-lg">{{ adjustmentFormError }}</div>
-      <div><label class="block text-xs font-medium text-surface-500 mb-1">Amount (+ increase / - decrease) *</label><input type="number" [(ngModel)]="adjustmentForm.amount" class="w-full px-3 py-2 text-sm bg-white dark:bg-surface-900 border border-surface-200 dark:border-surface-700 rounded-lg text-surface-900 dark:text-surface-100 focus:outline-none focus:ring-2 focus:ring-brand-500/30" /></div>
+      <div><label class="block text-xs font-medium text-surface-500 mb-1">Amount (+ increase / - decrease) *</label><input type="number" [(ngModel)]="adjustmentForm.amount" class="w-full px-3 py-2 text-sm bg-white dark:bg-surface-700 border border-surface-200 dark:border-surface-600 rounded-lg text-surface-900 dark:text-surface-100 focus:outline-none focus:ring-2 focus:ring-brand-500/30" /></div>
       <div><label class="block text-xs font-medium text-surface-500 mb-1">Duration</label>
-        <select [(ngModel)]="adjustmentForm.durationDays" class="w-full px-3 py-2 text-sm bg-white dark:bg-surface-900 border border-surface-200 dark:border-surface-700 rounded-lg text-surface-900 dark:text-surface-100 focus:outline-none focus:ring-2 focus:ring-brand-500/30">
+        <select [(ngModel)]="adjustmentForm.durationDays" class="w-full px-3 py-2 text-sm bg-white dark:bg-surface-700 border border-surface-200 dark:border-surface-600 rounded-lg text-surface-900 dark:text-surface-100 focus:outline-none focus:ring-2 focus:ring-brand-500/30">
           <option [ngValue]="null">Permanent</option><option [ngValue]="2">2 Days</option><option [ngValue]="3">3 Days</option><option [ngValue]="7">7 Days</option><option [ngValue]="30">30 Days</option><option [ngValue]="90">90 Days</option>
         </select>
       </div>
-      <div><label class="block text-xs font-medium text-surface-500 mb-1">Notes (optional)</label><textarea rows="2" [(ngModel)]="adjustmentForm.notes" class="w-full px-3 py-2 text-sm bg-white dark:bg-surface-900 border border-surface-200 dark:border-surface-700 rounded-lg text-surface-900 dark:text-surface-100 focus:outline-none focus:ring-2 focus:ring-brand-500/30"></textarea></div>
+      <div><label class="block text-xs font-medium text-surface-500 mb-1">Notes (optional)</label><textarea rows="2" [(ngModel)]="adjustmentForm.notes" class="w-full px-3 py-2 text-sm bg-white dark:bg-surface-700 border border-surface-200 dark:border-surface-600 rounded-lg text-surface-900 dark:text-surface-100 focus:outline-none focus:ring-2 focus:ring-brand-500/30"></textarea></div>
     </div>
     <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-surface-100 dark:border-surface-700">
       <button (click)="closeAdjustmentForm()" class="px-4 py-2 text-sm font-medium text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg">Cancel</button>
@@ -178,7 +178,7 @@
 <!-- Adjustment History Popup                                       -->
 <!-- ============================================================ -->
 <div *ngIf="showAdjustmentPopup" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm" (click)="closeAdjustmentPopup()"></div>
-<div *ngIf="showAdjustmentPopup" class="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
+<div *ngIf="showAdjustmentPopup" role="dialog" aria-modal="true" class="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
   <div class="bg-white dark:bg-surface-800 rounded-2xl shadow-xl w-full max-w-3xl pointer-events-auto max-h-[90vh] overflow-y-auto">
     <div class="flex items-center justify-between px-6 py-4 border-b border-surface-100 dark:border-surface-700">
       <h3 class="text-base font-semibold text-surface-900 dark:text-surface-100">Adjustment History — {{ adjustmentAgent?.businessName }}</h3>
@@ -188,17 +188,17 @@
     <div *ngIf="adjustments.length" class="overflow-x-auto">
       <table class="w-full text-sm text-left">
         <thead class="text-xs uppercase tracking-wider text-surface-500 bg-surface-50 dark:bg-surface-900/50 border-y border-surface-200 dark:border-surface-700">
-          <tr><th class="px-4 py-2.5">Amount</th><th class="px-4 py-2.5">From</th><th class="px-4 py-2.5">To</th><th class="px-4 py-2.5">Notes</th><th class="px-4 py-2.5">Active</th><th class="px-4 py-2.5">Actions</th></tr>
+          <tr><th scope="col" class="px-4 py-2.5">Amount</th><th scope="col" class="px-4 py-2.5">From</th><th scope="col" class="px-4 py-2.5">To</th><th scope="col" class="px-4 py-2.5">Notes</th><th scope="col" class="px-4 py-2.5">Active</th><th scope="col" class="px-4 py-2.5">Actions</th></tr>
         </thead>
         <tbody class="divide-y divide-surface-100 dark:divide-surface-700">
-          <tr *ngFor="let adj of adjustments" class="hover:bg-surface-50 dark:hover:bg-surface-800/50">
+          <tr *ngFor="let adj of adjustments" class="hover:bg-surface-50 dark:hover:bg-surface-750">
             <td class="px-4 py-2.5 font-semibold" [ngClass]="adj.amount >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'">{{ adj.amount >= 0 ? '+' : '' }}{{ adj.amount | number:'1.2-2' }}</td>
             <td class="px-4 py-2.5 text-surface-600 dark:text-surface-300">{{ adj.effectiveFrom | date:'dd/MM/yyyy' }}</td>
             <td class="px-4 py-2.5 text-surface-600 dark:text-surface-300">{{ adj.effectiveTo ? (adj.effectiveTo | date:'dd/MM/yyyy') : 'Permanent' }}</td>
             <td class="px-4 py-2.5 text-surface-600 dark:text-surface-300">{{ adj.notes || '-' }}</td>
             <td class="px-4 py-2.5"><span class="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full" [ngClass]="adj.isActive ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-surface-100 text-surface-500 dark:bg-surface-700 dark:text-surface-400'">{{ adj.isActive ? 'Active' : 'Inactive' }}</span></td>
             <td class="px-4 py-2.5">
-              <button *ngIf="adj.isActive" title="Deactivate" (click)="deactivateAdjustment(adj)" class="p-1.5 rounded text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg></button>
+              <button *ngIf="adj.isActive" aria-label="Deactivate" (click)="deactivateAdjustment(adj)" class="p-1.5 rounded text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg></button>
             </td>
           </tr>
         </tbody>
@@ -215,7 +215,7 @@
 <!-- Commission Setup Popup                                        -->
 <!-- ============================================================ -->
 <div *ngIf="showCommissionPopup" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm" (click)="closeCommissionPopup()"></div>
-<div *ngIf="showCommissionPopup" class="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
+<div *ngIf="showCommissionPopup" role="dialog" aria-modal="true" class="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
   <div class="bg-white dark:bg-surface-800 rounded-2xl shadow-xl w-full max-w-md pointer-events-auto max-h-[90vh] overflow-y-auto">
     <div class="flex items-center justify-between px-6 py-4 border-b border-surface-100 dark:border-surface-700">
       <h3 class="text-base font-semibold text-surface-900 dark:text-surface-100">Agent Service Charge — {{ commissionAgent?.businessName }}</h3>
@@ -224,9 +224,9 @@
     <div class="p-6 space-y-4">
       <div *ngIf="commissionFormError" class="px-4 py-2 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 text-sm rounded-lg">{{ commissionFormError }}</div>
       <div><label class="block text-xs font-medium text-surface-500 mb-1">Service Charge Type *</label>
-        <select [(ngModel)]="commissionForm.commissionType" class="w-full px-3 py-2 text-sm bg-white dark:bg-surface-900 border border-surface-200 dark:border-surface-700 rounded-lg text-surface-900 dark:text-surface-100 focus:outline-none focus:ring-2 focus:ring-brand-500/30"><option value="Percentage">Percentage</option><option value="Flat">Flat</option></select>
+        <select [(ngModel)]="commissionForm.commissionType" class="w-full px-3 py-2 text-sm bg-white dark:bg-surface-700 border border-surface-200 dark:border-surface-600 rounded-lg text-surface-900 dark:text-surface-100 focus:outline-none focus:ring-2 focus:ring-brand-500/30"><option value="Percentage">Percentage</option><option value="Flat">Flat</option></select>
       </div>
-      <div><label class="block text-xs font-medium text-surface-500 mb-1">{{ commissionForm.commissionType === 'Percentage' ? 'Service Charge Percentage (%)' : 'Flat Fee Amount' }}</label><input type="number" [(ngModel)]="commissionForm.commissionValue" class="w-full px-3 py-2 text-sm bg-white dark:bg-surface-900 border border-surface-200 dark:border-surface-700 rounded-lg text-surface-900 dark:text-surface-100 focus:outline-none focus:ring-2 focus:ring-brand-500/30" /></div>
+      <div><label class="block text-xs font-medium text-surface-500 mb-1">{{ commissionForm.commissionType === 'Percentage' ? 'Service Charge Percentage (%)' : 'Flat Fee Amount' }}</label><input type="number" [(ngModel)]="commissionForm.commissionValue" class="w-full px-3 py-2 text-sm bg-white dark:bg-surface-700 border border-surface-200 dark:border-surface-600 rounded-lg text-surface-900 dark:text-surface-100 focus:outline-none focus:ring-2 focus:ring-brand-500/30" /></div>
     </div>
     <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-surface-100 dark:border-surface-700">
       <button (click)="closeCommissionPopup()" class="px-4 py-2 text-sm font-medium text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg">Cancel</button>

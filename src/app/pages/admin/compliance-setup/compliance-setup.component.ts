@@ -52,6 +52,7 @@ export class ComplianceSetupComponent implements OnInit {
   ];
   searchString = '';
   loading = true;
+  deleteConfirmId: number | null = null;
   // Reference data
   countries: CountryInfo[] = [];
 

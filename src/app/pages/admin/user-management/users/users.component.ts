@@ -34,6 +34,8 @@ export class UsersComponent implements OnInit {
   users: UserItem[] = [];
   allRoles: RoleOption[] = [];
   loading = false;
+  deleteConfirmId: string | null = null;
+  showPassword = false;
 
   // Filters
   searchQuery = '';

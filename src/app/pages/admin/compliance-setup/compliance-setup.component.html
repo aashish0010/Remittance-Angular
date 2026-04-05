@@ -24,13 +24,13 @@
     <table class="w-full text-sm text-left">
       <thead>
         <tr class="border-b border-surface-200 dark:border-surface-700 text-surface-600 dark:text-surface-300">
-          <th class="px-4 py-3 font-semibold">Rule Name</th>
-          <th class="px-4 py-3 font-semibold">Type</th>
-          <th class="px-4 py-3 font-semibold">Threshold / Params</th>
-          <th class="px-4 py-3 font-semibold">Countries</th>
-          <th class="px-4 py-3 font-semibold">Action</th>
-          <th class="px-4 py-3 font-semibold">Status</th>
-          <th class="px-4 py-3 font-semibold">Actions</th>
+          <th scope="col" class="px-4 py-3 font-semibold">Rule Name</th>
+          <th scope="col" class="px-4 py-3 font-semibold">Type</th>
+          <th scope="col" class="px-4 py-3 font-semibold">Threshold / Params</th>
+          <th scope="col" class="px-4 py-3 font-semibold">Countries</th>
+          <th scope="col" class="px-4 py-3 font-semibold">Action</th>
+          <th scope="col" class="px-4 py-3 font-semibold">Status</th>
+          <th scope="col" class="px-4 py-3 font-semibold">Actions</th>
         </tr>
       </thead>
       <tbody>
@@ -55,9 +55,17 @@
           </td>
           <td class="px-4 py-3">
             <div class="flex items-center gap-1">
-              <button title="Edit" (click)="openEdit(r)" class="p-1.5 rounded-md text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/20 transition"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg></button>
-              <button [title]="r.isActive ? 'Deactivate' : 'Activate'" (click)="toggleRule(r)" class="p-1.5 rounded-md hover:bg-surface-100 dark:hover:bg-surface-700 transition"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" [ngClass]="r.isActive ? 'text-green-600 dark:text-green-400' : 'text-surface-400 dark:text-surface-500'"><path *ngIf="r.isActive" d="M17 7H7a5 5 0 000 10h10a5 5 0 000-10zm0 8a3 3 0 110-6 3 3 0 010 6z"/><path *ngIf="!r.isActive" d="M17 7H7a5 5 0 000 10h10a5 5 0 000-10zM7 15a3 3 0 110-6 3 3 0 010 6z"/></svg></button>
-              <button title="Delete" (click)="deleteRule(r)" class="p-1.5 rounded-md text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>
+              <button aria-label="Edit rule" (click)="openEdit(r)" class="p-1.5 rounded-md text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/20 transition"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg></button>
+              <button [attr.aria-label]="r.isActive ? 'Deactivate rule' : 'Activate rule'" (click)="toggleRule(r)" class="p-1.5 rounded-md hover:bg-surface-100 dark:hover:bg-surface-700 transition"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" [ngClass]="r.isActive ? 'text-green-600 dark:text-green-400' : 'text-surface-400 dark:text-surface-500'"><path *ngIf="r.isActive" d="M17 7H7a5 5 0 000 10h10a5 5 0 000-10zm0 8a3 3 0 110-6 3 3 0 010 6z"/><path *ngIf="!r.isActive" d="M17 7H7a5 5 0 000 10h10a5 5 0 000-10zM7 15a3 3 0 110-6 3 3 0 010 6z"/></svg></button>
+              <!-- Delete with inline confirmation -->
+              <ng-container *ngIf="deleteConfirmId !== r.id">
+                <button aria-label="Delete rule" (click)="deleteConfirmId = r.id" class="p-1.5 rounded-md text-danger-500 hover:bg-danger-50 dark:hover:bg-danger-900/20 transition"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>
+              </ng-container>
+              <span *ngIf="deleteConfirmId === r.id" class="inline-flex items-center gap-1.5 text-xs">
+                <span class="text-danger-700 dark:text-danger-400 font-medium">Delete?</span>
+                <button (click)="deleteRule(r); deleteConfirmId = null" class="px-2 py-0.5 bg-danger-600 hover:bg-danger-700 text-white rounded-lg text-xs font-medium transition-colors">Yes</button>
+                <button (click)="deleteConfirmId = null" class="px-2 py-0.5 border border-surface-300 dark:border-surface-600 text-surface-600 dark:text-surface-300 rounded-lg text-xs font-medium hover:bg-surface-50 dark:hover:bg-surface-700 transition-colors">No</button>
+              </span>
             </div>
           </td>
         </tr>
@@ -75,9 +83,10 @@
 <!-- ============================================================ -->
 <div *ngIf="showPopup" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm" (click)="closePopup()"></div>
 <div *ngIf="showPopup" class="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
-  <div class="bg-white dark:bg-surface-800 rounded-2xl shadow-xl w-full max-w-2xl pointer-events-auto max-h-[90vh] overflow-y-auto">
+  <div role="dialog" aria-modal="true" aria-labelledby="rule-form-title"
+    class="bg-white dark:bg-surface-800 rounded-2xl shadow-xl w-full max-w-2xl pointer-events-auto max-h-[90vh] overflow-y-auto">
     <div class="flex items-center justify-between px-6 py-4 border-b border-surface-100 dark:border-surface-700">
-      <h3 class="text-lg font-semibold text-surface-900 dark:text-surface-100">{{ isEditing ? 'Edit Rule' : 'Create Rule' }}</h3>
+      <h3 id="rule-form-title" class="text-lg font-semibold text-surface-900 dark:text-surface-100">{{ isEditing ? 'Edit Rule' : 'Create Rule' }}</h3>
       <button (click)="closePopup()" class="p-1 rounded-lg hover:bg-surface-100 dark:hover:bg-surface-700 text-surface-400 transition"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg></button>
     </div>
 

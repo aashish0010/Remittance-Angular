@@ -953,3 +953,62 @@ body.dark-mode {
     &.chip-default  { background: rgba(255,255,255,.08); color: #94a3b8; }
   }
 }
+
+// =============================================================================
+// DARK MODE — Global Tailwind Component Enhancements
+// Applies when .dark class is on layout wrapper or html element
+// =============================================================================
+.dark {
+  // Scrollbar (dark)
+  ::-webkit-scrollbar-track { background: #0f172a; }
+  ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+
+  // Card elevation: use subtle ring instead of shadow in dark mode
+  .shadow-soft {
+    box-shadow: none;
+    outline: 1px solid rgba(255, 255, 255, 0.05);
+    outline-offset: -1px;
+  }
+  .shadow-sm { box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5); }
+  .hover\:shadow-md:hover { box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6) !important; }
+
+  // Focus ring in dark mode – use brand-400 for better visibility
+  :focus-visible {
+    outline: 2px solid #60a5fa;
+    outline-offset: 2px;
+  }
+
+  // Tailwind focus ring utilities on dark bg
+  .focus\:ring-brand-500:focus { --tw-ring-color: rgba(96, 165, 250, 0.5) !important; }
+  .focus\:border-brand-500:focus { border-color: #60a5fa !important; }
+
+  // Page-level PrimeNG Toast (dark)
+  .p-toast-message-success {
+    background: rgba(6, 95, 70, 0.9) !important;
+    color: #a7f3d0 !important;
+    border-left-color: #10b981 !important;
+  }
+  .p-toast-message-error {
+    background: rgba(127, 29, 29, 0.9) !important;
+    color: #fca5a5 !important;
+    border-left-color: #ef4444 !important;
+  }
+  .p-toast-message-warn {
+    background: rgba(120, 53, 15, 0.9) !important;
+    color: #fde68a !important;
+    border-left-color: #f59e0b !important;
+  }
+  .p-toast-message-info {
+    background: rgba(30, 58, 138, 0.9) !important;
+    color: #bfdbfe !important;
+    border-left-color: #3b82f6 !important;
+  }
+}
+
+// Dark mode body-level background override
+.dark body,
+body.dark {
+  background: #0f172a;
+  color: #e2e8f0;
+}

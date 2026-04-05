@@ -77,15 +77,15 @@
     <table class="w-full text-sm text-left">
       <thead class="bg-surface-50 dark:bg-surface-700/50 border-b border-surface-200 dark:border-surface-700">
         <tr>
-          <th class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-300">Reference</th>
-          <th class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-300">Sender</th>
-          <th class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-300">Receiver</th>
-          <th class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-300">Amount</th>
-          <th class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-300">Alert Type</th>
-          <th class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-300">Txn Status</th>
-          <th class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-300">Alert</th>
-          <th class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-300">Created</th>
-          <th class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-300">Actions</th>
+          <th scope="col" class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-300">Reference</th>
+          <th scope="col" class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-300">Sender</th>
+          <th scope="col" class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-300">Receiver</th>
+          <th scope="col" class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-300">Amount</th>
+          <th scope="col" class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-300">Alert Type</th>
+          <th scope="col" class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-300">Txn Status</th>
+          <th scope="col" class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-300">Alert</th>
+          <th scope="col" class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-300">Created</th>
+          <th scope="col" class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-300">Actions</th>
         </tr>
       </thead>
       <tbody class="divide-y divide-surface-100 dark:divide-surface-700">
@@ -149,7 +149,7 @@
                   Resolve
                 </button>
                 <button (click)="rejectAlert(a)"
-                        class="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium text-danger-600 dark:text-danger-400 hover:bg-danger-50 dark:hover:bg-danger-900/20 transition">
+                        role="alert" aria-live="assertive" class="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium text-danger-600 dark:text-danger-400 hover:bg-danger-50 dark:hover:bg-danger-900/20 transition">
                   <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
                   Reject
                 </button>
@@ -188,19 +188,19 @@
     </div>
     <div class="flex items-center gap-1">
       <button (click)="pageIndex = 0; loadAlerts()" [disabled]="pageIndex === 0"
-              class="p-1.5 rounded-lg hover:bg-surface-100 dark:hover:bg-surface-700 disabled:opacity-30 disabled:cursor-not-allowed transition" title="First page">
+              class="p-1.5 rounded-lg hover:bg-surface-100 dark:hover:bg-surface-700 disabled:opacity-30 disabled:cursor-not-allowed transition" aria-label="First page">
         <svg class="w-5 h-5 text-surface-600 dark:text-surface-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m18.75 4.5-7.5 7.5 7.5 7.5m-6-15L5.25 12l7.5 7.5"/></svg>
       </button>
       <button (click)="pageIndex = pageIndex - 1; loadAlerts()" [disabled]="pageIndex === 0"
-              class="p-1.5 rounded-lg hover:bg-surface-100 dark:hover:bg-surface-700 disabled:opacity-30 disabled:cursor-not-allowed transition" title="Previous page">
+              class="p-1.5 rounded-lg hover:bg-surface-100 dark:hover:bg-surface-700 disabled:opacity-30 disabled:cursor-not-allowed transition" aria-label="Previous page">
         <svg class="w-5 h-5 text-surface-600 dark:text-surface-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5"/></svg>
       </button>
       <button (click)="pageIndex = pageIndex + 1; loadAlerts()" [disabled]="(pageIndex + 1) * pageSize >= totalCount"
-              class="p-1.5 rounded-lg hover:bg-surface-100 dark:hover:bg-surface-700 disabled:opacity-30 disabled:cursor-not-allowed transition" title="Next page">
+              class="p-1.5 rounded-lg hover:bg-surface-100 dark:hover:bg-surface-700 disabled:opacity-30 disabled:cursor-not-allowed transition" aria-label="Next page">
         <svg class="w-5 h-5 text-surface-600 dark:text-surface-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/></svg>
       </button>
       <button (click)="pageIndex = Math.ceil(totalCount / pageSize) - 1; loadAlerts()" [disabled]="(pageIndex + 1) * pageSize >= totalCount"
-              class="p-1.5 rounded-lg hover:bg-surface-100 dark:hover:bg-surface-700 disabled:opacity-30 disabled:cursor-not-allowed transition" title="Last page">
+              class="p-1.5 rounded-lg hover:bg-surface-100 dark:hover:bg-surface-700 disabled:opacity-30 disabled:cursor-not-allowed transition" aria-label="Last page">
         <svg class="w-5 h-5 text-surface-600 dark:text-surface-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m5.25 4.5 7.5 7.5-7.5 7.5m6-15 7.5 7.5-7.5 7.5"/></svg>
       </button>
     </div>
@@ -208,7 +208,7 @@
 </div>
 
 <!-- Transaction Detail Overlay -->
-<div *ngIf="selectedAlert" class="fixed inset-0 z-[1000] flex items-center justify-center bg-black/50 backdrop-blur-sm" (click)="closeDetail()">
+<div *ngIf="selectedAlert" role="dialog" aria-modal="true" class="fixed inset-0 z-[1000] flex items-center justify-center bg-black/50 backdrop-blur-sm" (click)="closeDetail()">
   <div class="bg-white dark:bg-surface-800 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto m-4 p-6" (click)="$event.stopPropagation()">
     <!-- Header -->
     <div class="flex items-center justify-between mb-4">
@@ -345,7 +345,7 @@
 </div>
 
 <!-- Resolve Popup Overlay -->
-<div *ngIf="showResolvePopup" class="fixed inset-0 z-[1000] flex items-center justify-center bg-black/50 backdrop-blur-sm" (click)="closeResolvePopup()">
+<div *ngIf="showResolvePopup" role="dialog" aria-modal="true" class="fixed inset-0 z-[1000] flex items-center justify-center bg-black/50 backdrop-blur-sm" (click)="closeResolvePopup()">
   <div class="bg-white dark:bg-surface-800 rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto m-4 p-6" (click)="$event.stopPropagation()">
     <!-- Header -->
     <div class="flex items-center justify-between mb-4">

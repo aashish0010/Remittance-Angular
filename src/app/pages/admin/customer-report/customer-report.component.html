@@ -66,13 +66,13 @@
     <table class="w-full text-sm text-left">
       <thead>
         <tr class="border-b border-surface-200 dark:border-surface-700">
-          <th class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-300">Full Name</th>
-          <th class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-300">Email</th>
-          <th class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-300">Phone</th>
-          <th class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-300">Country</th>
-          <th class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-300">KYC</th>
-          <th class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-300">Created</th>
-          <th class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-300">Actions</th>
+          <th scope="col" class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-300">Full Name</th>
+          <th scope="col" class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-300">Email</th>
+          <th scope="col" class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-300">Phone</th>
+          <th scope="col" class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-300">Country</th>
+          <th scope="col" class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-300">KYC</th>
+          <th scope="col" class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-300">Created</th>
+          <th scope="col" class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-300">Actions</th>
         </tr>
       </thead>
       <tbody>
@@ -96,7 +96,7 @@
             <div class="flex items-center gap-1">
               <!-- View Details -->
               <button
-                title="View Details"
+                aria-label="View Details"
                 (click)="viewDetail(c)"
                 class="p-1.5 rounded-lg text-brand-600 dark:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-colors"
               >
@@ -104,7 +104,7 @@
               </button>
               <!-- Documents -->
               <button
-                title="Documents"
+                aria-label="Documents"
                 (click)="viewDocuments(c)"
                 class="p-1.5 rounded-lg text-brand-500 dark:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-colors"
               >
@@ -113,7 +113,7 @@
               <!-- Approve KYC -->
               <button
                 *ngIf="!c.isKycVerified"
-                title="Approve KYC"
+                aria-label="Approve KYC"
                 (click)="approveKyc(c)"
                 class="p-1.5 rounded-lg text-success-600 dark:text-success-400 hover:bg-success-50 dark:hover:bg-success-900/20 transition-colors"
               >
@@ -122,7 +122,7 @@
               <!-- Reject KYC -->
               <button
                 *ngIf="c.isKycVerified"
-                title="Reject KYC"
+                aria-label="Reject KYC"
                 (click)="rejectKyc(c)"
                 class="p-1.5 rounded-lg text-danger-600 dark:text-danger-400 hover:bg-danger-50 dark:hover:bg-danger-900/20 transition-colors"
               >
@@ -144,9 +144,9 @@
 <!-- ============================================================ -->
 <!-- Detail Popup                                                  -->
 <!-- ============================================================ -->
-<div *ngIf="showDetail && detailCustomer" class="fixed inset-0 bg-black/50 z-[10000]" (click)="closeDetail()"></div>
+<div *ngIf="showDetail && detailCustomer" class="fixed inset-0 bg-black/50 z-50" (click)="closeDetail()"></div>
 <div *ngIf="showDetail && detailCustomer"
-     class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[10001] w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl bg-white dark:bg-surface-800 shadow-xl p-6">
+     role="dialog" aria-modal="true" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[51] w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl bg-white dark:bg-surface-800 shadow-xl p-6">
   <!-- Header -->
   <div class="flex items-center justify-between mb-5">
     <h3 class="flex items-center gap-2 text-lg font-semibold text-surface-900 dark:text-surface-100">
@@ -191,9 +191,9 @@
 <!-- ============================================================ -->
 <!-- Document Viewer Popup                                         -->
 <!-- ============================================================ -->
-<div *ngIf="showDocViewer" class="fixed inset-0 bg-black/50 z-[10000]" (click)="closeDocViewer()"></div>
+<div *ngIf="showDocViewer" class="fixed inset-0 bg-black/50 z-50" (click)="closeDocViewer()"></div>
 <div *ngIf="showDocViewer"
-     class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[10001] w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-2xl bg-white dark:bg-surface-800 shadow-xl p-6">
+     role="dialog" aria-modal="true" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[51] w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-2xl bg-white dark:bg-surface-800 shadow-xl p-6">
   <!-- Header -->
   <div class="flex items-center justify-between mb-5">
     <h3 class="text-lg font-semibold text-surface-900 dark:text-surface-100">Documents &mdash; {{ docViewerCustomer?.fullName }}</h3>
@@ -251,8 +251,8 @@
 </div>
 
 <!-- Image Full View Popup -->
-<div *ngIf="showImagePopup" class="fixed inset-0 bg-black/60 z-[10002]" (click)="closeImagePopup()"></div>
-<div *ngIf="showImagePopup" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[10003] bg-white dark:bg-surface-800 rounded-xl p-3 shadow-2xl max-w-[90vw] max-h-[90vh]">
+<div *ngIf="showImagePopup" class="fixed inset-0 bg-black/60 z-[52]" (click)="closeImagePopup()"></div>
+<div *ngIf="showImagePopup" role="dialog" aria-modal="true" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[53] bg-white dark:bg-surface-800 rounded-xl p-3 shadow-2xl max-w-[90vw] max-h-[90vh]">
   <button (click)="closeImagePopup()" class="absolute top-1 right-1 z-10 p-1.5 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors">
     <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
   </button>

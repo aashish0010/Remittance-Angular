@@ -70,6 +70,7 @@
         <label class="block text-xs font-medium text-surface-600 dark:text-surface-400 mb-1">Email *</label>
         <input type="email" [(ngModel)]="formEmail" [disabled]="!!editingId"
           class="w-full px-4 py-2.5 rounded-xl border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-700 text-surface-900 dark:text-surface-100 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors text-sm outline-none disabled:opacity-60 disabled:cursor-not-allowed disabled:bg-surface-100 dark:disabled:bg-surface-800" />
+        <p *ngIf="!!editingId" class="mt-1 text-xs text-surface-400 dark:text-surface-500">Email cannot be changed after account creation.</p>
       </div>
       <div>
         <label class="block text-xs font-medium text-surface-600 dark:text-surface-400 mb-1">Phone Number</label>
@@ -78,8 +79,23 @@
       </div>
       <div>
         <label class="block text-xs font-medium text-surface-600 dark:text-surface-400 mb-1">{{ editingId ? 'New Password (leave blank to keep)' : 'Password *' }}</label>
-        <input type="password" [(ngModel)]="formPassword"
-          class="w-full px-4 py-2.5 rounded-xl border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-700 text-surface-900 dark:text-surface-100 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors text-sm outline-none" />
+        <div class="relative">
+          <input [type]="showPassword ? 'text' : 'password'" [(ngModel)]="formPassword"
+            class="w-full px-4 py-2.5 pr-10 rounded-xl border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-700 text-surface-900 dark:text-surface-100 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors text-sm outline-none" />
+          <button type="button" (click)="showPassword = !showPassword"
+            [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'"
+            class="absolute right-3 top-1/2 -translate-y-1/2 text-surface-400 hover:text-surface-600 dark:hover:text-surface-300 transition-colors">
+            <!-- Eye icon (show) -->
+            <svg *ngIf="!showPassword" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+            </svg>
+            <!-- Eye-slash icon (hide) -->
+            <svg *ngIf="showPassword" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0 1 12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228-3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.242 4.242L9.88 9.88" />
+            </svg>
+          </button>
+        </div>
       </div>
       <div class="sm:col-span-2">
         <label class="block text-xs font-medium text-surface-600 dark:text-surface-400 mb-2">Roles</label>
@@ -134,13 +150,13 @@
       <table class="w-full text-sm text-left whitespace-nowrap">
         <thead class="bg-surface-50 dark:bg-surface-700/50">
           <tr class="border-b border-surface-200 dark:border-surface-700 text-surface-600 dark:text-surface-300">
-            <th class="px-4 py-3 font-semibold">User</th>
-            <th class="px-4 py-3 font-semibold">Email</th>
-            <th class="px-4 py-3 font-semibold">Phone</th>
-            <th class="px-4 py-3 font-semibold">Roles</th>
-            <th class="px-4 py-3 font-semibold">Status</th>
-            <th class="px-4 py-3 font-semibold">Created</th>
-            <th class="px-4 py-3 font-semibold text-right">Actions</th>
+            <th scope="col" class="px-4 py-3 font-semibold">User</th>
+            <th scope="col" class="px-4 py-3 font-semibold">Email</th>
+            <th scope="col" class="px-4 py-3 font-semibold">Phone</th>
+            <th scope="col" class="px-4 py-3 font-semibold">Roles</th>
+            <th scope="col" class="px-4 py-3 font-semibold">Status</th>
+            <th scope="col" class="px-4 py-3 font-semibold">Created</th>
+            <th scope="col" class="px-4 py-3 font-semibold text-right">Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -200,13 +216,24 @@
                     </svg>
                     {{ user.isActive ? 'Disable' : 'Enable' }}
                   </button>
-                  <button (click)="deleteUser(user)"
-                    class="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium text-danger-500 dark:text-danger-400 hover:bg-danger-50 dark:hover:bg-danger-900/20 transition-colors">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                    </svg>
-                    Delete
-                  </button>
+                  <!-- Delete with inline confirmation -->
+                  <ng-container *ngIf="deleteConfirmId !== user.id">
+                    <button (click)="deleteConfirmId = user.id"
+                      aria-label="Delete user"
+                      class="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium text-danger-500 dark:text-danger-400 hover:bg-danger-50 dark:hover:bg-danger-900/20 transition-colors">
+                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                      </svg>
+                      Delete
+                    </button>
+                  </ng-container>
+                  <span *ngIf="deleteConfirmId === user.id" class="inline-flex items-center gap-1.5 text-xs">
+                    <span class="text-danger-700 dark:text-danger-400 font-medium">Delete?</span>
+                    <button (click)="deleteUser(user); deleteConfirmId = null"
+                      class="px-2 py-0.5 bg-danger-600 hover:bg-danger-700 text-white rounded-lg text-xs font-medium transition-colors">Yes</button>
+                    <button (click)="deleteConfirmId = null"
+                      class="px-2 py-0.5 border border-surface-300 dark:border-surface-600 text-surface-600 dark:text-surface-300 rounded-lg text-xs font-medium hover:bg-surface-50 dark:hover:bg-surface-700 transition-colors">No</button>
+                  </span>
                 </div>
               </ng-container>
               <span *ngIf="isSystemAdmin(user)"

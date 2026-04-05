@@ -147,8 +147,22 @@ export class AdminDashboardComponent implements OnInit {
   // Charts
   // ---------------------------------------------------------------------------
 
+  get isDark(): boolean {
+    return document.documentElement.classList.contains('dark');
+  }
+
   private buildCharts(): void {
     if (!this.dashboard) return;
+
+    const dark = this.isDark;
+    // Adaptive chart tokens
+    const axisLabelColor  = dark ? '#64748b' : '#94a3b8';
+    const gridLineColor   = dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
+    const axisLineColor   = dark ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.10)';
+    const tooltipBg       = dark ? 'rgba(15,23,42,0.92)' : 'rgba(255,255,255,0.96)';
+    const tooltipText     = dark ? '#e2e8f0' : '#1e293b';
+    const tooltipBorder   = dark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)';
+    const legendText      = dark ? '#64748b' : '#94a3b8';
 
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     const currentMonth = new Date().getMonth();
@@ -176,23 +190,28 @@ export class AdminDashboardComponent implements OnInit {
     });
 
     this.volumeChartOptions = {
+      backgroundColor: 'transparent',
       tooltip: {
         trigger: 'axis',
-        backgroundColor: 'rgba(15, 23, 42, 0.9)',
-        borderColor: 'transparent',
-        textStyle: { color: '#e2e8f0', fontSize: 12 },
+        backgroundColor: tooltipBg,
+        borderColor: tooltipBorder,
+        textStyle: { color: tooltipText, fontSize: 12 },
+        extraCssText: 'box-shadow: 0 4px 12px rgba(0,0,0,0.15); border-radius: 10px;',
       },
       grid: { top: 40, right: 16, bottom: 30, left: 60, containLabel: false },
       xAxis: {
         type: 'category',
         data: last6Months,
-        axisLine: { lineStyle: { color: '#e2e8f0' } },
-        axisLabel: { color: '#64748b', fontSize: 11 },
+        axisLine: { lineStyle: { color: axisLineColor } },
+        axisTick: { show: false },
+        axisLabel: { color: axisLabelColor, fontSize: 11 },
       },
       yAxis: {
         type: 'value',
+        axisLine: { show: false },
+        axisTick: { show: false },
         axisLabel: {
-          color: '#64748b',
+          color: axisLabelColor,
           fontSize: 11,
           formatter: (val: number) => {
             if (val >= 1_000_000) return '$' + (val / 1_000_000).toFixed(1) + 'M';
@@ -200,7 +219,7 @@ export class AdminDashboardComponent implements OnInit {
             return '$' + val;
           },
         },
-        splitLine: { lineStyle: { color: '#e2e8f0', type: 'dashed' } },
+        splitLine: { lineStyle: { color: gridLineColor, type: 'dashed' } },
       },
       series: [
         {
@@ -243,9 +262,10 @@ export class AdminDashboardComponent implements OnInit {
     this.revenueChartOptions = {
       tooltip: {
         trigger: 'item',
-        backgroundColor: 'rgba(15, 23, 42, 0.9)',
-        borderColor: 'transparent',
-        textStyle: { color: '#e2e8f0', fontSize: 12 },
+        backgroundColor: tooltipBg,
+        borderColor: tooltipBorder,
+        textStyle: { color: tooltipText, fontSize: 12 },
+        extraCssText: 'box-shadow: 0 4px 12px rgba(0,0,0,0.15); border-radius: 10px;',
         formatter: (params: any) => {
           return `${params.name}: $${params.value.toLocaleString()} (${params.percent}%)`;
         },
@@ -254,7 +274,7 @@ export class AdminDashboardComponent implements OnInit {
         orient: 'vertical',
         right: 10,
         top: 'center',
-        textStyle: { color: '#64748b', fontSize: 11 },
+        textStyle: { color: legendText, fontSize: 11 },
       },
       series: [
         {

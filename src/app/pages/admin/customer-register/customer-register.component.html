@@ -43,14 +43,14 @@
     <table class="w-full text-sm text-left">
       <thead>
         <tr class="border-b border-surface-200 dark:border-surface-700">
-          <th class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-300">Full Name</th>
-          <th class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-300">Email</th>
-          <th class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-300">Phone</th>
-          <th class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-300">Country</th>
-          <th class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-300">KYC Status</th>
-          <th class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-300">Status</th>
-          <th class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-300">Created</th>
-          <th class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-300">Actions</th>
+          <th scope="col" class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-300">Full Name</th>
+          <th scope="col" class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-300">Email</th>
+          <th scope="col" class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-300">Phone</th>
+          <th scope="col" class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-300">Country</th>
+          <th scope="col" class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-300">KYC Status</th>
+          <th scope="col" class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-300">Status</th>
+          <th scope="col" class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-300">Created</th>
+          <th scope="col" class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-300">Actions</th>
         </tr>
       </thead>
       <tbody>
@@ -79,38 +79,66 @@
           <td class="px-4 py-3 text-surface-600 dark:text-surface-400">{{ c.createdAt | date:'dd/MM/yyyy' }}</td>
           <td class="px-4 py-3">
             <div class="flex items-center gap-1">
-              <button title="View Details" (click)="viewDetail(c)"
+              <!-- Always visible: View, Edit -->
+              <button aria-label="View customer details" (click)="viewDetail(c)"
                 class="p-1.5 rounded-md hover:bg-surface-100 dark:hover:bg-surface-700 text-brand-600 dark:text-brand-400 transition">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
               </button>
-              <button title="Documents" (click)="viewDocuments(c)"
-                class="p-1.5 rounded-md hover:bg-surface-100 dark:hover:bg-surface-700 text-surface-500 dark:text-surface-400 transition">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z"/></svg>
-              </button>
-              <button title="Edit" (click)="openEditPopup(c)"
+              <button aria-label="Edit customer" (click)="openEditPopup(c)"
                 class="p-1.5 rounded-md hover:bg-surface-100 dark:hover:bg-surface-700 text-brand-600 dark:text-brand-400 transition">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
               </button>
-              <button *ngIf="!c.isKycVerified" title="Approve KYC" (click)="approveKyc(c)"
-                class="p-1.5 rounded-md hover:bg-success-50 dark:hover:bg-success-900/20 text-success-600 dark:text-success-400 transition">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-              </button>
-              <button *ngIf="c.isKycVerified" title="Reject KYC" (click)="rejectKyc(c)"
-                class="p-1.5 rounded-md hover:bg-danger-50 dark:hover:bg-danger-900/20 text-danger-600 dark:text-danger-400 transition">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-              </button>
-              <button [title]="c.isActive ? 'Disable' : 'Enable'" (click)="toggleCustomerStatus(c)"
-                class="p-1.5 rounded-md transition"
-                [ngClass]="c.isActive
-                  ? 'hover:bg-warning-50 dark:hover:bg-warning-900/20 text-warning-600 dark:text-warning-400'
-                  : 'hover:bg-success-50 dark:hover:bg-success-900/20 text-success-600 dark:text-success-400'">
-                <svg *ngIf="c.isActive" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
-                <svg *ngIf="!c.isActive" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-              </button>
-              <button title="Delete" (click)="deleteCustomer(c)"
-                class="p-1.5 rounded-md hover:bg-danger-50 dark:hover:bg-danger-900/20 text-danger-600 dark:text-danger-400 transition">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-              </button>
+              <!-- Overflow menu -->
+              <div class="relative">
+                <button (click)="actionMenuId = actionMenuId === c.id ? null : c.id" aria-label="More actions"
+                  class="p-1.5 rounded-md hover:bg-surface-100 dark:hover:bg-surface-700 text-surface-500 dark:text-surface-400 transition">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z"/></svg>
+                </button>
+                <div *ngIf="actionMenuId === c.id"
+                  class="absolute right-0 z-50 mt-1 w-44 rounded-xl border border-surface-200 dark:border-surface-700 bg-white dark:bg-surface-800 shadow-xl py-1">
+                  <button (click)="viewDocuments(c); actionMenuId = null"
+                    class="w-full flex items-center gap-2 px-3 py-2 text-sm text-surface-700 dark:text-surface-300 hover:bg-surface-50 dark:hover:bg-surface-700 transition text-left">
+                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z"/></svg>
+                    View Documents
+                  </button>
+                  <button *ngIf="!c.isKycVerified" (click)="approveKyc(c); actionMenuId = null"
+                    class="w-full flex items-center gap-2 px-3 py-2 text-sm text-success-600 dark:text-success-400 hover:bg-success-50 dark:hover:bg-success-900/20 transition text-left">
+                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    Approve KYC
+                  </button>
+                  <button *ngIf="c.isKycVerified" (click)="rejectKyc(c); actionMenuId = null"
+                    class="w-full flex items-center gap-2 px-3 py-2 text-sm text-warning-600 dark:text-warning-400 hover:bg-warning-50 dark:hover:bg-warning-900/20 transition text-left">
+                    <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    Reject KYC
+                  </button>
+                  <button (click)="toggleCustomerStatus(c); actionMenuId = null"
+                    class="w-full flex items-center gap-2 px-3 py-2 text-sm transition text-left"
+                    [ngClass]="c.isActive
+                      ? 'text-warning-600 dark:text-warning-400 hover:bg-warning-50 dark:hover:bg-warning-900/20'
+                      : 'text-success-600 dark:text-success-400 hover:bg-success-50 dark:hover:bg-success-900/20'">
+                    <svg *ngIf="c.isActive" class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg>
+                    <svg *ngIf="!c.isActive" class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    {{ c.isActive ? 'Disable' : 'Enable' }}
+                  </button>
+                  <div class="border-t border-surface-100 dark:border-surface-700 my-1"></div>
+                  <ng-container *ngIf="deleteConfirmId !== c.id">
+                    <button (click)="deleteConfirmId = c.id; $event.stopPropagation()"
+                      class="w-full flex items-center gap-2 px-3 py-2 text-sm text-danger-600 dark:text-danger-400 hover:bg-danger-50 dark:hover:bg-danger-900/20 transition text-left">
+                      <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                      Delete
+                    </button>
+                  </ng-container>
+                  <div *ngIf="deleteConfirmId === c.id" class="px-3 py-2">
+                    <p class="text-xs text-danger-700 dark:text-danger-400 font-medium mb-1.5">Delete customer?</p>
+                    <div class="flex gap-1.5">
+                      <button (click)="deleteCustomer(c); deleteConfirmId = null; actionMenuId = null"
+                        class="flex-1 px-2 py-1 bg-danger-600 text-white rounded-lg text-xs font-medium">Yes</button>
+                      <button (click)="deleteConfirmId = null"
+                        class="flex-1 px-2 py-1 border border-surface-300 dark:border-surface-600 rounded-lg text-xs text-surface-700 dark:text-surface-300">No</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </td>
         </tr>
@@ -132,22 +160,22 @@
         <option [value]="50">50</option>
         <option [value]="100">100</option>
       </select>
-      <button (click)="goToPage(0)" [disabled]="pageIndex === 0" title="First page"
+      <button (click)="goToPage(0)" [disabled]="pageIndex === 0" aria-label="First page"
         class="p-1.5 rounded-md border border-surface-300 dark:border-surface-600 disabled:opacity-40 hover:bg-surface-100 dark:hover:bg-surface-700 transition">
         <svg class="w-4 h-4 text-surface-600 dark:text-surface-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/></svg>
       </button>
-      <button (click)="goToPage(pageIndex - 1)" [disabled]="pageIndex === 0" title="Previous page"
+      <button (click)="goToPage(pageIndex - 1)" [disabled]="pageIndex === 0" aria-label="Previous page"
         class="p-1.5 rounded-md border border-surface-300 dark:border-surface-600 disabled:opacity-40 hover:bg-surface-100 dark:hover:bg-surface-700 transition">
         <svg class="w-4 h-4 text-surface-600 dark:text-surface-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
       </button>
       <span class="text-sm text-surface-700 dark:text-surface-300 px-2">
         Page {{ pageIndex + 1 }} of {{ totalPages || 1 }}
       </span>
-      <button (click)="goToPage(pageIndex + 1)" [disabled]="pageIndex >= totalPages - 1" title="Next page"
+      <button (click)="goToPage(pageIndex + 1)" [disabled]="pageIndex >= totalPages - 1" aria-label="Next page"
         class="p-1.5 rounded-md border border-surface-300 dark:border-surface-600 disabled:opacity-40 hover:bg-surface-100 dark:hover:bg-surface-700 transition">
         <svg class="w-4 h-4 text-surface-600 dark:text-surface-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
       </button>
-      <button (click)="goToPage(totalPages - 1)" [disabled]="pageIndex >= totalPages - 1" title="Last page"
+      <button (click)="goToPage(totalPages - 1)" [disabled]="pageIndex >= totalPages - 1" aria-label="Last page"
         class="p-1.5 rounded-md border border-surface-300 dark:border-surface-600 disabled:opacity-40 hover:bg-surface-100 dark:hover:bg-surface-700 transition">
         <svg class="w-4 h-4 text-surface-600 dark:text-surface-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"/></svg>
       </button>
@@ -163,12 +191,13 @@
 <!-- ============================================================ -->
 <!-- Detail Popup                                                  -->
 <!-- ============================================================ -->
-<div *ngIf="showDetail && detailCustomer" class="fixed inset-0 bg-black/50 z-[1000]" (click)="closeDetail()"></div>
+<div *ngIf="showDetail && detailCustomer" class="fixed inset-0 bg-black/50 z-50" (click)="closeDetail()"></div>
 <div *ngIf="showDetail && detailCustomer"
-  class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[1001] w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl bg-white dark:bg-surface-800 shadow-xl p-6">
+  role="dialog" aria-modal="true" aria-labelledby="customer-detail-title"
+  class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[51] w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl bg-white dark:bg-surface-800 shadow-xl p-6">
   <div class="flex items-center justify-between mb-4">
-    <h3 class="text-lg font-semibold text-surface-900 dark:text-surface-100">Customer Details</h3>
-    <button (click)="closeDetail()" class="p-1.5 rounded-md hover:bg-surface-100 dark:hover:bg-surface-700 text-surface-500 transition">
+    <h3 id="customer-detail-title" class="text-lg font-semibold text-surface-900 dark:text-surface-100">Customer Details</h3>
+    <button (click)="closeDetail()" aria-label="Close dialog" class="p-1.5 rounded-md hover:bg-surface-100 dark:hover:bg-surface-700 text-surface-500 transition">
       <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
     </button>
   </div>
@@ -202,17 +231,18 @@
 <!-- ============================================================ -->
 <!-- Create / Edit Customer Popup                                  -->
 <!-- ============================================================ -->
-<div *ngIf="showFormPopup" class="fixed inset-0 bg-black/50 z-[1000]" (click)="closeFormPopup()"></div>
+<div *ngIf="showFormPopup" class="fixed inset-0 bg-black/50 z-50" (click)="closeFormPopup()"></div>
 <div *ngIf="showFormPopup"
-  class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[1001] w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-2xl bg-white dark:bg-surface-800 shadow-xl p-6">
+  role="dialog" aria-modal="true" aria-labelledby="customer-form-title"
+  class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[51] w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-2xl bg-white dark:bg-surface-800 shadow-xl p-6">
   <div class="flex items-center justify-between mb-4">
-    <h3 class="text-lg font-semibold text-surface-900 dark:text-surface-100">{{ isEditing ? 'Edit Customer' : 'Register New Customer' }}</h3>
-    <button (click)="closeFormPopup()" class="p-1.5 rounded-md hover:bg-surface-100 dark:hover:bg-surface-700 text-surface-500 transition">
+    <h3 id="customer-form-title" class="text-lg font-semibold text-surface-900 dark:text-surface-100">{{ isEditing ? 'Edit Customer' : 'Register New Customer' }}</h3>
+    <button (click)="closeFormPopup()" aria-label="Close dialog" class="p-1.5 rounded-md hover:bg-surface-100 dark:hover:bg-surface-700 text-surface-500 transition">
       <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
     </button>
   </div>
 
-  <div *ngIf="formError" class="mb-4 px-4 py-2.5 rounded-lg bg-danger-50 dark:bg-danger-900/20 text-danger-700 dark:text-danger-400 text-sm">
+  <div *ngIf="formError" role="alert" aria-live="assertive" class="mb-4 px-4 py-2.5 rounded-lg bg-danger-50 dark:bg-danger-900/20 text-danger-700 dark:text-danger-400 text-sm">
     {{ formError }}
   </div>
 

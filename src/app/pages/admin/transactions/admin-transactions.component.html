@@ -52,7 +52,7 @@
         *ngIf="searchText"
         (click)="searchText = ''; onSearchChange()"
         class="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 rounded text-surface-400 hover:text-surface-600 dark:hover:text-surface-300 transition"
-        title="Clear search"
+        aria-label="Clear search"
       >
         <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
@@ -81,16 +81,16 @@
     <table class="w-full text-left text-sm">
       <thead>
         <tr class="border-b border-surface-200 dark:border-surface-700 bg-surface-50 dark:bg-surface-800/50">
-          <th class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-400 text-xs tracking-wide">Reference</th>
-          <th class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-400 text-xs tracking-wide">Sender</th>
-          <th class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-400 text-xs tracking-wide">Receiver</th>
-          <th class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-400 text-xs tracking-wide">Send Amount</th>
-          <th class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-400 text-xs tracking-wide">Receive Amount</th>
-          <th class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-400 text-xs tracking-wide">Rate</th>
-          <th class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-400 text-xs tracking-wide">Service Charge</th>
-          <th class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-400 text-xs tracking-wide">Status</th>
-          <th class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-400 text-xs tracking-wide">Date</th>
-          <th class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-400 text-xs tracking-wide text-center">Actions</th>
+          <th scope="col" class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-400 text-xs tracking-wide">Reference</th>
+          <th scope="col" class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-400 text-xs tracking-wide">Sender</th>
+          <th scope="col" class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-400 text-xs tracking-wide">Receiver</th>
+          <th scope="col" class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-400 text-xs tracking-wide">Send Amount</th>
+          <th scope="col" class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-400 text-xs tracking-wide">Receive Amount</th>
+          <th scope="col" class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-400 text-xs tracking-wide">Rate</th>
+          <th scope="col" class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-400 text-xs tracking-wide">Service Charge</th>
+          <th scope="col" class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-400 text-xs tracking-wide">Status</th>
+          <th scope="col" class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-400 text-xs tracking-wide">Date</th>
+          <th scope="col" class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-400 text-xs tracking-wide text-center">Actions</th>
         </tr>
       </thead>
       <tbody class="divide-y divide-surface-100 dark:divide-surface-700">
@@ -187,7 +187,7 @@
         (click)="onPageChange({ pageIndex: 0, pageSize: pageSize })"
         [disabled]="pageIndex === 0"
         class="p-1.5 rounded-lg border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-700 text-surface-600 dark:text-surface-300 hover:bg-surface-50 dark:hover:bg-surface-600 disabled:opacity-40 disabled:cursor-not-allowed transition"
-        title="First page"
+        aria-label="First page"
       >
         <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" d="m18.75 4.5-7.5 7.5 7.5 7.5m-6-15L5.25 12l7.5 7.5" />
@@ -199,7 +199,7 @@
         (click)="onPageChange({ pageIndex: pageIndex - 1, pageSize: pageSize })"
         [disabled]="pageIndex === 0"
         class="p-1.5 rounded-lg border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-700 text-surface-600 dark:text-surface-300 hover:bg-surface-50 dark:hover:bg-surface-600 disabled:opacity-40 disabled:cursor-not-allowed transition"
-        title="Previous page"
+        aria-label="Previous page"
       >
         <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
@@ -215,7 +215,7 @@
         (click)="onPageChange({ pageIndex: pageIndex + 1, pageSize: pageSize })"
         [disabled]="(pageIndex + 1) * pageSize >= totalCount"
         class="p-1.5 rounded-lg border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-700 text-surface-600 dark:text-surface-300 hover:bg-surface-50 dark:hover:bg-surface-600 disabled:opacity-40 disabled:cursor-not-allowed transition"
-        title="Next page"
+        aria-label="Next page"
       >
         <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
@@ -227,7 +227,7 @@
         (click)="onPageChange({ pageIndex: totalCount === 0 ? 0 : Math.ceil(totalCount / pageSize) - 1, pageSize: pageSize })"
         [disabled]="(pageIndex + 1) * pageSize >= totalCount"
         class="p-1.5 rounded-lg border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-700 text-surface-600 dark:text-surface-300 hover:bg-surface-50 dark:hover:bg-surface-600 disabled:opacity-40 disabled:cursor-not-allowed transition"
-        title="Last page"
+        aria-label="Last page"
       >
         <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" d="m5.25 4.5 7.5 7.5-7.5 7.5m6-15 7.5 7.5-7.5 7.5" />
@@ -240,6 +240,9 @@
 <!-- Transaction Detail Overlay -->
 <div
   *ngIf="selectedTransaction"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="txn-detail-title"
   class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
   (click)="closeDetail()"
 >
@@ -249,9 +252,10 @@
   >
     <!-- Header -->
     <div class="flex items-center justify-between mb-6">
-      <h3 class="text-lg font-semibold text-surface-900 dark:text-surface-100">Transaction Details</h3>
+      <h3 id="txn-detail-title" class="text-lg font-semibold text-surface-900 dark:text-surface-100">Transaction Details</h3>
       <button
         (click)="closeDetail()"
+        aria-label="Close dialog"
         class="p-1.5 rounded-lg text-surface-400 hover:text-surface-600 dark:hover:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 transition"
       >
         <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
