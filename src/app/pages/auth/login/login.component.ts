@@ -80,8 +80,8 @@ export class LoginComponent implements OnInit, OnDestroy {
   welcomeName = '';
   availablePortals: PortalOption[] = [];
 
-  // UI Configuration
-  get appName(): string { return this.publicSettings.companyName || 'Remittance'; }
+  // UI Configuration — reads from the signal; Angular re-renders when it updates
+  get appName(): string { return this.publicSettings.companyName() || 'Remittance'; }
   currentYear = new Date().getFullYear();
 
   // Login attempt lockout
