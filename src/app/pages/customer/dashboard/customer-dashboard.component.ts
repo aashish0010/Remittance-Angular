@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { SeoService } from '../../../core/services/seo.service';
 
 @Component({
   selector: 'app-customer-dashboard',
@@ -75,4 +76,10 @@ import { RouterModule } from '@angular/router';
   `,
   styles: [`:host { display: block; }`]
 })
-export class CustomerDashboardComponent {}
+export class CustomerDashboardComponent implements OnInit {
+  constructor(private seo: SeoService) {}
+
+  ngOnInit(): void {
+    this.seo.setPage('My Dashboard', 'Track your remittance transfers, view transaction history, and manage your account.');
+  }
+}

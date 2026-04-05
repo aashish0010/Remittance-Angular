@@ -5,6 +5,7 @@ import { NgxEchartsDirective } from 'ngx-echarts';
 import { ApiService } from '../../../core/services/api.service';
 import { AuthStateService } from '../../../core/services/auth-state.service';
 import { NotificationService } from '../../../core/services/notification.service';
+import { SeoService } from '../../../core/services/seo.service';
 import {
   DashboardModel,
   RecentTransactionModel,
@@ -114,9 +115,11 @@ export class AdminDashboardComponent implements OnInit {
     private api: ApiService,
     private auth: AuthStateService,
     private notify: NotificationService,
+    private seo: SeoService,
   ) {}
 
   ngOnInit(): void {
+    this.seo.setPage('Dashboard', 'Monitor transaction volumes, manage agents, and oversee compliance from the RemitAdmin dashboard.');
     this.auth.loadFromSession();
     this.loadDashboard();
   }

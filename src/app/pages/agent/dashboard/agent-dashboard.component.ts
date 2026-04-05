@@ -5,6 +5,7 @@ import { ApiService } from '../../../core/services/api.service';
 import { AuthStateService } from '../../../core/services/auth-state.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { AppSettingsService } from '../../../core/services/app-settings.service';
+import { SeoService } from '../../../core/services/seo.service';
 import { AgentBalance } from '../../../core/models/agent.models';
 import { TransactionResult } from '../../../core/models/transaction.models';
 
@@ -54,9 +55,11 @@ export class AgentDashboardComponent implements OnInit {
     private auth: AuthStateService,
     private notify: NotificationService,
     public appSettings: AppSettingsService,
+    private seo: SeoService,
   ) {}
 
   ngOnInit(): void {
+    this.seo.setPage('Agent Dashboard', 'View your balance, process transactions, and track commissions from the agent portal.');
     this.appSettings.load();
     this.auth.loadFromSession();
     this.loadData();

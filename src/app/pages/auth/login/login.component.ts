@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { ApiService } from '../../../core/services/api.service';
 import { AuthStateService } from '../../../core/services/auth-state.service';
 import { AppSettingsService } from '../../../core/services/app-settings.service';
+import { SeoService } from '../../../core/services/seo.service';
 
 interface PortalOption {
   key: string;
@@ -94,6 +95,7 @@ export class LoginComponent implements OnInit, OnDestroy {
     private auth: AuthStateService,
     private router: Router,
     private appSettings: AppSettingsService,
+    private seo: SeoService,
   ) { }
 
   ngOnDestroy(): void {
@@ -101,6 +103,7 @@ export class LoginComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.seo.setPage('Sign In', 'Sign in to RemitAdmin to manage money transfers, agents, compliance, and more.');
     // Clear field errors on value change
     this.loginForm.valueChanges.subscribe(() => {
       this.fieldErrors = {};

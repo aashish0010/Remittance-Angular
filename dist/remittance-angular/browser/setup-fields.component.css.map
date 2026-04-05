@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["src/app/pages/admin/setup-fields/setup-fields.component.scss"],
-  "sourcesContent": [":host { display: block; }\r\n"],
-  "mappings": ";AAAA;AAAQ,WAAA;;",
-  "names": []
-}
