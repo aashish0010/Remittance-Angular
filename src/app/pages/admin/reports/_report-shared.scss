@@ -88,18 +88,18 @@
 
 // Color variants
 $colors: (
-  blue: #1976d2,
-  green: #2e7d32,
-  orange: #ed6c02,
-  red: #d32f2f,
-  purple: #7b1fa2,
-  teal: #00897b,
-  indigo: #3949ab,
-  pink: #c2185b,
-  amber: #ff8f00,
-  cyan: #0097a7,
-  lime: #689f38,
-  brown: #5d4037
+  "blue": #1976d2,
+  "green": #2e7d32,
+  "orange": #ed6c02,
+  "red": #d32f2f,
+  "purple": #7b1fa2,
+  "teal": #00897b,
+  "indigo": #3949ab,
+  "pink": #c2185b,
+  "amber": #ff8f00,
+  "cyan": #0097a7,
+  "lime": #689f38,
+  "brown": #5d4037
 );
 
 @each $name, $color in $colors {
