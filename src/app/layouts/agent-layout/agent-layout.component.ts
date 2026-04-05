@@ -1,6 +1,7 @@
 import { Component, OnInit, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { AppSettingsService } from '../../core/services/app-settings.service';
 
 interface NavItem {
   label: string;
@@ -21,6 +22,8 @@ export class AgentLayoutComponent implements OnInit {
   sidenavOpened = true;
   showUserMenu = false;
 
+  constructor(public appSettings: AppSettingsService) {}
+
   navItems: NavItem[] = [
     { label: 'Dashboard', icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6', route: '/agent/dashboard' },
     { label: 'Send Money', icon: 'M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5', route: '/agent/send', section: 'Operations' },
@@ -28,6 +31,7 @@ export class AgentLayoutComponent implements OnInit {
   ];
 
   ngOnInit(): void {
+    this.appSettings.load();
     this.isDarkMode = localStorage.getItem('darkMode') === 'true';
     this.applyBodyClass();
   }

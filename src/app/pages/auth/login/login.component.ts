@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { ApiService } from '../../../core/services/api.service';
 import { AuthStateService } from '../../../core/services/auth-state.service';
 import { AppSettingsService } from '../../../core/services/app-settings.service';
+import { PublicSettingsService } from '../../../core/services/public-settings.service';
 import { SeoService } from '../../../core/services/seo.service';
 
 interface PortalOption {
@@ -80,7 +81,7 @@ export class LoginComponent implements OnInit, OnDestroy {
   availablePortals: PortalOption[] = [];
 
   // UI Configuration
-  appName = 'Remittance';
+  get appName(): string { return this.publicSettings.companyName || 'Remittance'; }
   currentYear = new Date().getFullYear();
 
   // Login attempt lockout
@@ -95,6 +96,7 @@ export class LoginComponent implements OnInit, OnDestroy {
     private auth: AuthStateService,
     private router: Router,
     private appSettings: AppSettingsService,
+    public publicSettings: PublicSettingsService,
     private seo: SeoService,
   ) { }
 
