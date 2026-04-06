@@ -10,7 +10,7 @@ import { AuthStateService } from '../../../core/services/auth-state.service';
 import { AppSettingsService } from '../../../core/services/app-settings.service';
 import { SendTransactionModel, TransactionResult, CalculateTransferRequest, ComplianceViolation } from '../../../core/models/transaction.models';
 import { CountryInfo } from '../../../core/models/common.models';
-import { AgentModel, PaymentMethodModel, AgentBankModel, AgentBankBranchModel, AgentLocationModel } from '../../../core/models/agent.models';
+import { AgentModel, AgentBalance, PaymentMethodModel, AgentBankModel, AgentBankBranchModel, AgentLocationModel } from '../../../core/models/agent.models';
 import { CustomerModel, ReceiverModel } from '../../../core/models/customer.models';
 import { PaymentCorridorModel, CorridorPayoutPartnerModel } from '../../../core/models/routing.models';
 import { Subject } from 'rxjs';
@@ -93,6 +93,7 @@ export class SendMoneyComponent implements OnInit {
 
   // Agent profile & balance
   agentProfile: AgentModel | null = null;
+  agentBalance: AgentBalance | null = null;
   agentBalanceZero = false;
   balanceWarning = '';
   agentAvailableBalance: number | null = null;
@@ -305,6 +306,16 @@ export class SendMoneyComponent implements OnInit {
   // ---------------------------------------------------------------------------
 
   private loadReferenceData(): void {
+    this.api.getAgentBalance().subscribe(r => {
+      if (r?.success && r.data) {
+        this.agentBalance = r.data;
+        if (r.data.availableBalance <= 0) {
+          this.agentBalanceZero = true;
+          this.store.setAgentBalanceZero(true);
+          this.notify.error('Insufficient balance. Your available balance is 0. Please contact admin to top up.');
+        }
+      }
+    });
     this.api.getAgentProfile().subscribe(r => {
       if (r?.success && r.data) {
         this.agentProfile = r.data;
@@ -312,11 +323,13 @@ export class SendMoneyComponent implements OnInit {
         if (r.data.currency) {
           this.senderCurrency = r.data.currency;
         }
-        const available = r.data.creditLimit - r.data.currentBalance;
-        if (available <= 0) {
-          this.agentBalanceZero = true;
-          this.store.setAgentBalanceZero(true);
-          this.notify.error('Insufficient balance. Your available balance is 0. Please contact admin to top up.');
+        // Only check balance here if agentBalance endpoint failed
+        if (!this.agentBalance) {
+          const available = r.data.creditLimit - r.data.currentBalance;
+          if (available <= 0) {
+            this.agentBalanceZero = true;
+            this.store.setAgentBalanceZero(true);
+          }
         }
       }
     });

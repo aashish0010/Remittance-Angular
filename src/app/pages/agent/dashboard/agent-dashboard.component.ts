@@ -95,6 +95,23 @@ export class AgentDashboardComponent implements OnInit {
     });
   }
 
+  showFullAmounts = false;
+
+  formatAmount(amount: number): string {
+    if (this.showFullAmounts) {
+      return '$' + amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+    if (amount >= 1_000_000) {
+      const v = amount / 1_000_000;
+      return '$' + (Number.isInteger(v * 100) ? v.toFixed(2) : v.toFixed(2).replace(/\.?0+$/, '')) + 'M';
+    }
+    if (amount >= 1_000) {
+      const v = amount / 1_000;
+      return '$' + v.toFixed(2).replace(/\.?0+$/, '') + 'K';
+    }
+    return '$' + amount.toFixed(2);
+  }
+
   getStatusClass(status: string): string {
     switch (status) {
       case 'Completed':

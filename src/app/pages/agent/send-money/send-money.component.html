@@ -1166,7 +1166,7 @@
                 <div>
                   <p class="text-blue-200 text-xs font-semibold uppercase tracking-wider mb-1">Available Balance</p>
                   <p class="text-3xl font-bold tabular-nums leading-none">
-                    {{ agentProfile ? ((agentProfile.creditLimit - agentProfile.currentBalance) | number:'1.2-2') : '—' }}
+                    {{ agentBalance != null ? (agentBalance.availableBalance | number:'1.2-2') : (agentProfile ? ((agentProfile.creditLimit - agentProfile.currentBalance) | number:'1.2-2') : '—') }}
                   </p>
                   <p class="text-blue-200 text-sm mt-1.5">{{ senderCurrency }}</p>
                 </div>
@@ -1176,17 +1176,17 @@
                   </svg>
                 </div>
               </div>
-              <div *ngIf="agentProfile && agentProfile.creditLimit > 0">
+              <div *ngIf="agentBalance && agentBalance.creditLimit > 0">
                 <div class="flex justify-between text-xs text-blue-200 mb-2">
                   <span>Credit used</span>
                   <span class="tabular-nums font-medium">
-                    {{ agentProfile.currentBalance | number:'1.0-0' }} / {{ agentProfile.creditLimit | number:'1.0-0' }}
+                    {{ agentBalance.currentBalance | number:'1.0-0' }} / {{ agentBalance.creditLimit | number:'1.0-0' }}
                   </span>
                 </div>
                 <div class="h-2 rounded-full bg-white/20 overflow-hidden">
                   <div class="balance-bar-fill h-full rounded-full"
-                       [ngClass]="(agentProfile.currentBalance / agentProfile.creditLimit) > 0.85 ? 'bg-red-300' : 'bg-white/70'"
-                       [style.width.%]="agentProfile.creditLimit > 0 ? (agentProfile.currentBalance / agentProfile.creditLimit * 100) : 0">
+                       [ngClass]="(agentBalance.currentBalance / agentBalance.creditLimit) > 0.85 ? 'bg-red-300' : 'bg-white/70'"
+                       [style.width.%]="agentBalance.creditLimit > 0 ? (agentBalance.currentBalance / agentBalance.creditLimit * 100) : 0">
                   </div>
                 </div>
               </div>

@@ -260,6 +260,7 @@ export class AdminDashboardComponent implements OnInit {
     const estimatedOtherRevenue = commissionRevenue * 0.1;
 
     this.revenueChartOptions = {
+      backgroundColor: 'transparent',
       tooltip: {
         trigger: 'item',
         backgroundColor: tooltipBg,
