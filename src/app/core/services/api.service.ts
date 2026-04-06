@@ -28,7 +28,7 @@ export class ApiService {
   constructor(
     private http: HttpClient,
     private auth: AuthStateService
-  ) {}
+  ) { }
 
   // ---------------------------------------------------------------------------
   // Internal helpers
