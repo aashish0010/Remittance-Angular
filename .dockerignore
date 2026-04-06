@@ -1,9 +1,0 @@
-**/bin
-**/obj
-**/node_modules
-**/.angular
-Remittance.Angular
-Remittance.Web
-.git
-.vs
-*.md
