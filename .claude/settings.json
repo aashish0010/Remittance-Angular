@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dotnet run:*)",
+      "Bash(xargs grep:*)",
+      "Bash(dotnet add:*)",
+      "Bash(find c:UserspudasOneDriveDesktopRemittance -type f -name *Service*.cs -path */Interfaces/*)",
+      "Bash(taskkill //PID 15612 //F)",
+      "Bash(taskkill //PID 21412 //F)",
+      "Bash(tasklist)",
+      "Bash(taskkill //IM \"Remittance.API.exe\" //F)",
+      "Bash(taskkill //IM \"Remittance.Web.exe\" //F)",
+      "Bash(find c:/Users/pudas/OneDrive/Desktop/Remittance/Remittance.Web -type f -name *.razor -o -name *.cs)",
+      "Bash(dotnet ef:*)"
+    ]
+  }
+}

@@ -1,0 +1,580 @@
+@page "/admin/routing"
+@using Remittance.Web.Client.Models
+@using Remittance.Web.Client.Services
+
+<PageTitle>Payment Corridor Routing - Remittance</PageTitle>
+
+<div class="d-flex justify-space-between align-center mb-4">
+    <MudText Typo="Typo.h5" Style="font-weight: 700;">Payment Corridor Routing</MudText>
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add"
+               OnClick="@(() => OpenCorridorForm(null))">
+        Add Corridor
+    </MudButton>
+</div>
+
+@if (!string.IsNullOrEmpty(_message))
+{
+    <MudAlert Severity="@_msgSev" Class="mb-4" Dense="true" ShowCloseIcon="true"
+              CloseIconClicked="@(() => _message = string.Empty)">@_message</MudAlert>
+}
+
+<MudPaper Elevation="4" Class="rounded-lg">
+    <MudTable Items="_corridors" Hover="true" Striped="true" Dense="true" Loading="_loading"
+              Filter="new Func<PaymentCorridorModel, bool>(FilterFunc)">
+        <ToolBarContent>
+            <MudTextField @bind-Value="_searchString" Placeholder="Search corridors..."
+                          Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
+                          IconSize="Size.Medium" Class="mt-0" />
+        </ToolBarContent>
+        <HeaderContent>
+            <MudTh>Corridor</MudTh>
+            <MudTh>Sending Agent</MudTh>
+            <MudTh>Partners</MudTh>
+            <MudTh>Status</MudTh>
+            <MudTh>Actions</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd>
+                <div class="d-flex align-center gap-2">
+                    <MudChip T="string" Size="Size.Small" Color="Color.Info">@context.SourceCountry (@context.SourceCurrency)</MudChip>
+                    <MudIcon Icon="@Icons.Material.Filled.ArrowForward" Size="Size.Small" />
+                    <MudChip T="string" Size="Size.Small" Color="Color.Tertiary">@context.DestinationCountry (@context.DestinationCurrency)</MudChip>
+                </div>
+            </MudTd>
+            <MudTd>@(context.SendingAgentName ?? "Global")</MudTd>
+            <MudTd>
+                <MudChip T="string" Size="Size.Small" Color="Color.Default">@context.PayoutPartners.Count</MudChip>
+            </MudTd>
+            <MudTd>
+                <MudChip T="string" Size="Size.Small" Color="@(context.IsActive ? Color.Success : Color.Default)">
+                    @(context.IsActive ? "Active" : "Inactive")
+                </MudChip>
+            </MudTd>
+            <MudTd>
+                <MudTooltip Text="View Partners">
+                    <MudIconButton Icon="@Icons.Material.Filled.Visibility" Size="Size.Small" Color="Color.Info"
+                                   OnClick="@(() => OpenDetailPopup(context))" />
+                </MudTooltip>
+                <MudTooltip Text="Edit">
+                    <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" Color="Color.Warning"
+                                   OnClick="@(() => OpenCorridorForm(context))" />
+                </MudTooltip>
+                <MudTooltip Text="@(context.IsActive ? "Deactivate" : "Activate")">
+                    <MudIconButton Icon="@(context.IsActive ? Icons.Material.Filled.ToggleOn : Icons.Material.Filled.ToggleOff)"
+                                   Size="Size.Small" Color="@(context.IsActive ? Color.Success : Color.Default)"
+                                   OnClick="@(() => ToggleCorridor(context.Id))" />
+                </MudTooltip>
+                <MudTooltip Text="Delete">
+                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error"
+                                   OnClick="@(() => DeleteCorridor(context.Id))" />
+                </MudTooltip>
+            </MudTd>
+        </RowTemplate>
+        <NoRecordsContent>
+            <MudText Typo="Typo.body2">No corridors found.</MudText>
+        </NoRecordsContent>
+    </MudTable>
+</MudPaper>
+
+@* ---- Create/Edit Corridor Popup ---- *@
+@if (_showForm)
+{
+    <MudOverlay Visible="true" DarkBackground="true" ZIndex="9999" OnClick="@(() => _showForm = false)" />
+    <div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 10000; width: 580px; max-width: 95vw; max-height: 90vh; overflow-y: auto;">
+        <MudPaper Elevation="12" Class="pa-6 rounded-lg">
+            <div class="d-flex justify-space-between align-center mb-4">
+                <MudText Typo="Typo.h6" Style="font-weight: 600;">@(_editId.HasValue ? "Edit Corridor" : "Add Corridor")</MudText>
+                <MudIconButton Icon="@Icons.Material.Filled.Close" Size="Size.Small" OnClick="@(() => _showForm = false)" />
+            </div>
+            @if (!string.IsNullOrEmpty(_formError)) { <MudAlert Severity="Severity.Error" Class="mb-3" Dense="true">@_formError</MudAlert> }
+
+            <MudAutocomplete T="string" Value="_sendingAgentName" ValueChanged="OnSendingAgentChanged"
+                             Label="Sending Agent (optional)" SearchFunc="SearchSendingAgentNames"
+                             Variant="Variant.Outlined" Class="mb-3" Clearable="true" Dense="true" MinCharacters="0" />
+
+            <MudDivider Class="my-3" />
+
+            <MudGrid Spacing="3">
+                <MudItem xs="6">
+                    <MudSelect T="string" Value="_formSourceCountry" Label="Source Country *"
+                               Variant="Variant.Outlined" Dense="true"
+                               ValueChanged="OnSourceCountryChanged">
+                        @foreach (var c in _countries) { <MudSelectItem Value="@c.Name">@c.Name</MudSelectItem> }
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="6">
+                    <MudSelect T="string" @bind-Value="_formSourceCurrency" Label="Source Currency *"
+                               Variant="Variant.Outlined" Dense="true">
+                        @foreach (var c in _currencies) { <MudSelectItem Value="@c">@c</MudSelectItem> }
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="6">
+                    <MudSelect T="string" Value="_formDestCountry" Label="Destination Country *"
+                               Variant="Variant.Outlined" Dense="true"
+                               ValueChanged="OnDestCountryChanged">
+                        @foreach (var c in _countries) { <MudSelectItem Value="@c.Name">@c.Name</MudSelectItem> }
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="6">
+                    <MudSelect T="string" @bind-Value="_formDestCurrency" Label="Destination Currency *"
+                               Variant="Variant.Outlined" Dense="true">
+                        @foreach (var c in _currencies) { <MudSelectItem Value="@c">@c</MudSelectItem> }
+                    </MudSelect>
+                </MudItem>
+            </MudGrid>
+
+            <div class="d-flex justify-end gap-2 mt-4">
+                <MudButton StartIcon="@Icons.Material.Filled.Close" OnClick="@(() => _showForm = false)">Cancel</MudButton>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Save"
+                           OnClick="SaveCorridor" Disabled="_saving">
+                    @if (_saving) { <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" /> }
+                    Save
+                </MudButton>
+            </div>
+        </MudPaper>
+    </div>
+}
+
+@* ---- Detail/Partners Popup ---- *@
+@if (_showDetailPopup && _selectedCorridor != null)
+{
+    <MudOverlay Visible="true" DarkBackground="true" ZIndex="9999" OnClick="@(() => _showDetailPopup = false)" />
+    <div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 10000; width: 780px; max-width: 95vw; max-height: 90vh; overflow-y: auto;">
+        <MudPaper Elevation="12" Class="pa-6 rounded-lg">
+            <div class="d-flex justify-space-between align-center mb-4">
+                <MudText Typo="Typo.h6" Style="font-weight: 600;">
+                    @_selectedCorridor.SourceCountry (@_selectedCorridor.SourceCurrency) → @_selectedCorridor.DestinationCountry (@_selectedCorridor.DestinationCurrency)
+                </MudText>
+                <MudIconButton Icon="@Icons.Material.Filled.Close" Size="Size.Small" OnClick="@(() => _showDetailPopup = false)" />
+            </div>
+
+            @if (!string.IsNullOrEmpty(_selectedCorridor.SendingAgentName))
+            {
+                <MudText Typo="Typo.body2" Class="mb-3">Sending Agent: <strong>@_selectedCorridor.SendingAgentName</strong></MudText>
+            }
+            else
+            {
+                <MudText Typo="Typo.body2" Class="mb-3">Scope: <strong>Global</strong></MudText>
+            }
+
+            @if (!string.IsNullOrEmpty(_partnerMessage))
+            {
+                <MudAlert Severity="@_partnerMsgSev" Class="mb-3" Dense="true" ShowCloseIcon="true"
+                          CloseIconClicked="@(() => _partnerMessage = string.Empty)">@_partnerMessage</MudAlert>
+            }
+
+            <div class="d-flex justify-space-between align-center mb-3">
+                <MudText Typo="Typo.subtitle1" Style="font-weight: 600;">Payout Partners</MudText>
+                <MudButton Variant="Variant.Outlined" Color="Color.Primary" Size="Size.Small"
+                           StartIcon="@Icons.Material.Filled.Add" OnClick="@(() => OpenPartnerForm(null))">Add Partner</MudButton>
+            </div>
+
+            @if (_selectedCorridor.PayoutPartners.Any())
+            {
+                <MudTable Items="_selectedCorridor.PayoutPartners" Hover="true" Dense="true" Elevation="0">
+                    <HeaderContent>
+                        <MudTh>Payout Agent</MudTh>
+                        <MudTh>Payment Modes</MudTh>
+                        <MudTh>Status</MudTh>
+                        <MudTh>Actions</MudTh>
+                    </HeaderContent>
+                    <RowTemplate>
+                        <MudTd>@context.PayoutAgentName</MudTd>
+                        <MudTd>
+                            @foreach (var mode in context.PaymentModeNames)
+                            {
+                                <MudChip T="string" Size="Size.Small" Color="Color.Info" Class="mr-1 mb-1">@mode</MudChip>
+                            }
+                        </MudTd>
+                        <MudTd>
+                            <MudChip T="string" Size="Size.Small" Color="@(context.IsActive ? Color.Success : Color.Default)">
+                                @(context.IsActive ? "Active" : "Inactive")
+                            </MudChip>
+                        </MudTd>
+                        <MudTd>
+                            <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" Color="Color.Warning"
+                                           OnClick="@(() => OpenPartnerForm(context))" />
+                            <MudIconButton Icon="@(context.IsActive ? Icons.Material.Filled.ToggleOn : Icons.Material.Filled.ToggleOff)"
+                                           Size="Size.Small" Color="@(context.IsActive ? Color.Success : Color.Default)"
+                                           OnClick="@(() => TogglePartner(context.Id))" />
+                            <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error"
+                                           OnClick="@(() => DeletePartner(context.Id))" />
+                        </MudTd>
+                    </RowTemplate>
+                </MudTable>
+            }
+            else
+            {
+                <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-3">No payout partners assigned yet.</MudText>
+            }
+        </MudPaper>
+    </div>
+}
+
+@* ---- Add/Edit Partner Popup ---- *@
+@if (_showPartnerForm)
+{
+    <MudOverlay Visible="true" DarkBackground="true" ZIndex="10001" OnClick="@(() => _showPartnerForm = false)" />
+    <div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 10002; width: 520px; max-width: 95vw;">
+        <MudPaper Elevation="12" Class="pa-6 rounded-lg">
+            <div class="d-flex justify-space-between align-center mb-4">
+                <MudText Typo="Typo.h6" Style="font-weight: 600;">@(_partnerEditId.HasValue ? "Edit Partner" : "Add Payout Partner")</MudText>
+                <MudIconButton Icon="@Icons.Material.Filled.Close" Size="Size.Small" OnClick="@(() => _showPartnerForm = false)" />
+            </div>
+            @if (!string.IsNullOrEmpty(_partnerFormError)) { <MudAlert Severity="Severity.Error" Class="mb-3" Dense="true">@_partnerFormError</MudAlert> }
+
+            @if (!_partnerEditId.HasValue)
+            {
+                <MudAutocomplete T="string" Value="_partnerAgentName" ValueChanged="OnPartnerAgentChanged"
+                                 Label="Payout Agent *" SearchFunc="SearchPayoutAgentNames"
+                                 Variant="Variant.Outlined" Class="mb-3" Dense="true" MinCharacters="0" />
+            }
+            else
+            {
+                <MudTextField Value="@_partnerAgentName" Label="Payout Agent" Variant="Variant.Outlined" Class="mb-3" ReadOnly="true" />
+            }
+
+            <MudSelect T="int" Label="Payment Modes *" Variant="Variant.Outlined" Class="mb-3"
+                       MultiSelection="true" @bind-SelectedValues="_partnerModeValues">
+                @foreach (var pm in _paymentMethods)
+                {
+                    <MudSelectItem T="int" Value="@pm.Id">@pm.Name</MudSelectItem>
+                }
+            </MudSelect>
+
+            <div class="d-flex justify-end gap-2">
+                <MudButton StartIcon="@Icons.Material.Filled.Close" OnClick="@(() => _showPartnerForm = false)">Cancel</MudButton>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Save"
+                           OnClick="SavePartner" Disabled="_saving">
+                    @if (_saving) { <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" /> }
+                    Save
+                </MudButton>
+            </div>
+        </MudPaper>
+    </div>
+}
+
+@code {
+    [Inject] private ApiService Api { get; set; } = null!;
+    [Inject] private AuthStateService Auth { get; set; } = null!;
+
+    // Data
+    private List<PaymentCorridorModel> _corridors = new();
+    private List<AgentModel> _agents = new();
+    private List<PaymentMethodModel> _paymentMethods = new();
+    private List<CountryInfo> _countries = new();
+    private List<string> _currencies = new();
+
+    // State
+    private bool _loading;
+    private string _searchString = string.Empty;
+    private string _message = string.Empty;
+    private Severity _msgSev = Severity.Info;
+    private string _sendingAgentName = string.Empty;
+
+    // Corridor form
+    private bool _showForm, _saving;
+    private int? _editId;
+    private int? _formSendingAgentId;
+    private string _formSourceCountry = string.Empty, _formSourceCurrency = string.Empty;
+    private string _formDestCountry = string.Empty, _formDestCurrency = string.Empty;
+    private string _formError = string.Empty;
+
+    // Detail popup
+    private bool _showDetailPopup;
+    private PaymentCorridorModel? _selectedCorridor;
+    private string _partnerMessage = string.Empty;
+    private Severity _partnerMsgSev = Severity.Info;
+
+    // Partner form
+    private bool _showPartnerForm;
+    private int? _partnerEditId;
+    private int _partnerAgentId;
+    private string _partnerAgentName = string.Empty;
+    private IEnumerable<int> _partnerModeValues = new HashSet<int>();
+    private string _partnerFormError = string.Empty;
+
+    private Task<IEnumerable<string>> SearchSendingAgentNames(string value, CancellationToken _)
+        => Task.FromResult(_agents.Where(a => a.AgentType == "SendingAgent" && a.Status == "Approved")
+            .Where(a => string.IsNullOrEmpty(value) || a.BusinessName.Contains(value, StringComparison.OrdinalIgnoreCase))
+            .Select(a => a.BusinessName));
+
+    private Task<IEnumerable<string>> SearchPayoutAgentNames(string value, CancellationToken _)
+        => Task.FromResult(_agents.Where(a => a.AgentType == "PayoutAgent" && a.Status == "Approved")
+            .Where(a => string.IsNullOrEmpty(value) || a.BusinessName.Contains(value, StringComparison.OrdinalIgnoreCase))
+            .Select(a => a.BusinessName));
+
+    private void OnSendingAgentChanged(string name)
+    {
+        _sendingAgentName = name;
+        _formSendingAgentId = string.IsNullOrEmpty(name) ? null : _agents.FirstOrDefault(a => a.BusinessName == name)?.Id;
+    }
+
+    private void OnPartnerAgentChanged(string name)
+    {
+        _partnerAgentName = name;
+        _partnerAgentId = _agents.FirstOrDefault(a => a.BusinessName == name)?.Id ?? 0;
+    }
+
+    private Task<IEnumerable<int>> SearchPayoutAgents(string value, CancellationToken token)
+        => Task.FromResult(_agents.Where(a => a.AgentType == "PayoutAgent" && a.Status == "Approved")
+            .Where(a => string.IsNullOrEmpty(value) || a.BusinessName.Contains(value, StringComparison.OrdinalIgnoreCase))
+            .Select(a => a.Id));
+
+    private Task<IEnumerable<int?>> SearchSendingAgents(string value, CancellationToken token)
+        => Task.FromResult(_agents.Where(a => a.AgentType == "SendingAgent" && a.Status == "Approved")
+            .Where(a => string.IsNullOrEmpty(value) || a.BusinessName.Contains(value, StringComparison.OrdinalIgnoreCase))
+            .Select(a => (int?)a.Id));
+
+    private bool SearchSendingAgentItem(string search, int? id)
+        => string.IsNullOrEmpty(search) || (_agents.FirstOrDefault(a => a.Id == id)?.BusinessName?.Contains(search, StringComparison.OrdinalIgnoreCase) ?? false);
+
+    private bool SearchPayoutAgentItem(string search, int id)
+        => string.IsNullOrEmpty(search) || (_agents.FirstOrDefault(a => a.Id == id)?.BusinessName?.Contains(search, StringComparison.OrdinalIgnoreCase) ?? false);
+
+    private Task<IEnumerable<string>> SearchCountries(string value, CancellationToken token)
+        => Task.FromResult(string.IsNullOrEmpty(value)
+            ? _countries.Select(c => c.Name)
+            : _countries.Where(c => c.Name.Contains(value, StringComparison.OrdinalIgnoreCase)).Select(c => c.Name));
+
+    private Task<IEnumerable<string>> SearchCurrencies(string value, CancellationToken token)
+        => Task.FromResult(string.IsNullOrEmpty(value)
+            ? _currencies.AsEnumerable()
+            : _currencies.Where(c => c.Contains(value, StringComparison.OrdinalIgnoreCase)));
+
+    private bool FilterFunc(PaymentCorridorModel c) =>
+        string.IsNullOrWhiteSpace(_searchString) ||
+        c.SourceCountry.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ||
+        c.DestinationCountry.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ||
+        c.SourceCurrency.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ||
+        c.DestinationCurrency.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ||
+        (c.SendingAgentName ?? "Global").Contains(_searchString, StringComparison.OrdinalIgnoreCase);
+
+    private string GetCurrencyForCountry(string country) =>
+        _countries.FirstOrDefault(c => c.Name.Equals(country, StringComparison.OrdinalIgnoreCase))?.Currency ?? "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Auth.LoadFromSessionAsync();
+        await Task.WhenAll(LoadCorridors(), LoadReferenceData(), LoadAgents(), LoadPaymentMethods());
+    }
+
+    private async Task LoadCorridors()
+    {
+        _loading = true;
+        try
+        {
+            var r = await Api.GetCorridorsAsync();
+            if (r?.Success == true && r.Data != null) _corridors = r.Data;
+            else { _corridors = new(); _message = r?.Message ?? "Failed to load corridors."; _msgSev = Severity.Error; }
+        }
+        catch { _message = "Error loading corridors."; _msgSev = Severity.Error; }
+        finally { _loading = false; }
+    }
+
+    private async Task LoadReferenceData()
+    {
+        try
+        {
+            var cr = await Api.GetCountriesAsync();
+            var cu = await Api.GetCurrenciesAsync();
+            if (cr?.Success == true && cr.Data != null) _countries = cr.Data;
+            if (cu?.Success == true && cu.Data != null) _currencies = cu.Data;
+        }
+        catch { }
+    }
+
+    private async Task LoadAgents()
+    {
+        try
+        {
+            var r = await Api.GetAgentsAsync();
+            if (r?.Success == true && r.Data != null) _agents = r.Data;
+        }
+        catch { }
+    }
+
+    private async Task LoadPaymentMethods()
+    {
+        try
+        {
+            var r = await Api.GetPaymentMethodsAsync();
+            if (r?.Success == true && r.Data != null) _paymentMethods = r.Data;
+        }
+        catch { }
+    }
+
+    // ---- Corridor CRUD ----
+
+    private void OpenCorridorForm(PaymentCorridorModel? existing)
+    {
+        _formError = "";
+        if (existing != null)
+        {
+            _editId = existing.Id;
+            _formSendingAgentId = existing.SendingAgentId;
+            _sendingAgentName = existing.SendingAgentName ?? string.Empty;
+            _formSourceCountry = existing.SourceCountry;
+            _formSourceCurrency = existing.SourceCurrency;
+            _formDestCountry = existing.DestinationCountry;
+            _formDestCurrency = existing.DestinationCurrency;
+        }
+        else
+        {
+            _editId = null;
+            _formSendingAgentId = null;
+            _sendingAgentName = string.Empty;
+            _formSourceCountry = "";
+            _formSourceCurrency = "";
+            _formDestCountry = "";
+            _formDestCurrency = "";
+        }
+        _showForm = true;
+    }
+
+    private void OnSourceCountryChanged(string country)
+    {
+        _formSourceCountry = country;
+        var currency = GetCurrencyForCountry(country ?? "");
+        if (!string.IsNullOrEmpty(currency)) _formSourceCurrency = currency;
+    }
+
+    private void OnDestCountryChanged(string country)
+    {
+        _formDestCountry = country;
+        var currency = GetCurrencyForCountry(country ?? "");
+        if (!string.IsNullOrEmpty(currency)) _formDestCurrency = currency;
+    }
+
+    private async Task SaveCorridor()
+    {
+        _formError = "";
+        if (string.IsNullOrWhiteSpace(_formSourceCountry)) { _formError = "Source country is required."; return; }
+        if (string.IsNullOrWhiteSpace(_formSourceCurrency)) { _formError = "Source currency is required."; return; }
+        if (string.IsNullOrWhiteSpace(_formDestCountry)) { _formError = "Destination country is required."; return; }
+        if (string.IsNullOrWhiteSpace(_formDestCurrency)) { _formError = "Destination currency is required."; return; }
+        if (_formSourceCountry == _formDestCountry) { _formError = "Source and destination countries must be different."; return; }
+
+        _saving = true;
+        try
+        {
+            var dto = new
+            {
+                sendingAgentId = _formSendingAgentId,
+                sourceCountry = _formSourceCountry,
+                sourceCurrency = _formSourceCurrency,
+                destinationCountry = _formDestCountry,
+                destinationCurrency = _formDestCurrency
+            };
+
+            if (_editId.HasValue)
+            {
+                var r = await Api.UpdateCorridorAsync(_editId.Value, dto);
+                if (r?.Success == true) { _message = "Corridor updated."; _msgSev = Severity.Success; _showForm = false; await LoadCorridors(); }
+                else { _formError = r?.Message ?? "Failed."; }
+            }
+            else
+            {
+                var r = await Api.CreateCorridorAsync(dto);
+                if (r?.Success == true) { _message = "Corridor created."; _msgSev = Severity.Success; _showForm = false; await LoadCorridors(); }
+                else { _formError = r?.Message ?? "Failed."; }
+            }
+        }
+        finally { _saving = false; }
+    }
+
+    private async Task ToggleCorridor(int id)
+    {
+        var r = await Api.ToggleCorridorAsync(id);
+        if (r?.Success == true) { _message = r.Message; _msgSev = Severity.Success; await LoadCorridors(); }
+        else { _message = r?.Message ?? "Failed."; _msgSev = Severity.Error; }
+    }
+
+    private async Task DeleteCorridor(int id)
+    {
+        var r = await Api.DeleteCorridorAsync(id);
+        if (r?.Success == true) { _message = "Corridor deleted."; _msgSev = Severity.Success; await LoadCorridors(); }
+        else { _message = r?.Message ?? "Failed."; _msgSev = Severity.Error; }
+    }
+
+    // ---- Detail/Partners ----
+
+    private void OpenDetailPopup(PaymentCorridorModel corridor)
+    {
+        _selectedCorridor = corridor;
+        _partnerMessage = "";
+        _showDetailPopup = true;
+    }
+
+    private async Task RefreshSelectedCorridor()
+    {
+        await LoadCorridors();
+        if (_selectedCorridor != null)
+            _selectedCorridor = _corridors.FirstOrDefault(c => c.Id == _selectedCorridor.Id);
+    }
+
+    // ---- Partner CRUD ----
+
+    private void OpenPartnerForm(CorridorPayoutPartnerModel? existing)
+    {
+        _partnerFormError = "";
+        if (existing != null)
+        {
+            _partnerEditId = existing.Id;
+            _partnerAgentId = existing.PayoutAgentId;
+            _partnerAgentName = existing.PayoutAgentName;
+            _partnerModeValues = new HashSet<int>(existing.PaymentModeIds);
+        }
+        else
+        {
+            _partnerEditId = null;
+            _partnerAgentId = 0;
+            _partnerAgentName = "";
+            _partnerModeValues = new HashSet<int>();
+        }
+        _showPartnerForm = true;
+    }
+
+    private async Task SavePartner()
+    {
+        _partnerFormError = "";
+        var modeIds = _partnerModeValues.ToList();
+
+        if (!_partnerEditId.HasValue && _partnerAgentId == 0) { _partnerFormError = "Payout agent is required."; return; }
+        if (!modeIds.Any()) { _partnerFormError = "At least one payment mode is required."; return; }
+
+        _saving = true;
+        try
+        {
+            if (_partnerEditId.HasValue)
+            {
+                var dto = new { paymentCorridorId = _selectedCorridor!.Id, payoutAgentId = _partnerAgentId, paymentModeIds = modeIds };
+                var r = await Api.UpdateCorridorPartnerAsync(_partnerEditId.Value, dto);
+                if (r?.Success == true) { _partnerMessage = "Partner updated."; _partnerMsgSev = Severity.Success; _showPartnerForm = false; await RefreshSelectedCorridor(); }
+                else { _partnerFormError = r?.Message ?? "Failed."; }
+            }
+            else
+            {
+                var dto = new { paymentCorridorId = _selectedCorridor!.Id, payoutAgentId = _partnerAgentId, paymentModeIds = modeIds };
+                var r = await Api.AddCorridorPartnerAsync(dto);
+                if (r?.Success == true) { _partnerMessage = "Partner added."; _partnerMsgSev = Severity.Success; _showPartnerForm = false; await RefreshSelectedCorridor(); }
+                else { _partnerFormError = r?.Message ?? "Failed."; }
+            }
+        }
+        finally { _saving = false; }
+    }
+
+    private async Task TogglePartner(int id)
+    {
+        var r = await Api.ToggleCorridorPartnerAsync(id);
+        if (r?.Success == true) { _partnerMessage = r.Message; _partnerMsgSev = Severity.Success; await RefreshSelectedCorridor(); }
+        else { _partnerMessage = r?.Message ?? "Failed."; _partnerMsgSev = Severity.Error; }
+    }
+
+    private async Task DeletePartner(int id)
+    {
+        var r = await Api.DeleteCorridorPartnerAsync(id);
+        if (r?.Success == true) { _partnerMessage = "Partner removed."; _partnerMsgSev = Severity.Success; await RefreshSelectedCorridor(); }
+        else { _partnerMessage = r?.Message ?? "Failed."; _partnerMsgSev = Severity.Error; }
+    }
+}

@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/Remittance.Web/">
+    <Project Path="Remittance.Web/Remittance.Web.Client/Remittance.Web.Client.csproj" />
+    <Project Path="Remittance.Web/Remittance.Web/Remittance.Web.csproj" />
+  </Folder>
+  <Project Path="Remittance.API/Remittance.API.csproj" />
+  <Project Path="Remittance.Application/Remittance.Application.csproj" />
+  <Project Path="Remittance.Domain/Remittance.Domain.csproj" />
+  <Project Path="Remittance.Infrastructure/Remittance.Infrastructure.csproj" />
+</Solution>

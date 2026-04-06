@@ -1,0 +1,190 @@
+@page "/admin/compliance"
+@using Remittance.Web.Client.Models
+@using Remittance.Web.Client.Services
+
+<PageTitle>Compliance Report - Remittance</PageTitle>
+
+<MudText Typo="Typo.h5" Class="mb-4" Style="font-weight: 700;">Compliance Report</MudText>
+
+@if (!string.IsNullOrEmpty(_message))
+{
+    <MudAlert Severity="@_msgSev" Class="mb-4" Dense="true" ShowCloseIcon="true"
+              CloseIconClicked="@(() => _message = string.Empty)">@_message</MudAlert>
+}
+
+<MudGrid Class="mb-4">
+    <MudItem xs="12" sm="4">
+        <MudPaper Elevation="4" Class="pa-4 rounded-lg">
+            <div class="d-flex justify-space-between align-center">
+                <div>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary">Open Alerts</MudText>
+                    <MudText Typo="Typo.h4" Style="font-weight: 700;" Color="Color.Error">@_alerts.Count(a => !a.IsResolved)</MudText>
+                </div>
+                <MudIcon Icon="@Icons.Material.Filled.Warning" Size="Size.Large" Color="Color.Error" />
+            </div>
+        </MudPaper>
+    </MudItem>
+    <MudItem xs="12" sm="4">
+        <MudPaper Elevation="4" Class="pa-4 rounded-lg">
+            <div class="d-flex justify-space-between align-center">
+                <div>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary">Resolved</MudText>
+                    <MudText Typo="Typo.h4" Style="font-weight: 700;" Color="Color.Success">@_alerts.Count(a => a.IsResolved)</MudText>
+                </div>
+                <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Size="Size.Large" Color="Color.Success" />
+            </div>
+        </MudPaper>
+    </MudItem>
+    <MudItem xs="12" sm="4">
+        <MudPaper Elevation="4" Class="pa-4 rounded-lg">
+            <div class="d-flex justify-space-between align-center">
+                <div>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary">Total Alerts</MudText>
+                    <MudText Typo="Typo.h4" Style="font-weight: 700;" Color="Color.Warning">@_alerts.Count</MudText>
+                </div>
+                <MudIcon Icon="@Icons.Material.Filled.Flag" Size="Size.Large" Color="Color.Warning" />
+            </div>
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
+<MudPaper Elevation="4" Class="rounded-lg">
+    <MudTable Items="_alerts" Hover="true" Striped="true" Dense="true" Loading="_loading">
+        <HeaderContent>
+            <MudTh>Transaction</MudTh>
+            <MudTh>Sender</MudTh>
+            <MudTh>Amount</MudTh>
+            <MudTh>Alert Type</MudTh>
+            <MudTh>Description</MudTh>
+            <MudTh>Txn Status</MudTh>
+            <MudTh>Date</MudTh>
+            <MudTh>Status</MudTh>
+            <MudTh>Actions</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd><MudText Typo="Typo.body2" Style="font-family: monospace;">@context.ReferenceNumber</MudText></MudTd>
+            <MudTd>@context.SenderName</MudTd>
+            <MudTd>@context.SendAmount.ToString("N2") @context.SendCurrency</MudTd>
+            <MudTd>
+                <MudChip T="string" Size="Size.Small" Color="@GetAlertColor(context.AlertType)">@context.AlertType</MudChip>
+            </MudTd>
+            <MudTd>@context.Description</MudTd>
+            <MudTd>
+                <MudChip T="string" Size="Size.Small"
+                         Color="@(context.TransactionStatus == "OnHold" ? Color.Warning : context.TransactionStatus == "Pending" ? Color.Info : Color.Default)">
+                    @context.TransactionStatus
+                </MudChip>
+            </MudTd>
+            <MudTd>@context.CreatedAt.ToString("MMM dd, HH:mm")</MudTd>
+            <MudTd>
+                @if (context.IsResolved)
+                {
+                    <MudChip T="string" Size="Size.Small" Color="Color.Success">@(context.Resolution ?? "Resolved")</MudChip>
+                }
+                else
+                {
+                    <MudChip T="string" Size="Size.Small" Color="Color.Error">Open</MudChip>
+                }
+            </MudTd>
+            <MudTd>
+                @if (!context.IsResolved)
+                {
+                    <MudTooltip Text="Resolve">
+                        <MudIconButton Icon="@Icons.Material.Filled.CheckCircle" Size="Size.Small" Color="Color.Primary"
+                                       OnClick="@(() => ResolveAlert(context))" />
+                    </MudTooltip>
+                    @if (context.TransactionStatus == "OnHold")
+                    {
+                        <MudTooltip Text="Release">
+                            <MudIconButton Icon="@Icons.Material.Filled.LockOpen" Size="Size.Small" Color="Color.Success"
+                                           OnClick="@(() => ReleaseTransaction(context))" />
+                        </MudTooltip>
+                    }
+                }
+            </MudTd>
+        </RowTemplate>
+    </MudTable>
+</MudPaper>
+
+@code {
+    private List<ComplianceAlertModel> _alerts = new();
+    private bool _loading = true;
+    private string _message = string.Empty;
+    private Severity _msgSev = Severity.Info;
+
+    [Inject] private ApiService Api { get; set; } = null!;
+    [Inject] private AuthStateService Auth { get; set; } = null!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Auth.LoadFromSessionAsync();
+        await LoadAlerts();
+    }
+
+    private async Task LoadAlerts()
+    {
+        _loading = true;
+        try
+        {
+            var result = await Api.GetAlertsAsync();
+            if (result?.Success == true && result.Data != null)
+                _alerts = result.Data;
+            else
+            {
+                _alerts = new();
+                _message = result?.Message ?? "Failed to load compliance alerts.";
+                _msgSev = Severity.Error;
+            }
+        }
+        catch (Exception ex)
+        {
+            _alerts = new();
+            _message = $"Could not connect to server: {ex.Message}";
+            _msgSev = Severity.Error;
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private async Task ResolveAlert(ComplianceAlertModel alert)
+    {
+        var result = await Api.ResolveAlertAsync(alert.Id, "Resolved by admin");
+        if (result?.Success == true)
+        {
+            _message = "Alert resolved.";
+            _msgSev = Severity.Success;
+            await LoadAlerts();
+        }
+        else
+        {
+            _message = result?.Message ?? "Failed.";
+            _msgSev = Severity.Error;
+        }
+    }
+
+    private async Task ReleaseTransaction(ComplianceAlertModel alert)
+    {
+        var result = await Api.ReleaseAlertAsync(alert.Id);
+        if (result?.Success == true)
+        {
+            _message = "Transaction released and moved to Pending.";
+            _msgSev = Severity.Success;
+            await LoadAlerts();
+        }
+        else
+        {
+            _message = result?.Message ?? "Failed to release.";
+            _msgSev = Severity.Error;
+        }
+    }
+
+    private static Color GetAlertColor(string type) => type switch
+    {
+        "AML" => Color.Error,
+        "Fraud" => Color.Warning,
+        "Threshold" => Color.Info,
+        _ => Color.Default
+    };
+}
