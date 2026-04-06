@@ -1,0 +1,216 @@
+<div class="space-y-6 animate-fade-in">
+  <h1 class="text-2xl font-bold text-surface-900 dark:text-surface-100">Transaction Report</h1>
+
+  <!-- Filters -->
+  <div class="rounded-2xl border border-surface-200 dark:border-surface-700 bg-white dark:bg-surface-800 p-6 shadow-soft">
+    <div class="flex flex-wrap items-end gap-4">
+      <!-- Start Date -->
+      <div class="flex flex-col gap-1.5 min-w-[180px]">
+        <label class="text-sm font-medium text-surface-700 dark:text-surface-300">Start Date</label>
+        <p-datepicker appendTo="body" [(ngModel)]="startDate" dateFormat="dd/mm/yy" [showIcon]="true" [showClear]="true" placeholder="DD/MM/YYYY" styleClass="w-full" inputStyleClass="w-full px-4 py-2.5 rounded-xl border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-700 text-surface-900 dark:text-surface-100 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors" />
+      </div>
+
+      <!-- End Date -->
+      <div class="flex flex-col gap-1.5 min-w-[180px]">
+        <label class="text-sm font-medium text-surface-700 dark:text-surface-300">End Date</label>
+        <p-datepicker appendTo="body" [(ngModel)]="endDate" dateFormat="dd/mm/yy" [showIcon]="true" [showClear]="true" placeholder="DD/MM/YYYY" styleClass="w-full" inputStyleClass="w-full px-4 py-2.5 rounded-xl border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-700 text-surface-900 dark:text-surface-100 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors" />
+      </div>
+
+      <!-- Agent -->
+      <div class="flex flex-col gap-1.5 min-w-[200px]">
+        <label class="text-sm font-medium text-surface-700 dark:text-surface-300">Agent</label>
+        <select [(ngModel)]="agentId"
+          class="w-full px-4 py-2.5 rounded-xl border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-700 text-surface-900 dark:text-surface-100 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors">
+          <option [ngValue]="undefined">All Agents</option>
+          <option *ngFor="let agent of agents" [ngValue]="agent.id">{{ agent.businessName }}</option>
+        </select>
+      </div>
+
+      <!-- Status -->
+      <div class="flex flex-col gap-1.5 min-w-[160px]">
+        <label class="text-sm font-medium text-surface-700 dark:text-surface-300">Status</label>
+        <select [(ngModel)]="status"
+          class="w-full px-4 py-2.5 rounded-xl border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-700 text-surface-900 dark:text-surface-100 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors">
+          <option [ngValue]="undefined">All</option>
+          <option value="Pending">Pending</option>
+          <option value="OnHold">OnHold</option>
+          <option value="Compliance">Compliance</option>
+          <option value="Completed">Completed</option>
+          <option value="Cancelled">Cancelled</option>
+        </select>
+      </div>
+
+      <!-- Buttons -->
+      <button (click)="loadReport()" [disabled]="loading"
+        class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-brand-600 text-white font-medium hover:bg-brand-700 focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm">
+        <svg class="w-5 h-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z" clip-rule="evenodd"/></svg>
+        Generate Report
+      </button>
+      <button (click)="startDate = null; endDate = null; agentId = undefined; status = undefined; reportData = null"
+        class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-surface-700 dark:text-surface-300 font-medium hover:bg-surface-100 dark:hover:bg-surface-700 transition-colors text-sm">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+        Clear Filters
+      </button>
+      <button (click)="exportReport('excel')" [disabled]="!reportData"
+        class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-surface-300 dark:border-surface-600 text-surface-700 dark:text-surface-300 font-medium hover:bg-surface-50 dark:hover:bg-surface-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+        <svg class="w-5 h-5" viewBox="0 0 20 20" fill="currentColor"><path d="M10.75 2.75a.75.75 0 00-1.5 0v8.614L6.295 8.235a.75.75 0 10-1.09 1.03l4.25 4.5a.75.75 0 001.09 0l4.25-4.5a.75.75 0 00-1.09-1.03l-2.955 3.129V2.75z"/><path d="M3.5 12.75a.75.75 0 00-1.5 0v2.5A2.75 2.75 0 004.75 18h10.5A2.75 2.75 0 0018 15.25v-2.5a.75.75 0 00-1.5 0v2.5c0 .69-.56 1.25-1.25 1.25H4.75c-.69 0-1.25-.56-1.25-1.25v-2.5z"/></svg>
+        Excel
+      </button>
+      <button (click)="exportReport('csv')" [disabled]="!reportData"
+        class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl border border-surface-300 dark:border-surface-600 text-surface-700 dark:text-surface-300 font-medium hover:bg-surface-50 dark:hover:bg-surface-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+        <svg class="w-5 h-5" viewBox="0 0 20 20" fill="currentColor"><path d="M10.75 2.75a.75.75 0 00-1.5 0v8.614L6.295 8.235a.75.75 0 10-1.09 1.03l4.25 4.5a.75.75 0 001.09 0l4.25-4.5a.75.75 0 00-1.09-1.03l-2.955 3.129V2.75z"/><path d="M3.5 12.75a.75.75 0 00-1.5 0v2.5A2.75 2.75 0 004.75 18h10.5A2.75 2.75 0 0018 15.25v-2.5a.75.75 0 00-1.5 0v2.5c0 .69-.56 1.25-1.25 1.25H4.75c-.69 0-1.25-.56-1.25-1.25v-2.5z"/></svg>
+        CSV
+      </button>
+    </div>
+  </div>
+
+  <!-- Summary Cards -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 animate-slide-up" *ngIf="reportData">
+    <!-- Total Transactions -->
+    <div class="rounded-2xl border border-surface-200 dark:border-surface-700 bg-white dark:bg-surface-800 p-6 shadow-soft">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm font-medium text-surface-500 dark:text-surface-400">Total Transactions</p>
+          <p class="mt-1 text-2xl font-bold text-brand-600 dark:text-brand-400">{{ reportData.totalCount | number }}</p>
+        </div>
+        <div class="p-3 rounded-xl bg-brand-50 dark:bg-brand-900/30">
+          <svg class="w-6 h-6 text-brand-600 dark:text-brand-400" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M1 4a1 1 0 011-1h16a1 1 0 011 1v8a1 1 0 01-1 1H2a1 1 0 01-1-1V4zm12 4a3 3 0 11-6 0 3 3 0 016 0zM4 9a1 1 0 100-2 1 1 0 000 2zm13-1a1 1 0 11-2 0 1 1 0 012 0zM1.75 14.5a.75.75 0 000 1.5c4.417 0 8.693.603 12.75 1.73 1.111.309 2.251-.512 2.251-1.696v-.784a.75.75 0 00-1.5 0v.784a.272.272 0 01-.35.25A49.043 49.043 0 001.75 14.5z" clip-rule="evenodd"/></svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- Send Volume -->
+    <div class="rounded-2xl border border-surface-200 dark:border-surface-700 bg-white dark:bg-surface-800 p-6 shadow-soft">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm font-medium text-surface-500 dark:text-surface-400">Send Volume</p>
+          <p class="mt-1 text-2xl font-bold text-success-600 dark:text-success-400">{{ reportData.totalSendVolume | number:'1.2-2' }}</p>
+        </div>
+        <div class="p-3 rounded-xl bg-success-50 dark:bg-success-900/30">
+          <svg class="w-6 h-6 text-success-600 dark:text-success-400" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 17a.75.75 0 01-.75-.75V5.612L5.29 9.77a.75.75 0 01-1.08-1.04l5.25-5.5a.75.75 0 011.08 0l5.25 5.5a.75.75 0 11-1.08 1.04l-3.96-4.158V16.25A.75.75 0 0110 17z" clip-rule="evenodd"/></svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- Receive Volume -->
+    <div class="rounded-2xl border border-surface-200 dark:border-surface-700 bg-white dark:bg-surface-800 p-6 shadow-soft">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm font-medium text-surface-500 dark:text-surface-400">Receive Volume</p>
+          <p class="mt-1 text-2xl font-bold text-warning-600 dark:text-warning-400">{{ reportData.totalReceiveVolume | number:'1.2-2' }}</p>
+        </div>
+        <div class="p-3 rounded-xl bg-warning-50 dark:bg-warning-900/30">
+          <svg class="w-6 h-6 text-warning-600 dark:text-warning-400" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a.75.75 0 01.75.75v10.638l3.96-4.158a.75.75 0 111.08 1.04l-5.25 5.5a.75.75 0 01-1.08 0l-5.25-5.5a.75.75 0 111.08-1.04l3.96 4.158V3.75A.75.75 0 0110 3z" clip-rule="evenodd"/></svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- Total Service Charge -->
+    <div class="rounded-2xl border border-surface-200 dark:border-surface-700 bg-white dark:bg-surface-800 p-6 shadow-soft">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm font-medium text-surface-500 dark:text-surface-400">Total Service Charge</p>
+          <p class="mt-1 text-2xl font-bold text-purple-600 dark:text-purple-400">{{ reportData.totalCommission | number:'1.2-2' }}</p>
+        </div>
+        <div class="p-3 rounded-xl bg-purple-50 dark:bg-purple-900/30">
+          <svg class="w-6 h-6 text-purple-600 dark:text-purple-400" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M1 4a1 1 0 011-1h16a1 1 0 011 1v8a1 1 0 01-1 1H2a1 1 0 01-1-1V4zm12 4a3 3 0 11-6 0 3 3 0 016 0zM4 9a1 1 0 100-2 1 1 0 000 2zm13-1a1 1 0 11-2 0 1 1 0 012 0zM1.75 14.5a.75.75 0 000 1.5c4.417 0 8.693.603 12.75 1.73 1.111.309 2.251-.512 2.251-1.696v-.784a.75.75 0 00-1.5 0v.784a.272.272 0 01-.35.25A49.043 49.043 0 001.75 14.5z" clip-rule="evenodd"/></svg>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div class="flex justify-center py-12" *ngIf="loading">
+    <svg class="animate-spin h-10 w-10 text-brand-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+    </svg>
+  </div>
+
+  <!-- Transactions Table -->
+  <div class="rounded-2xl border border-surface-200 dark:border-surface-700 bg-white dark:bg-surface-800 shadow-soft animate-slide-up" *ngIf="reportData && !loading">
+    <div class="p-6">
+      <h2 class="text-lg font-semibold text-surface-900 dark:text-surface-100">Transactions</h2>
+    </div>
+
+    <ng-container *ngIf="reportData.transactions.length > 0; else emptyState">
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead class="bg-surface-50 dark:bg-surface-700/50">
+            <tr>
+              <th scope="col" class="px-4 py-3 text-left font-semibold text-surface-600 dark:text-surface-300">Reference</th>
+              <th scope="col" class="px-4 py-3 text-left font-semibold text-surface-600 dark:text-surface-300">Sender</th>
+              <th scope="col" class="px-4 py-3 text-left font-semibold text-surface-600 dark:text-surface-300">Receiver</th>
+              <th scope="col" class="px-4 py-3 text-right font-semibold text-surface-600 dark:text-surface-300">Send Amount</th>
+              <th scope="col" class="px-4 py-3 text-right font-semibold text-surface-600 dark:text-surface-300">Receive Amount</th>
+              <th scope="col" class="px-4 py-3 text-right font-semibold text-surface-600 dark:text-surface-300">Service Charge</th>
+              <th scope="col" class="px-4 py-3 text-left font-semibold text-surface-600 dark:text-surface-300">Status</th>
+              <th scope="col" class="px-4 py-3 text-left font-semibold text-surface-600 dark:text-surface-300">Date</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-surface-100 dark:divide-surface-700">
+            <tr *ngFor="let row of pagedData" class="hover:bg-surface-50 dark:hover:bg-surface-700/30 transition-colors">
+              <td class="px-4 py-3 font-mono text-sm text-surface-900 dark:text-surface-100">{{ row.referenceNumber }}</td>
+              <td class="px-4 py-3 text-surface-900 dark:text-surface-100" [title]="row.senderCountry">{{ row.senderName }}</td>
+              <td class="px-4 py-3 text-surface-900 dark:text-surface-100" [title]="row.receiverCountry">{{ row.receiverName }}</td>
+              <td class="px-4 py-3 text-right font-mono text-success-600 dark:text-success-400">{{ row.sendAmount | number:'1.2-2' }} {{ row.sendCurrency }}</td>
+              <td class="px-4 py-3 text-right font-mono text-brand-600 dark:text-brand-400">{{ row.receiveAmount | number:'1.2-2' }} {{ row.receiveCurrency }}</td>
+              <td class="px-4 py-3 text-right font-mono text-surface-900 dark:text-surface-100">{{ row.totalCommission | number:'1.2-2' }}</td>
+              <td class="px-4 py-3">
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                  [ngClass]="{
+                    'bg-warning-100 text-warning-800 dark:bg-warning-900/30 dark:text-warning-300': row.status === 'Pending',
+                    'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300': row.status === 'OnHold',
+                    'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300': row.status === 'Compliance',
+                    'bg-success-100 text-success-800 dark:bg-success-900/30 dark:text-success-300': row.status === 'Completed',
+                    'bg-danger-100 text-danger-800 dark:bg-danger-900/30 dark:text-danger-300': row.status === 'Cancelled'
+                  }">
+                  {{ row.status }}
+                </span>
+              </td>
+              <td class="px-4 py-3 text-surface-600 dark:text-surface-400">{{ row.createdAt | date:'mediumDate' }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      <div class="flex flex-wrap items-center justify-between gap-4 px-4 py-3 border-t border-surface-200 dark:border-surface-700">
+        <div class="flex items-center gap-2 text-sm text-surface-600 dark:text-surface-400">
+          <span>Rows per page:</span>
+          <select [(ngModel)]="pageSize" (ngModelChange)="onPageSizeChange()"
+            class="px-2 py-1 rounded-lg border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-700 text-surface-900 dark:text-surface-100 text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-colors">
+            <option *ngFor="let size of pageSizeOptions" [ngValue]="size">{{ size }}</option>
+          </select>
+        </div>
+        <div class="flex items-center gap-2 text-sm text-surface-600 dark:text-surface-400">
+          <span>{{ rangeStart }}–{{ rangeEnd }} of {{ reportData.totalCount }}</span>
+          <div class="flex items-center gap-1">
+            <button (click)="goToFirst()" [disabled]="pageIndex === 0"
+              class="p-1.5 rounded-lg hover:bg-surface-100 dark:hover:bg-surface-700 disabled:opacity-30 disabled:cursor-not-allowed transition-colors">
+              <svg class="w-5 h-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M15.79 14.77a.75.75 0 01-1.06.02l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 111.04 1.08L11.832 10l3.938 3.71a.75.75 0 01.02 1.06zm-6 0a.75.75 0 01-1.06.02l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 111.04 1.08L5.832 10l3.938 3.71a.75.75 0 01.02 1.06z" clip-rule="evenodd"/></svg>
+            </button>
+            <button (click)="goToPrevious()" [disabled]="pageIndex === 0"
+              class="p-1.5 rounded-lg hover:bg-surface-100 dark:hover:bg-surface-700 disabled:opacity-30 disabled:cursor-not-allowed transition-colors">
+              <svg class="w-5 h-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clip-rule="evenodd"/></svg>
+            </button>
+            <button (click)="goToNext()" [disabled]="pageIndex >= totalPages - 1"
+              class="p-1.5 rounded-lg hover:bg-surface-100 dark:hover:bg-surface-700 disabled:opacity-30 disabled:cursor-not-allowed transition-colors">
+              <svg class="w-5 h-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clip-rule="evenodd"/></svg>
+            </button>
+            <button (click)="goToLast()" [disabled]="pageIndex >= totalPages - 1"
+              class="p-1.5 rounded-lg hover:bg-surface-100 dark:hover:bg-surface-700 disabled:opacity-30 disabled:cursor-not-allowed transition-colors">
+              <svg class="w-5 h-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.21 5.23a.75.75 0 011.06-.02l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.04-1.08L8.168 10 4.23 6.29a.75.75 0 01-.02-1.06zm6 0a.75.75 0 011.06-.02l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.04-1.08L14.168 10 10.23 6.29a.75.75 0 01-.02-1.06z" clip-rule="evenodd"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </ng-container>
+
+    <ng-template #emptyState>
+      <div class="px-6 pb-6">
+        <p class="text-surface-500 dark:text-surface-400 text-center py-8">No transactions found for the selected criteria.</p>
+      </div>
+    </ng-template>
+  </div>
+</div>

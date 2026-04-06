@@ -1,0 +1,528 @@
+<!-- Page Header -->
+<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+  <h2 class="text-xl font-bold text-surface-900 dark:text-surface-100">Agent Management</h2>
+  <div class="flex flex-wrap gap-2">
+    <button (click)="exportData('excel')" class="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium border border-surface-300 dark:border-surface-600 rounded-lg text-surface-700 dark:text-surface-300 hover:bg-surface-50 dark:hover:bg-surface-800 transition-colors">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
+      Excel
+    </button>
+    <button (click)="exportData('csv')" class="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium border border-surface-300 dark:border-surface-600 rounded-lg text-surface-700 dark:text-surface-300 hover:bg-surface-50 dark:hover:bg-surface-800 transition-colors">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
+      CSV
+    </button>
+    <button (click)="openCreatePopup()" class="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold bg-brand-600 hover:bg-brand-700 text-white rounded-lg shadow-sm transition-colors">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zM4 19.235v-.11a6.375 6.375 0 0112.75 0v.109A12.318 12.318 0 0110.374 21c-2.331 0-4.512-.645-6.374-1.766z"/></svg>
+      New Agent
+    </button>
+  </div>
+</div>
+
+<!-- Loading -->
+<div *ngIf="loading" class="flex items-center justify-center py-20">
+  <svg class="animate-spin h-8 w-8 text-brand-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+</div>
+
+<!-- Search + Table -->
+<div *ngIf="!loading" class="bg-white dark:bg-surface-800 rounded-xl border border-surface-200 dark:border-surface-700 shadow-sm">
+  <!-- Search -->
+  <div class="p-4 border-b border-surface-100 dark:border-surface-700">
+    <div class="relative max-w-sm">
+      <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-surface-400" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/></svg>
+      <input type="text" placeholder="Search agents..." [(ngModel)]="searchString" (ngModelChange)="searchDebounce.next($event)" class="w-full pl-9 pr-4 py-2 text-sm bg-surface-50 dark:bg-surface-700 border border-surface-200 dark:border-surface-600 rounded-lg text-surface-900 dark:text-surface-100 placeholder-surface-400 focus:outline-none focus:ring-2 focus:ring-brand-500/30" />
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="overflow-x-auto">
+    <table class="w-full text-sm text-left">
+      <thead class="text-xs uppercase tracking-wider text-surface-500 dark:text-surface-400 bg-surface-50 dark:bg-surface-900/50 border-b border-surface-200 dark:border-surface-700">
+        <tr>
+          <th scope="col" class="px-4 py-3 font-semibold">Business Name</th>
+          <th scope="col" class="px-4 py-3 font-semibold">Country</th>
+          <th scope="col" class="px-4 py-3 font-semibold">Type</th>
+          <th scope="col" class="px-4 py-3 font-semibold">Status</th>
+          <th scope="col" class="px-4 py-3 font-semibold">Actions</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-surface-100 dark:divide-surface-700">
+        <tr *ngFor="let agent of agents" class="hover:bg-surface-50 dark:hover:bg-surface-750 transition-colors">
+          <td class="px-4 py-3 font-medium text-surface-900 dark:text-surface-100">{{ agent.businessName }}</td>
+          <td class="px-4 py-3 text-surface-600 dark:text-surface-300">{{ agent.country }}</td>
+          <td class="px-4 py-3">
+            <span class="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full" [ngClass]="agent.agentType === 'SendingAgent' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' : 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400'">
+              {{ agent.agentType === 'SendingAgent' ? 'Sending' : 'Payout' }}
+            </span>
+          </td>
+          <td class="px-4 py-3">
+            <div class="flex items-center gap-1.5">
+              <span class="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full" [ngClass]="{'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400': agent.status === 'Approved','bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400': agent.status === 'Blocked' || agent.status === 'Rejected','bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400': agent.status !== 'Approved' && agent.status !== 'Blocked' && agent.status !== 'Rejected'}">{{ agent.status }}</span>
+              <ng-container *ngIf="agent.status === 'Blocked'">
+                <button aria-label="Unblock" (click)="unblockAgent(agent)" class="p-1 rounded text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5V6.75a4.5 4.5 0 119 0v3.75M3.75 21.75h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H3.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"/></svg></button>
+              </ng-container>
+              <ng-container *ngIf="agent.status !== 'Approved' && agent.status !== 'Blocked' && agent.status !== 'Rejected'">
+                <button aria-label="Approve" (click)="approveAgent(agent)" class="p-1 rounded text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></button>
+                <button aria-label="Reject" (click)="rejectAgent(agent)" class="p-1 rounded text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg></button>
+              </ng-container>
+            </div>
+          </td>
+          <td class="px-4 py-3">
+            <div class="flex items-center gap-0.5">
+              <button aria-label="View Details" (click)="viewDetail(agent)" class="p-1.5 rounded-lg text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg></button>
+              <button *ngIf="agent.agentType === 'SendingAgent'" aria-label="Locations" (click)="openLocationManagement(agent)" class="p-1.5 rounded-lg text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z"/></svg></button>
+              <button *ngIf="agent.agentType === 'PayoutAgent'" aria-label="Banks" (click)="openBankManagement(agent)" class="p-1.5 rounded-lg text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 21v-8.25M15.75 21v-8.25M8.25 21v-8.25M3 9l9-6 9 6m-1.5 12V10.332A48.36 48.36 0 0012 9.75c-2.551 0-5.056.2-7.5.582V21M3 21h18M12 6.75h.008v.008H12V6.75z"/></svg></button>
+              <button *ngIf="agent.status === 'Approved'" aria-label="Block" (click)="blockAgent(agent)" class="p-1.5 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/></svg></button>
+              <button aria-label="Edit" (click)="startEdit(agent)" class="p-1.5 rounded-lg text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z"/></svg></button>
+              <button aria-label="Delete" (click)="deleteAgent(agent)" class="p-1.5 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/></svg></button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  <div class="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 py-3 border-t border-surface-100 dark:border-surface-700">
+    <span class="text-xs text-surface-500 dark:text-surface-400">Showing {{ pageIndex * pageSize + 1 }}–{{ (pageIndex + 1) * pageSize > totalCount ? totalCount : (pageIndex + 1) * pageSize }} of {{ totalCount }}</span>
+    <div class="flex items-center gap-1">
+      <button [disabled]="pageIndex === 0" (click)="onPageChange({pageIndex: 0, pageSize: pageSize})" class="px-2 py-1 text-xs rounded border border-surface-200 dark:border-surface-700 disabled:opacity-40 hover:bg-surface-50 dark:hover:bg-surface-800">First</button>
+      <button [disabled]="pageIndex === 0" (click)="onPageChange({pageIndex: pageIndex - 1, pageSize: pageSize})" class="px-2 py-1 text-xs rounded border border-surface-200 dark:border-surface-700 disabled:opacity-40 hover:bg-surface-50 dark:hover:bg-surface-800">Prev</button>
+      <span class="px-3 py-1 text-xs font-medium text-surface-700 dark:text-surface-300">{{ pageIndex + 1 }}</span>
+      <button [disabled]="(pageIndex + 1) * pageSize >= totalCount" (click)="onPageChange({pageIndex: pageIndex + 1, pageSize: pageSize})" class="px-2 py-1 text-xs rounded border border-surface-200 dark:border-surface-700 disabled:opacity-40 hover:bg-surface-50 dark:hover:bg-surface-800">Next</button>
+      <button [disabled]="(pageIndex + 1) * pageSize >= totalCount" (click)="onPageChange({pageIndex: Math.ceil(totalCount / pageSize) - 1, pageSize: pageSize})" class="px-2 py-1 text-xs rounded border border-surface-200 dark:border-surface-700 disabled:opacity-40 hover:bg-surface-50 dark:hover:bg-surface-800">Last</button>
+    </div>
+  </div>
+
+  <div *ngIf="!agents.length && !loading" class="flex items-center justify-center py-12 text-surface-400 dark:text-surface-500 text-sm">
+    No agents found.
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- Agent Detail Popup                                           -->
+<!-- ============================================================ -->
+<div *ngIf="showDetail && detailAgent" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm" (click)="closeDetail()"></div>
+<div *ngIf="showDetail && detailAgent" role="dialog" aria-modal="true" class="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
+  <div class="bg-white dark:bg-surface-800 rounded-2xl shadow-xl w-full max-w-lg pointer-events-auto max-h-[90vh] overflow-y-auto">
+    <div class="flex items-center justify-between px-6 py-4 border-b border-surface-100 dark:border-surface-700">
+      <h3 class="text-base font-semibold text-surface-900 dark:text-surface-100">Agent Details</h3>
+      <button (click)="closeDetail()" class="p-1 rounded-lg hover:bg-surface-100 dark:hover:bg-surface-700 text-surface-400"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg></button>
+    </div>
+    <div class="grid grid-cols-2 gap-x-6 gap-y-3 p-6 text-sm">
+      <div><span class="block text-xs text-surface-400 mb-0.5">Business Name</span><span class="text-surface-900 dark:text-surface-100 font-medium">{{ detailAgent.businessName }}</span></div>
+      <div><span class="block text-xs text-surface-400 mb-0.5">Contact Person</span><span class="text-surface-900 dark:text-surface-100">{{ detailAgent.fullName }}</span></div>
+      <div><span class="block text-xs text-surface-400 mb-0.5">Email</span><span class="text-surface-900 dark:text-surface-100">{{ detailAgent.email }}</span></div>
+      <div><span class="block text-xs text-surface-400 mb-0.5">Phone</span><span class="text-surface-900 dark:text-surface-100">{{ detailAgent.phoneNumber }}</span></div>
+      <div><span class="block text-xs text-surface-400 mb-0.5">Agent Type</span><span class="text-surface-900 dark:text-surface-100">{{ detailAgent.agentType === 'SendingAgent' ? 'Sending Agent' : 'Payout Agent' }}</span></div>
+      <div><span class="block text-xs text-surface-400 mb-0.5">Country</span><span class="text-surface-900 dark:text-surface-100">{{ detailAgent.country }} - {{ detailAgent.city }}</span></div>
+      <div><span class="block text-xs text-surface-400 mb-0.5">Currency</span><span class="text-surface-900 dark:text-surface-100">{{ detailAgent.currency || getCurrencyForCountry(detailAgent.country) }}</span></div>
+      <ng-container *ngIf="detailAgent.agentType === 'SendingAgent'">
+        <div><span class="block text-xs text-surface-400 mb-0.5">Funding Type</span><span class="text-surface-900 dark:text-surface-100">{{ detailAgent.fundingType }}</span></div>
+        <div><span class="block text-xs text-surface-400 mb-0.5">Credit Limit</span><span class="text-surface-900 dark:text-surface-100 font-semibold">{{ detailAgent.creditLimit | number:'1.2-2' }}</span></div>
+        <div><span class="block text-xs text-surface-400 mb-0.5">Current Balance</span><span class="text-surface-900 dark:text-surface-100 font-semibold">{{ detailAgent.currentBalance | number:'1.2-2' }}</span></div>
+      </ng-container>
+      <div><span class="block text-xs text-surface-400 mb-0.5">License Number</span><span class="text-surface-900 dark:text-surface-100">{{ detailAgent.licenseNumber || '-' }}</span></div>
+      <div><span class="block text-xs text-surface-400 mb-0.5">Status</span>
+        <span class="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full" [ngClass]="{'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400': detailAgent.status === 'Approved','bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400': detailAgent.status === 'Blocked','bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400': detailAgent.status !== 'Approved' && detailAgent.status !== 'Blocked'}">{{ detailAgent.status }}</span>
+      </div>
+      <div class="col-span-2"><span class="block text-xs text-surface-400 mb-0.5">Address</span><span class="text-surface-900 dark:text-surface-100">{{ detailAgent.address || '-' }}</span></div>
+      <div><span class="block text-xs text-surface-400 mb-0.5">Created</span><span class="text-surface-900 dark:text-surface-100">{{ detailAgent.createdAt | date:'dd/MM/yyyy' }}</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- Create Agent Popup                                           -->
+<!-- ============================================================ -->
+<div *ngIf="showCreatePopup" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm" (click)="closeCreatePopup()"></div>
+<div *ngIf="showCreatePopup" role="dialog" aria-modal="true" class="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
+  <div class="bg-white dark:bg-surface-800 rounded-2xl shadow-xl w-full max-w-2xl pointer-events-auto max-h-[90vh] overflow-y-auto">
+    <div class="flex items-center justify-between px-6 py-4 border-b border-surface-100 dark:border-surface-700">
+      <h3 class="text-base font-semibold text-surface-900 dark:text-surface-100">Create New Agent</h3>
+      <button (click)="closeCreatePopup()" class="p-1 rounded-lg hover:bg-surface-100 dark:hover:bg-surface-700 text-surface-400"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg></button>
+    </div>
+    <div class="p-6 space-y-5">
+      <div *ngIf="createError" class="px-4 py-2 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 text-sm rounded-lg">{{ createError }}</div>
+
+      <!-- Agent Type -->
+      <div>
+        <label class="block text-xs font-medium text-surface-500 dark:text-surface-400 mb-1">Agent Type</label>
+        <select [(ngModel)]="newAgent.agentType" class="w-full px-3 py-2 text-sm bg-white dark:bg-surface-700 border border-surface-200 dark:border-surface-600 rounded-lg text-surface-900 dark:text-surface-100 focus:outline-none focus:ring-2 focus:ring-brand-500/30">
+          <option value="SendingAgent">Sending Agent</option>
+          <option value="PayoutAgent">Payout Agent</option>
+        </select>
+      </div>
+
+      <!-- Company Info -->
+      <div class="p-4 rounded-lg border border-surface-100 dark:border-surface-700 bg-surface-50 dark:bg-surface-900/50 space-y-3">
+        <h4 class="text-xs font-semibold uppercase tracking-wider text-surface-400">Company Information</h4>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div><label class="block text-xs font-medium text-surface-500 mb-1">Business Name *</label><input [(ngModel)]="newAgent.businessName" class="w-full px-3 py-2 text-sm bg-white dark:bg-surface-700 border border-surface-200 dark:border-surface-600 rounded-lg text-surface-900 dark:text-surface-100 focus:outline-none focus:ring-2 focus:ring-brand-500/30" /></div>
+          <div><label class="block text-xs font-medium text-surface-500 mb-1">License Number</label><input [(ngModel)]="newAgent.licenseNumber" class="w-full px-3 py-2 text-sm bg-white dark:bg-surface-700 border border-surface-200 dark:border-surface-600 rounded-lg text-surface-900 dark:text-surface-100 focus:outline-none focus:ring-2 focus:ring-brand-500/30" /></div>
+          <div class="md:col-span-2"><label class="block text-xs font-medium text-surface-500 mb-1">Address</label><input [(ngModel)]="newAgent.address" class="w-full px-3 py-2 text-sm bg-white dark:bg-surface-700 border border-surface-200 dark:border-surface-600 rounded-lg text-surface-900 dark:text-surface-100 focus:outline-none focus:ring-2 focus:ring-brand-500/30" /></div>
+        </div>
+      </div>
+
+      <!-- Authorized Person -->
+      <div class="p-4 rounded-lg border border-surface-100 dark:border-surface-700 bg-surface-50 dark:bg-surface-900/50 space-y-3">
+        <h4 class="text-xs font-semibold uppercase tracking-wider text-surface-400">Authorized Person</h4>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div><label class="block text-xs font-medium text-surface-500 mb-1">Full Name *</label><input [(ngModel)]="newAgent.fullName" class="w-full px-3 py-2 text-sm bg-white dark:bg-surface-700 border border-surface-200 dark:border-surface-600 rounded-lg text-surface-900 dark:text-surface-100 focus:outline-none focus:ring-2 focus:ring-brand-500/30" /></div>
+          <div><label class="block text-xs font-medium text-surface-500 mb-1">Email *</label><input type="email" [(ngModel)]="newAgent.email" class="w-full px-3 py-2 text-sm bg-white dark:bg-surface-700 border border-surface-200 dark:border-surface-600 rounded-lg text-surface-900 dark:text-surface-100 focus:outline-none focus:ring-2 focus:ring-brand-500/30" /></div>
+          <div><label class="block text-xs font-medium text-surface-500 mb-1">Phone *</label><input [(ngModel)]="newAgent.phone" class="w-full px-3 py-2 text-sm bg-white dark:bg-surface-700 border border-surface-200 dark:border-surface-600 rounded-lg text-surface-900 dark:text-surface-100 focus:outline-none focus:ring-2 focus:ring-brand-500/30" /></div>
+        </div>
+      </div>
+
+      <!-- Accounting Details -->
+      <div class="p-4 rounded-lg border border-surface-100 dark:border-surface-700 bg-surface-50 dark:bg-surface-900/50 space-y-3">
+        <h4 class="text-xs font-semibold uppercase tracking-wider text-surface-400">Accounting Details</h4>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div><label class="block text-xs font-medium text-surface-500 mb-1">Country *</label>
+            <select [(ngModel)]="newAgent.country" class="w-full px-3 py-2 text-sm bg-white dark:bg-surface-700 border border-surface-200 dark:border-surface-600 rounded-lg text-surface-900 dark:text-surface-100 focus:outline-none focus:ring-2 focus:ring-brand-500/30"><option value="">Select</option><option *ngFor="let c of countries" [value]="c.name">{{ c.name }}</option></select></div>
+          <div><label class="block text-xs font-medium text-surface-500 mb-1">City *</label><input [(ngModel)]="newAgent.city" class="w-full px-3 py-2 text-sm bg-white dark:bg-surface-700 border border-surface-200 dark:border-surface-600 rounded-lg text-surface-900 dark:text-surface-100 focus:outline-none focus:ring-2 focus:ring-brand-500/30" /></div>
+          <div><label class="block text-xs font-medium text-surface-500 mb-1">Currency *</label>
+            <select [(ngModel)]="newAgent.currency" class="w-full px-3 py-2 text-sm bg-white dark:bg-surface-700 border border-surface-200 dark:border-surface-600 rounded-lg text-surface-900 dark:text-surface-100 focus:outline-none focus:ring-2 focus:ring-brand-500/30"><option *ngFor="let c of currencies" [value]="c">{{ c }}</option></select></div>
+          <ng-container *ngIf="newAgent.agentType === 'SendingAgent'">
+            <div><label class="block text-xs font-medium text-surface-500 mb-1">Credit Limit *</label><input type="number" [(ngModel)]="newAgent.creditLimit" class="w-full px-3 py-2 text-sm bg-white dark:bg-surface-700 border border-surface-200 dark:border-surface-600 rounded-lg text-surface-900 dark:text-surface-100 focus:outline-none focus:ring-2 focus:ring-brand-500/30" /></div>
+            <div><label class="block text-xs font-medium text-surface-500 mb-1">Funding Type *</label>
+              <select [(ngModel)]="newAgent.fundingType" class="w-full px-3 py-2 text-sm bg-white dark:bg-surface-700 border border-surface-200 dark:border-surface-600 rounded-lg text-surface-900 dark:text-surface-100 focus:outline-none focus:ring-2 focus:ring-brand-500/30"><option value="PreFunding">PreFunding</option><option value="PostFunding">PostFunding</option></select></div>
+          </ng-container>
+        </div>
+      </div>
+    </div>
+    <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-surface-100 dark:border-surface-700">
+      <button (click)="closeCreatePopup()" class="px-4 py-2 text-sm font-medium text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors">Cancel</button>
+      <button (click)="createAgent()" [disabled]="creating" class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold bg-brand-600 hover:bg-brand-700 text-white rounded-lg shadow-sm transition-colors disabled:opacity-50">
+        <svg *ngIf="creating" class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+        Create Agent
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- Edit Agent Popup                                             -->
+<!-- ============================================================ -->
+<div *ngIf="showEditPopup" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm" (click)="closeEditPopup()"></div>
+<div *ngIf="showEditPopup" role="dialog" aria-modal="true" class="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
+  <div class="bg-white dark:bg-surface-800 rounded-2xl shadow-xl w-full max-w-2xl pointer-events-auto max-h-[90vh] overflow-y-auto">
+    <div class="flex items-center justify-between px-6 py-4 border-b border-surface-100 dark:border-surface-700">
+      <h3 class="text-base font-semibold text-surface-900 dark:text-surface-100">Edit Agent</h3>
+      <button (click)="closeEditPopup()" class="p-1 rounded-lg hover:bg-surface-100 dark:hover:bg-surface-700 text-surface-400"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg></button>
+    </div>
+    <div class="p-6 space-y-5">
+      <div *ngIf="editError" class="px-4 py-2 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 text-sm rounded-lg">{{ editError }}</div>
+
+      <!-- Company Info -->
+      <div class="p-4 rounded-lg border border-surface-100 dark:border-surface-700 bg-surface-50 dark:bg-surface-900/50 space-y-3">
+        <h4 class="text-xs font-semibold uppercase tracking-wider text-surface-400">Company Information</h4>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div><label class="block text-xs font-medium text-surface-500 mb-1">Business Name *</label><input [(ngModel)]="editAgent.businessName" class="w-full px-3 py-2 text-sm bg-white dark:bg-surface-700 border border-surface-200 dark:border-surface-600 rounded-lg text-surface-900 dark:text-surface-100 focus:outline-none focus:ring-2 focus:ring-brand-500/30" /></div>
+          <div><label class="block text-xs font-medium text-surface-500 mb-1">License Number</label><input [(ngModel)]="editAgent.licenseNumber" class="w-full px-3 py-2 text-sm bg-white dark:bg-surface-700 border border-surface-200 dark:border-surface-600 rounded-lg text-surface-900 dark:text-surface-100 focus:outline-none focus:ring-2 focus:ring-brand-500/30" /></div>
+          <div class="md:col-span-2"><label class="block text-xs font-medium text-surface-500 mb-1">Address</label><input [(ngModel)]="editAgent.address" class="w-full px-3 py-2 text-sm bg-white dark:bg-surface-700 border border-surface-200 dark:border-surface-600 rounded-lg text-surface-900 dark:text-surface-100 focus:outline-none focus:ring-2 focus:ring-brand-500/30" /></div>
+        </div>
+      </div>
+
+      <!-- Authorized Person (read-only) -->
+      <div class="p-4 rounded-lg border border-surface-100 dark:border-surface-700 bg-surface-50 dark:bg-surface-900/50 space-y-3">
+        <h4 class="text-xs font-semibold uppercase tracking-wider text-surface-400">Authorized Person</h4>
+        <div class="grid grid-cols-2 gap-3 text-sm">
+          <div><span class="block text-xs text-surface-400 mb-0.5">Full Name</span><span class="text-surface-900 dark:text-surface-100">{{ editAgentFullName }}</span></div>
+          <div><span class="block text-xs text-surface-400 mb-0.5">Email</span><span class="text-surface-900 dark:text-surface-100">{{ editAgentEmail }}</span></div>
+        </div>
+      </div>
+
+      <!-- Accounting Details -->
+      <div class="p-4 rounded-lg border border-surface-100 dark:border-surface-700 bg-surface-50 dark:bg-surface-900/50 space-y-3">
+        <h4 class="text-xs font-semibold uppercase tracking-wider text-surface-400">Accounting Details</h4>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div><label class="block text-xs font-medium text-surface-500 mb-1">Country *</label>
+            <select [(ngModel)]="editAgent.country" class="w-full px-3 py-2 text-sm bg-white dark:bg-surface-700 border border-surface-200 dark:border-surface-600 rounded-lg text-surface-900 dark:text-surface-100 focus:outline-none focus:ring-2 focus:ring-brand-500/30"><option *ngFor="let c of countries" [value]="c.name">{{ c.name }}</option></select></div>
+          <div><label class="block text-xs font-medium text-surface-500 mb-1">City *</label><input [(ngModel)]="editAgent.city" class="w-full px-3 py-2 text-sm bg-white dark:bg-surface-700 border border-surface-200 dark:border-surface-600 rounded-lg text-surface-900 dark:text-surface-100 focus:outline-none focus:ring-2 focus:ring-brand-500/30" /></div>
+          <div><label class="block text-xs font-medium text-surface-500 mb-1">Currency *</label>
+            <select [(ngModel)]="editAgent.currency" class="w-full px-3 py-2 text-sm bg-white dark:bg-surface-700 border border-surface-200 dark:border-surface-600 rounded-lg text-surface-900 dark:text-surface-100 focus:outline-none focus:ring-2 focus:ring-brand-500/30"><option *ngFor="let c of currencies" [value]="c">{{ c }}</option></select></div>
+          <ng-container *ngIf="editAgent.agentType === 'SendingAgent'">
+            <div><label class="block text-xs font-medium text-surface-500 mb-1">Credit Limit *</label><input type="number" [(ngModel)]="editAgent.creditLimit" class="w-full px-3 py-2 text-sm bg-white dark:bg-surface-700 border border-surface-200 dark:border-surface-600 rounded-lg text-surface-900 dark:text-surface-100 focus:outline-none focus:ring-2 focus:ring-brand-500/30" /></div>
+            <div><label class="block text-xs font-medium text-surface-500 mb-1">Funding Type *</label>
+              <select [(ngModel)]="editAgent.fundingType" class="w-full px-3 py-2 text-sm bg-white dark:bg-surface-700 border border-surface-200 dark:border-surface-600 rounded-lg text-surface-900 dark:text-surface-100 focus:outline-none focus:ring-2 focus:ring-brand-500/30"><option value="PreFunding">PreFunding</option><option value="PostFunding">PostFunding</option></select></div>
+          </ng-container>
+          <div><label class="block text-xs font-medium text-surface-500 mb-1">Agent Type *</label>
+            <select [(ngModel)]="editAgent.agentType" class="w-full px-3 py-2 text-sm bg-white dark:bg-surface-700 border border-surface-200 dark:border-surface-600 rounded-lg text-surface-900 dark:text-surface-100 focus:outline-none focus:ring-2 focus:ring-brand-500/30"><option value="SendingAgent">Sending Agent</option><option value="PayoutAgent">Payout Agent</option></select></div>
+        </div>
+      </div>
+    </div>
+    <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-surface-100 dark:border-surface-700">
+      <button (click)="closeEditPopup()" class="px-4 py-2 text-sm font-medium text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors">Cancel</button>
+      <button (click)="updateAgent()" [disabled]="updating" class="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold bg-brand-600 hover:bg-brand-700 text-white rounded-lg shadow-sm transition-colors disabled:opacity-50">
+        <svg *ngIf="updating" class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+        Save Changes
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- Location Management Popup                                    -->
+<!-- ============================================================ -->
+<div *ngIf="showLocationPopup" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm" (click)="closeLocationPopup()"></div>
+<div *ngIf="showLocationPopup" role="dialog" aria-modal="true" class="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
+  <div class="bg-white dark:bg-surface-800 rounded-2xl shadow-xl w-full max-w-4xl pointer-events-auto max-h-[90vh] overflow-y-auto">
+    <div class="flex items-center justify-between px-6 py-4 border-b border-surface-100 dark:border-surface-700">
+      <h3 class="text-base font-semibold text-surface-900 dark:text-surface-100">Locations &mdash; {{ locationAgent?.businessName }}</h3>
+      <button (click)="closeLocationPopup()" class="p-1 rounded-lg hover:bg-surface-100 dark:hover:bg-surface-700 text-surface-400"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg></button>
+    </div>
+    <div class="px-6 py-3"><button (click)="openLocationForm(null)" class="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold bg-brand-600 hover:bg-brand-700 text-white rounded-lg transition-colors">+ Add Location</button></div>
+    <div *ngIf="agentLocations.length" class="overflow-x-auto">
+      <table class="w-full text-sm text-left">
+        <thead class="text-xs uppercase tracking-wider text-surface-500 bg-surface-50 dark:bg-surface-900/50 border-y border-surface-200 dark:border-surface-700">
+          <tr><th scope="col" class="px-4 py-2.5">Location</th><th scope="col" class="px-4 py-2.5">Code</th><th scope="col" class="px-4 py-2.5">Country / City</th><th scope="col" class="px-4 py-2.5">Users</th><th scope="col" class="px-4 py-2.5">Status</th><th scope="col" class="px-4 py-2.5">Actions</th></tr>
+        </thead>
+        <tbody class="divide-y divide-surface-100 dark:divide-surface-700">
+          <tr *ngFor="let loc of agentLocations" class="hover:bg-surface-50 dark:hover:bg-surface-750">
+            <td class="px-4 py-2.5 font-medium text-surface-900 dark:text-surface-100">{{ loc.locationName }}</td>
+            <td class="px-4 py-2.5 text-surface-600 dark:text-surface-300">{{ loc.locationCode || '-' }}</td>
+            <td class="px-4 py-2.5 text-surface-600 dark:text-surface-300">{{ loc.country || '-' }} / {{ loc.city || '-' }}</td>
+            <td class="px-4 py-2.5"><span class="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">{{ loc.users.length }}</span></td>
+            <td class="px-4 py-2.5"><span class="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full" [ngClass]="loc.isActive ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-surface-100 text-surface-500 dark:bg-surface-700 dark:text-surface-400'">{{ loc.isActive ? 'Active' : 'Inactive' }}</span></td>
+            <td class="px-4 py-2.5">
+              <div class="flex items-center gap-0.5">
+                <button aria-label="Manage Users" (click)="openUserManagement(loc)" class="p-1.5 rounded text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/20"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z"/></svg></button>
+                <button aria-label="Edit" (click)="openLocationForm(loc)" class="p-1.5 rounded text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z"/></svg></button>
+                <button [title]="loc.isActive ? 'Deactivate' : 'Activate'" (click)="toggleLocation(loc.id)" class="p-1.5 rounded hover:bg-surface-100 dark:hover:bg-surface-700" [ngClass]="loc.isActive ? 'text-green-600' : 'text-surface-400'"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path *ngIf="loc.isActive" d="M17 7H7a5 5 0 000 10h10a5 5 0 000-10zm0 8a3 3 0 110-6 3 3 0 010 6z"/><path *ngIf="!loc.isActive" d="M17 7H7a5 5 0 000 10h10a5 5 0 000-10zM7 15a3 3 0 110-6 3 3 0 010 6z"/></svg></button>
+                <button aria-label="Delete" (click)="deleteLocation(loc.id)" class="p-1.5 rounded text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/></svg></button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div *ngIf="!agentLocations.length" class="px-6 py-8 text-center text-sm text-surface-400 border-t border-dashed border-surface-200 dark:border-surface-700">No locations configured yet.</div>
+  </div>
+</div>
+
+<!-- Location Add/Edit Form -->
+<div *ngIf="showLocationForm" class="fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm" (click)="closeLocationForm()"></div>
+<div *ngIf="showLocationForm" role="dialog" aria-modal="true" class="fixed inset-0 z-[60] flex items-center justify-center p-4 pointer-events-none">
+  <div class="bg-white dark:bg-surface-800 rounded-2xl shadow-xl w-full max-w-lg pointer-events-auto max-h-[90vh] overflow-y-auto">
+    <div class="flex items-center justify-between px-6 py-4 border-b border-surface-100 dark:border-surface-700">
+      <h3 class="text-base font-semibold text-surface-900 dark:text-surface-100">{{ editingLocationId != null ? 'Edit Location' : 'Add New Location' }}</h3>
+      <button (click)="closeLocationForm()" class="p-1 rounded-lg hover:bg-surface-100 dark:hover:bg-surface-700 text-surface-400"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg></button>
+    </div>
+    <div class="p-6 space-y-3">
+      <div *ngIf="locationFormError" class="px-4 py-2 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 text-sm rounded-lg">{{ locationFormError }}</div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div><label class="block text-xs font-medium text-surface-500 mb-1">Location Name *</label><input [(ngModel)]="locName" class="w-full px-3 py-2 text-sm bg-white dark:bg-surface-700 border border-surface-200 dark:border-surface-600 rounded-lg text-surface-900 dark:text-surface-100 focus:outline-none focus:ring-2 focus:ring-brand-500/30" /></div>
+        <div><label class="block text-xs font-medium text-surface-500 mb-1">Location Code</label><input [(ngModel)]="locCode" class="w-full px-3 py-2 text-sm bg-white dark:bg-surface-700 border border-surface-200 dark:border-surface-600 rounded-lg text-surface-900 dark:text-surface-100 focus:outline-none focus:ring-2 focus:ring-brand-500/30" /></div>
+        <div><label class="block text-xs font-medium text-surface-500 mb-1">Country</label><input [(ngModel)]="locCountry" class="w-full px-3 py-2 text-sm bg-white dark:bg-surface-700 border border-surface-200 dark:border-surface-600 rounded-lg text-surface-900 dark:text-surface-100 focus:outline-none focus:ring-2 focus:ring-brand-500/30" /></div>
+        <div><label class="block text-xs font-medium text-surface-500 mb-1">City</label><input [(ngModel)]="locCity" class="w-full px-3 py-2 text-sm bg-white dark:bg-surface-700 border border-surface-200 dark:border-surface-600 rounded-lg text-surface-900 dark:text-surface-100 focus:outline-none focus:ring-2 focus:ring-brand-500/30" /></div>
+        <div class="md:col-span-2"><label class="block text-xs font-medium text-surface-500 mb-1">Address</label><input [(ngModel)]="locAddress" class="w-full px-3 py-2 text-sm bg-white dark:bg-surface-700 border border-surface-200 dark:border-surface-600 rounded-lg text-surface-900 dark:text-surface-100 focus:outline-none focus:ring-2 focus:ring-brand-500/30" /></div>
+        <div><label class="block text-xs font-medium text-surface-500 mb-1">Contact Phone</label><input [(ngModel)]="locPhone" class="w-full px-3 py-2 text-sm bg-white dark:bg-surface-700 border border-surface-200 dark:border-surface-600 rounded-lg text-surface-900 dark:text-surface-100 focus:outline-none focus:ring-2 focus:ring-brand-500/30" /></div>
+        <div><label class="block text-xs font-medium text-surface-500 mb-1">Contact Email</label><input [(ngModel)]="locEmail" class="w-full px-3 py-2 text-sm bg-white dark:bg-surface-700 border border-surface-200 dark:border-surface-600 rounded-lg text-surface-900 dark:text-surface-100 focus:outline-none focus:ring-2 focus:ring-brand-500/30" /></div>
+        <div class="md:col-span-2"><label class="block text-xs font-medium text-surface-500 mb-1">Operating Hours</label><input placeholder="e.g. Mon-Fri 9AM-5PM" [(ngModel)]="locHours" class="w-full px-3 py-2 text-sm bg-white dark:bg-surface-700 border border-surface-200 dark:border-surface-600 rounded-lg text-surface-900 dark:text-surface-100 focus:outline-none focus:ring-2 focus:ring-brand-500/30" /></div>
+      </div>
+    </div>
+    <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-surface-100 dark:border-surface-700">
+      <button (click)="closeLocationForm()" class="px-4 py-2 text-sm font-medium text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg">Cancel</button>
+      <button (click)="saveLocation()" class="px-4 py-2 text-sm font-semibold bg-brand-600 hover:bg-brand-700 text-white rounded-lg">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- User Management Popup                                        -->
+<!-- ============================================================ -->
+<div *ngIf="showUserPopup && userLocation" class="fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm" (click)="closeUserPopup()"></div>
+<div *ngIf="showUserPopup && userLocation" role="dialog" aria-modal="true" class="fixed inset-0 z-[60] flex items-center justify-center p-4 pointer-events-none">
+  <div class="bg-white dark:bg-surface-800 rounded-2xl shadow-xl w-full max-w-4xl pointer-events-auto max-h-[90vh] overflow-y-auto">
+    <div class="flex items-center justify-between px-6 py-4 border-b border-surface-100 dark:border-surface-700">
+      <h3 class="text-base font-semibold text-surface-900 dark:text-surface-100">Users &mdash; {{ userLocation.locationName }}</h3>
+      <button (click)="closeUserPopup()" class="p-1 rounded-lg hover:bg-surface-100 dark:hover:bg-surface-700 text-surface-400"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg></button>
+    </div>
+    <div class="px-6 py-3"><button (click)="openUserForm(null)" class="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold bg-brand-600 hover:bg-brand-700 text-white rounded-lg transition-colors">+ Add User</button></div>
+    <div *ngIf="userLocation.users.length" class="overflow-x-auto">
+      <table class="w-full text-sm text-left">
+        <thead class="text-xs uppercase tracking-wider text-surface-500 bg-surface-50 dark:bg-surface-900/50 border-y border-surface-200 dark:border-surface-700">
+          <tr><th scope="col" class="px-4 py-2.5">Full Name</th><th scope="col" class="px-4 py-2.5">Email</th><th scope="col" class="px-4 py-2.5">Username</th><th scope="col" class="px-4 py-2.5">Phone</th><th scope="col" class="px-4 py-2.5">Role</th><th scope="col" class="px-4 py-2.5">Default</th><th scope="col" class="px-4 py-2.5">Actions</th></tr>
+        </thead>
+        <tbody class="divide-y divide-surface-100 dark:divide-surface-700">
+          <tr *ngFor="let u of userLocation.users" class="hover:bg-surface-50 dark:hover:bg-surface-750">
+            <td class="px-4 py-2.5 font-medium text-surface-900 dark:text-surface-100">{{ u.fullName }}</td>
+            <td class="px-4 py-2.5 text-surface-600 dark:text-surface-300">{{ u.email }}</td>
+            <td class="px-4 py-2.5 text-surface-600 dark:text-surface-300">{{ u.userName || '-' }}</td>
+            <td class="px-4 py-2.5 text-surface-600 dark:text-surface-300">{{ u.phone || '-' }}</td>
+            <td class="px-4 py-2.5 text-surface-600 dark:text-surface-300">{{ u.role || '-' }}</td>
+            <td class="px-4 py-2.5"><span *ngIf="u.isDefault" class="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">Default</span></td>
+            <td class="px-4 py-2.5">
+              <div class="flex items-center gap-0.5">
+                <button aria-label="Edit" (click)="openUserForm(u)" class="p-1.5 rounded text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/20"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z"/></svg></button>
+                <button aria-label="Delete" (click)="deleteUser(u.id)" class="p-1.5 rounded text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/></svg></button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div *ngIf="!userLocation.users.length" class="px-6 py-8 text-center text-sm text-surface-400 border-t border-dashed border-surface-200 dark:border-surface-700">No users yet. Click "Add User" to add one.</div>
+  </div>
+</div>
+
+<!-- User Add/Edit Form -->
+<div *ngIf="showUserForm" class="fixed inset-0 z-[70] bg-black/50 backdrop-blur-sm" (click)="closeUserForm()"></div>
+<div *ngIf="showUserForm" role="dialog" aria-modal="true" class="fixed inset-0 z-[70] flex items-center justify-center p-4 pointer-events-none">
+  <div class="bg-white dark:bg-surface-800 rounded-2xl shadow-xl w-full max-w-lg pointer-events-auto max-h-[90vh] overflow-y-auto">
+    <div class="flex items-center justify-between px-6 py-4 border-b border-surface-100 dark:border-surface-700">
+      <h3 class="text-base font-semibold text-surface-900 dark:text-surface-100">{{ editingUserId != null ? 'Edit User' : 'Add User' }}</h3>
+      <button (click)="closeUserForm()" class="p-1 rounded-lg hover:bg-surface-100 dark:hover:bg-surface-700 text-surface-400"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg></button>
+    </div>
+    <div class="p-6 space-y-3">
+      <div *ngIf="userFormError" class="px-4 py-2 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 text-sm rounded-lg">{{ userFormError }}</div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div><label class="block text-xs font-medium text-surface-500 mb-1">Full Name *</label><input [(ngModel)]="userFullName" class="w-full px-3 py-2 text-sm bg-white dark:bg-surface-700 border border-surface-200 dark:border-surface-600 rounded-lg text-surface-900 dark:text-surface-100 focus:outline-none focus:ring-2 focus:ring-brand-500/30" /></div>
+        <div><label class="block text-xs font-medium text-surface-500 mb-1">Email *</label><input [(ngModel)]="userEmail" class="w-full px-3 py-2 text-sm bg-white dark:bg-surface-700 border border-surface-200 dark:border-surface-600 rounded-lg text-surface-900 dark:text-surface-100 focus:outline-none focus:ring-2 focus:ring-brand-500/30" /></div>
+        <div><label class="block text-xs font-medium text-surface-500 mb-1">Username</label><input [(ngModel)]="userUserName" class="w-full px-3 py-2 text-sm bg-white dark:bg-surface-700 border border-surface-200 dark:border-surface-600 rounded-lg text-surface-900 dark:text-surface-100 focus:outline-none focus:ring-2 focus:ring-brand-500/30" /></div>
+        <div><label class="block text-xs font-medium text-surface-500 mb-1">{{ editingUserId != null ? 'New Password (leave blank to keep)' : 'Password *' }}</label><input type="password" [(ngModel)]="userPassword" class="w-full px-3 py-2 text-sm bg-white dark:bg-surface-700 border border-surface-200 dark:border-surface-600 rounded-lg text-surface-900 dark:text-surface-100 focus:outline-none focus:ring-2 focus:ring-brand-500/30" /></div>
+        <div><label class="block text-xs font-medium text-surface-500 mb-1">Phone</label><input [(ngModel)]="userPhone" class="w-full px-3 py-2 text-sm bg-white dark:bg-surface-700 border border-surface-200 dark:border-surface-600 rounded-lg text-surface-900 dark:text-surface-100 focus:outline-none focus:ring-2 focus:ring-brand-500/30" /></div>
+        <div><label class="block text-xs font-medium text-surface-500 mb-1">Role</label>
+          <select [(ngModel)]="userRole" class="w-full px-3 py-2 text-sm bg-white dark:bg-surface-700 border border-surface-200 dark:border-surface-600 rounded-lg text-surface-900 dark:text-surface-100 focus:outline-none focus:ring-2 focus:ring-brand-500/30"><option value="Operator">Operator</option><option value="Manager">Manager</option><option value="Cashier">Cashier</option></select></div>
+      </div>
+      <label class="flex items-center gap-2 mt-2 cursor-pointer"><input type="checkbox" [(ngModel)]="userIsDefault" class="w-4 h-4 rounded border-surface-300 text-brand-600 focus:ring-brand-500" /><span class="text-sm text-surface-700 dark:text-surface-300">Default User</span></label>
+    </div>
+    <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-surface-100 dark:border-surface-700">
+      <button (click)="closeUserForm()" class="px-4 py-2 text-sm font-medium text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg">Cancel</button>
+      <button (click)="saveUser()" class="px-4 py-2 text-sm font-semibold bg-brand-600 hover:bg-brand-700 text-white rounded-lg">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- Bank Management Popup                                        -->
+<!-- ============================================================ -->
+<div *ngIf="showBankPopup" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm" (click)="closeBankPopup()"></div>
+<div *ngIf="showBankPopup" role="dialog" aria-modal="true" class="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
+  <div class="bg-white dark:bg-surface-800 rounded-2xl shadow-xl w-full max-w-4xl pointer-events-auto max-h-[90vh] overflow-y-auto">
+    <div class="flex items-center justify-between px-6 py-4 border-b border-surface-100 dark:border-surface-700">
+      <h3 class="text-base font-semibold text-surface-900 dark:text-surface-100">Banks &mdash; {{ bankAgent?.businessName }}</h3>
+      <button (click)="closeBankPopup()" class="p-1 rounded-lg hover:bg-surface-100 dark:hover:bg-surface-700 text-surface-400"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg></button>
+    </div>
+    <div class="px-6 py-3"><button (click)="openBankForm(null)" class="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold bg-brand-600 hover:bg-brand-700 text-white rounded-lg transition-colors">+ Add Bank</button></div>
+    <div *ngIf="agentBanks.length" class="overflow-x-auto">
+      <table class="w-full text-sm text-left">
+        <thead class="text-xs uppercase tracking-wider text-surface-500 bg-surface-50 dark:bg-surface-900/50 border-y border-surface-200 dark:border-surface-700">
+          <tr><th scope="col" class="px-4 py-2.5">Bank Name</th><th scope="col" class="px-4 py-2.5">Payment Mode</th><th scope="col" class="px-4 py-2.5">Code</th><th scope="col" class="px-4 py-2.5">SWIFT</th><th scope="col" class="px-4 py-2.5">Branches</th><th scope="col" class="px-4 py-2.5">Status</th><th scope="col" class="px-4 py-2.5">Actions</th></tr>
+        </thead>
+        <tbody class="divide-y divide-surface-100 dark:divide-surface-700">
+          <tr *ngFor="let b of agentBanks" class="hover:bg-surface-50 dark:hover:bg-surface-750">
+            <td class="px-4 py-2.5 font-medium text-surface-900 dark:text-surface-100">{{ b.bankName }}</td>
+            <td class="px-4 py-2.5"><span class="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">{{ b.paymentMethodName || '-' }}</span></td>
+            <td class="px-4 py-2.5 text-surface-600 dark:text-surface-300">{{ b.bankCode || '-' }}</td>
+            <td class="px-4 py-2.5 text-surface-600 dark:text-surface-300">{{ b.swiftCode || '-' }}</td>
+            <td class="px-4 py-2.5"><span class="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">{{ b.branches.length }}</span></td>
+            <td class="px-4 py-2.5"><span class="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full" [ngClass]="b.isActive ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-surface-100 text-surface-500 dark:bg-surface-700 dark:text-surface-400'">{{ b.isActive ? 'Active' : 'Inactive' }}</span></td>
+            <td class="px-4 py-2.5">
+              <div class="flex items-center gap-0.5">
+                <button aria-label="Manage Branches" (click)="openBankBranchManagement(b)" class="p-1.5 rounded text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/20"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z"/></svg></button>
+                <button aria-label="Edit" (click)="openBankForm(b)" class="p-1.5 rounded text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z"/></svg></button>
+                <button [title]="b.isActive ? 'Deactivate' : 'Activate'" (click)="toggleBank(b.id)" class="p-1.5 rounded hover:bg-surface-100 dark:hover:bg-surface-700" [ngClass]="b.isActive ? 'text-green-600' : 'text-surface-400'"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path *ngIf="b.isActive" d="M17 7H7a5 5 0 000 10h10a5 5 0 000-10zm0 8a3 3 0 110-6 3 3 0 010 6z"/><path *ngIf="!b.isActive" d="M17 7H7a5 5 0 000 10h10a5 5 0 000-10zM7 15a3 3 0 110-6 3 3 0 010 6z"/></svg></button>
+                <button aria-label="Delete" (click)="deleteBank(b.id)" class="p-1.5 rounded text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/></svg></button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div *ngIf="!agentBanks.length" class="px-6 py-8 text-center text-sm text-surface-400 border-t border-dashed border-surface-200 dark:border-surface-700">No banks configured yet.</div>
+  </div>
+</div>
+
+<!-- Bank Add/Edit Form -->
+<div *ngIf="showBankForm" class="fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm" (click)="closeBankForm()"></div>
+<div *ngIf="showBankForm" role="dialog" aria-modal="true" class="fixed inset-0 z-[60] flex items-center justify-center p-4 pointer-events-none">
+  <div class="bg-white dark:bg-surface-800 rounded-2xl shadow-xl w-full max-w-lg pointer-events-auto max-h-[90vh] overflow-y-auto">
+    <div class="flex items-center justify-between px-6 py-4 border-b border-surface-100 dark:border-surface-700">
+      <h3 class="text-base font-semibold text-surface-900 dark:text-surface-100">{{ editingBankId != null ? 'Edit Bank' : 'Add New Bank' }}</h3>
+      <button (click)="closeBankForm()" class="p-1 rounded-lg hover:bg-surface-100 dark:hover:bg-surface-700 text-surface-400"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg></button>
+    </div>
+    <div class="p-6 space-y-3">
+      <div *ngIf="bankFormError" class="px-4 py-2 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 text-sm rounded-lg">{{ bankFormError }}</div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div><label class="block text-xs font-medium text-surface-500 mb-1">Bank Name *</label><input [(ngModel)]="bankName" class="w-full px-3 py-2 text-sm bg-white dark:bg-surface-700 border border-surface-200 dark:border-surface-600 rounded-lg text-surface-900 dark:text-surface-100 focus:outline-none focus:ring-2 focus:ring-brand-500/30" /></div>
+        <div><label class="block text-xs font-medium text-surface-500 mb-1">Payment Mode *</label>
+          <select [(ngModel)]="bankPaymentMethodId" class="w-full px-3 py-2 text-sm bg-white dark:bg-surface-700 border border-surface-200 dark:border-surface-600 rounded-lg text-surface-900 dark:text-surface-100 focus:outline-none focus:ring-2 focus:ring-brand-500/30"><option [ngValue]="null">Select</option><option *ngFor="let pm of paymentMethods" [ngValue]="pm.id">{{ pm.name }}</option></select></div>
+        <div><label class="block text-xs font-medium text-surface-500 mb-1">Bank Code</label><input [(ngModel)]="bankCode" class="w-full px-3 py-2 text-sm bg-white dark:bg-surface-700 border border-surface-200 dark:border-surface-600 rounded-lg text-surface-900 dark:text-surface-100 focus:outline-none focus:ring-2 focus:ring-brand-500/30" /></div>
+        <div><label class="block text-xs font-medium text-surface-500 mb-1">SWIFT Code</label><input [(ngModel)]="bankSwift" class="w-full px-3 py-2 text-sm bg-white dark:bg-surface-700 border border-surface-200 dark:border-surface-600 rounded-lg text-surface-900 dark:text-surface-100 focus:outline-none focus:ring-2 focus:ring-brand-500/30" /></div>
+        <div><label class="block text-xs font-medium text-surface-500 mb-1">Routing Number</label><input [(ngModel)]="bankRouting" class="w-full px-3 py-2 text-sm bg-white dark:bg-surface-700 border border-surface-200 dark:border-surface-600 rounded-lg text-surface-900 dark:text-surface-100 focus:outline-none focus:ring-2 focus:ring-brand-500/30" /></div>
+        <div><label class="block text-xs font-medium text-surface-500 mb-1">Country</label><input [(ngModel)]="bankCountry" class="w-full px-3 py-2 text-sm bg-white dark:bg-surface-700 border border-surface-200 dark:border-surface-600 rounded-lg text-surface-900 dark:text-surface-100 focus:outline-none focus:ring-2 focus:ring-brand-500/30" /></div>
+        <div><label class="block text-xs font-medium text-surface-500 mb-1">City</label><input [(ngModel)]="bankCity" class="w-full px-3 py-2 text-sm bg-white dark:bg-surface-700 border border-surface-200 dark:border-surface-600 rounded-lg text-surface-900 dark:text-surface-100 focus:outline-none focus:ring-2 focus:ring-brand-500/30" /></div>
+        <div class="md:col-span-2"><label class="block text-xs font-medium text-surface-500 mb-1">Address</label><input [(ngModel)]="bankAddress" class="w-full px-3 py-2 text-sm bg-white dark:bg-surface-700 border border-surface-200 dark:border-surface-600 rounded-lg text-surface-900 dark:text-surface-100 focus:outline-none focus:ring-2 focus:ring-brand-500/30" /></div>
+        <div><label class="block text-xs font-medium text-surface-500 mb-1">Contact Phone</label><input [(ngModel)]="bankPhone" class="w-full px-3 py-2 text-sm bg-white dark:bg-surface-700 border border-surface-200 dark:border-surface-600 rounded-lg text-surface-900 dark:text-surface-100 focus:outline-none focus:ring-2 focus:ring-brand-500/30" /></div>
+        <div><label class="block text-xs font-medium text-surface-500 mb-1">Contact Email</label><input [(ngModel)]="bankEmail" class="w-full px-3 py-2 text-sm bg-white dark:bg-surface-700 border border-surface-200 dark:border-surface-600 rounded-lg text-surface-900 dark:text-surface-100 focus:outline-none focus:ring-2 focus:ring-brand-500/30" /></div>
+        <div class="md:col-span-2"><label class="block text-xs font-medium text-surface-500 mb-1">Additional Info</label><textarea rows="2" [(ngModel)]="bankAdditionalInfo" class="w-full px-3 py-2 text-sm bg-white dark:bg-surface-700 border border-surface-200 dark:border-surface-600 rounded-lg text-surface-900 dark:text-surface-100 focus:outline-none focus:ring-2 focus:ring-brand-500/30"></textarea></div>
+      </div>
+    </div>
+    <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-surface-100 dark:border-surface-700">
+      <button (click)="closeBankForm()" class="px-4 py-2 text-sm font-medium text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg">Cancel</button>
+      <button (click)="saveBank()" class="px-4 py-2 text-sm font-semibold bg-brand-600 hover:bg-brand-700 text-white rounded-lg">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- Bank Branch Management Popup                                 -->
+<!-- ============================================================ -->
+<div *ngIf="showBankBranchPopup && bankBranchBank" class="fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm" (click)="closeBankBranchPopup()"></div>
+<div *ngIf="showBankBranchPopup && bankBranchBank" role="dialog" aria-modal="true" class="fixed inset-0 z-[60] flex items-center justify-center p-4 pointer-events-none">
+  <div class="bg-white dark:bg-surface-800 rounded-2xl shadow-xl w-full max-w-3xl pointer-events-auto max-h-[90vh] overflow-y-auto">
+    <div class="flex items-center justify-between px-6 py-4 border-b border-surface-100 dark:border-surface-700">
+      <h3 class="text-base font-semibold text-surface-900 dark:text-surface-100">Branches &mdash; {{ bankBranchBank.bankName }}</h3>
+      <button (click)="closeBankBranchPopup()" class="p-1 rounded-lg hover:bg-surface-100 dark:hover:bg-surface-700 text-surface-400"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg></button>
+    </div>
+    <div class="px-6 py-3"><button (click)="openBankBranchForm(null)" class="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-semibold bg-brand-600 hover:bg-brand-700 text-white rounded-lg transition-colors">+ Add Branch</button></div>
+    <div *ngIf="bankBranchBank.branches.length" class="overflow-x-auto">
+      <table class="w-full text-sm text-left">
+        <thead class="text-xs uppercase tracking-wider text-surface-500 bg-surface-50 dark:bg-surface-900/50 border-y border-surface-200 dark:border-surface-700">
+          <tr><th scope="col" class="px-4 py-2.5">Branch Name</th><th scope="col" class="px-4 py-2.5">Code</th><th scope="col" class="px-4 py-2.5">SWIFT</th><th scope="col" class="px-4 py-2.5">Address</th><th scope="col" class="px-4 py-2.5">Phone</th><th scope="col" class="px-4 py-2.5">Actions</th></tr>
+        </thead>
+        <tbody class="divide-y divide-surface-100 dark:divide-surface-700">
+          <tr *ngFor="let br of bankBranchBank.branches" class="hover:bg-surface-50 dark:hover:bg-surface-750">
+            <td class="px-4 py-2.5 font-medium text-surface-900 dark:text-surface-100">{{ br.branchName }}</td>
+            <td class="px-4 py-2.5 text-surface-600 dark:text-surface-300">{{ br.branchCode || '-' }}</td>
+            <td class="px-4 py-2.5 text-surface-600 dark:text-surface-300">{{ br.swiftCode || '-' }}</td>
+            <td class="px-4 py-2.5 text-surface-600 dark:text-surface-300">{{ br.address || '-' }}</td>
+            <td class="px-4 py-2.5 text-surface-600 dark:text-surface-300">{{ br.contactPhone || '-' }}</td>
+            <td class="px-4 py-2.5">
+              <div class="flex items-center gap-0.5">
+                <button aria-label="Edit" (click)="openBankBranchForm(br)" class="p-1.5 rounded text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/20"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z"/></svg></button>
+                <button aria-label="Delete" (click)="deleteBankBranch(br.id)" class="p-1.5 rounded text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/></svg></button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div *ngIf="!bankBranchBank.branches.length" class="px-6 py-8 text-center text-sm text-surface-400 border-t border-dashed border-surface-200 dark:border-surface-700">No branches yet.</div>
+  </div>
+</div>
+
+<!-- Branch Add/Edit Form -->
+<div *ngIf="showBankBranchForm" class="fixed inset-0 z-[70] bg-black/50 backdrop-blur-sm" (click)="closeBankBranchForm()"></div>
+<div *ngIf="showBankBranchForm" role="dialog" aria-modal="true" class="fixed inset-0 z-[70] flex items-center justify-center p-4 pointer-events-none">
+  <div class="bg-white dark:bg-surface-800 rounded-2xl shadow-xl w-full max-w-lg pointer-events-auto max-h-[90vh] overflow-y-auto">
+    <div class="flex items-center justify-between px-6 py-4 border-b border-surface-100 dark:border-surface-700">
+      <h3 class="text-base font-semibold text-surface-900 dark:text-surface-100">{{ editingBankBranchId != null ? 'Edit Branch' : 'Add Branch' }}</h3>
+      <button (click)="closeBankBranchForm()" class="p-1 rounded-lg hover:bg-surface-100 dark:hover:bg-surface-700 text-surface-400"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg></button>
+    </div>
+    <div class="p-6 space-y-3">
+      <div *ngIf="bankBranchFormError" class="px-4 py-2 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 text-sm rounded-lg">{{ bankBranchFormError }}</div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div><label class="block text-xs font-medium text-surface-500 mb-1">Branch Name *</label><input [(ngModel)]="bbName" class="w-full px-3 py-2 text-sm bg-white dark:bg-surface-700 border border-surface-200 dark:border-surface-600 rounded-lg text-surface-900 dark:text-surface-100 focus:outline-none focus:ring-2 focus:ring-brand-500/30" /></div>
+        <div><label class="block text-xs font-medium text-surface-500 mb-1">Branch Code</label><input [(ngModel)]="bbCode" class="w-full px-3 py-2 text-sm bg-white dark:bg-surface-700 border border-surface-200 dark:border-surface-600 rounded-lg text-surface-900 dark:text-surface-100 focus:outline-none focus:ring-2 focus:ring-brand-500/30" /></div>
+        <div><label class="block text-xs font-medium text-surface-500 mb-1">SWIFT Code</label><input [(ngModel)]="bbSwift" class="w-full px-3 py-2 text-sm bg-white dark:bg-surface-700 border border-surface-200 dark:border-surface-600 rounded-lg text-surface-900 dark:text-surface-100 focus:outline-none focus:ring-2 focus:ring-brand-500/30" /></div>
+        <div><label class="block text-xs font-medium text-surface-500 mb-1">Contact Phone</label><input [(ngModel)]="bbPhone" class="w-full px-3 py-2 text-sm bg-white dark:bg-surface-700 border border-surface-200 dark:border-surface-600 rounded-lg text-surface-900 dark:text-surface-100 focus:outline-none focus:ring-2 focus:ring-brand-500/30" /></div>
+        <div class="md:col-span-2"><label class="block text-xs font-medium text-surface-500 mb-1">Address</label><input [(ngModel)]="bbAddress" class="w-full px-3 py-2 text-sm bg-white dark:bg-surface-700 border border-surface-200 dark:border-surface-600 rounded-lg text-surface-900 dark:text-surface-100 focus:outline-none focus:ring-2 focus:ring-brand-500/30" /></div>
+      </div>
+    </div>
+    <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-surface-100 dark:border-surface-700">
+      <button (click)="closeBankBranchForm()" class="px-4 py-2 text-sm font-medium text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg">Cancel</button>
+      <button (click)="saveBankBranch()" class="px-4 py-2 text-sm font-semibold bg-brand-600 hover:bg-brand-700 text-white rounded-lg">Save</button>
+    </div>
+  </div>
+</div>

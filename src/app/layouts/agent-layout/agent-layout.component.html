@@ -1,0 +1,163 @@
+<div class="flex h-screen bg-surface-50 dark:bg-surface-950" [class.dark]="isDarkMode">
+
+  <!-- Sidebar -->
+  <aside
+    class="fixed inset-y-0 left-0 z-30 flex flex-col bg-white dark:bg-surface-900 border-r border-surface-100 dark:border-surface-800 transition-all duration-300 ease-in-out shadow-sm"
+    [class.w-64]="sidenavOpened" [class.w-0]="!sidenavOpened" [class.overflow-hidden]="!sidenavOpened">
+
+    <!-- Brand -->
+    <div class="flex h-16 items-center gap-3 px-5 border-b border-surface-100 dark:border-surface-800 shrink-0">
+      <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 text-white shadow-sm shrink-0">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 21v-7.5a.75.75 0 01.75-.75h3a.75.75 0 01.75.75V21m-4.5 0H2.36m11.14 0H18m0 0h3.64m-1.39 0V9.349m-16.5 11.65V9.35m0 0a3.001 3.001 0 003.75-.615A2.993 2.993 0 009.75 9.75c.896 0 1.7-.393 2.25-1.016a2.993 2.993 0 002.25 1.016c.896 0 1.7-.393 2.25-1.016a3.001 3.001 0 003.75.614m-16.5 0a3.004 3.004 0 01-.621-4.72L4.318 3.44A1.5 1.5 0 015.378 3h13.243a1.5 1.5 0 011.06.44l1.19 1.189a3 3 0 01-.621 4.72m-13.5 8.65h3.75a.75.75 0 00.75-.75V13.5a.75.75 0 00-.75-.75H6.75a.75.75 0 00-.75.75v3.75c0 .415.336.75.75.75z" />
+        </svg>
+      </div>
+      <div class="flex flex-col overflow-hidden">
+        <span class="text-[13px] font-bold text-surface-900 dark:text-surface-100 truncate tracking-tight">RemitAgent</span>
+        <span class="text-[10px] font-semibold uppercase tracking-widest text-brand-500 dark:text-brand-400">Agent Portal</span>
+      </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="flex flex-1 flex-col overflow-y-auto px-3 py-4 gap-0.5">
+
+      <!-- Top-level items -->
+      <ng-container *ngFor="let item of topLevelItems">
+        <a [routerLink]="item.route"
+           routerLinkActive="bg-brand-50 text-brand-700 dark:bg-brand-950/60 dark:text-brand-300 font-semibold"
+           class="group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-medium text-surface-600 dark:text-surface-400 transition-all duration-150 hover:bg-surface-50 dark:hover:bg-surface-800 hover:text-surface-900 dark:hover:text-surface-200">
+          <span class="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-brand-600 dark:bg-brand-400 rounded-r-full opacity-0 transition-opacity duration-150 [a.active_&]:opacity-100" routerLinkActive="!opacity-100"></span>
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-[18px] w-[18px] shrink-0 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75">
+            <path stroke-linecap="round" stroke-linejoin="round" [attr.d]="item.icon" />
+          </svg>
+          <span class="truncate">{{ item.label }}</span>
+        </a>
+      </ng-container>
+
+      <!-- Sections -->
+      <ng-container *ngFor="let section of sections">
+        <p class="mt-5 mb-1 px-3 text-[10px] font-bold uppercase tracking-widest text-surface-400 dark:text-surface-500">
+          {{ section }}
+        </p>
+        <a *ngFor="let item of getItemsForSection(section)"
+           [routerLink]="item.route"
+           routerLinkActive="bg-brand-50 text-brand-700 dark:bg-brand-950/60 dark:text-brand-300 font-semibold"
+           class="group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-medium text-surface-600 dark:text-surface-400 transition-all duration-150 hover:bg-surface-50 dark:hover:bg-surface-800 hover:text-surface-900 dark:hover:text-surface-200">
+          <span class="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-5 bg-brand-600 dark:bg-brand-400 rounded-r-full opacity-0" routerLinkActive="!opacity-100"></span>
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-[18px] w-[18px] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75">
+            <path stroke-linecap="round" stroke-linejoin="round" [attr.d]="item.icon" />
+          </svg>
+          <span class="truncate">{{ item.label }}</span>
+        </a>
+      </ng-container>
+
+      <div class="flex-1"></div>
+
+      <!-- Sign Out -->
+      <div class="mt-4 pt-3 border-t border-surface-100 dark:border-surface-800">
+        <a routerLink="/"
+           class="flex items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-medium text-danger-600 dark:text-danger-400 transition-all duration-150 hover:bg-danger-50 dark:hover:bg-danger-900/20">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-[18px] w-[18px] shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
+          </svg>
+          <span>Sign Out</span>
+        </a>
+      </div>
+    </nav>
+  </aside>
+
+  <!-- Main area -->
+  <div class="flex flex-1 flex-col min-w-0 transition-all duration-300 ease-in-out" [class.ml-64]="sidenavOpened">
+
+    <!-- Top bar -->
+    <header class="sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-surface-100 dark:border-surface-800 bg-white/90 dark:bg-surface-900/90 px-4 backdrop-blur-md">
+
+      <!-- Hamburger -->
+      <button (click)="toggleDrawer()"
+              aria-label="Toggle menu"
+              class="flex h-9 w-9 items-center justify-center rounded-xl text-surface-500 dark:text-surface-400 transition-all duration-150 hover:bg-surface-100 dark:hover:bg-surface-800 active:scale-95">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+        </svg>
+      </button>
+
+      <div class="flex-1"></div>
+
+      <!-- Dark mode toggle -->
+      <button (click)="toggleDarkMode()"
+              class="flex h-9 w-9 items-center justify-center rounded-xl text-surface-500 dark:text-surface-400 transition-all duration-150 hover:bg-surface-100 dark:hover:bg-surface-800 active:scale-95"
+              [attr.aria-label]="isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'">
+        <svg *ngIf="!isDarkMode" xmlns="http://www.w3.org/2000/svg" class="h-[18px] w-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z" />
+        </svg>
+        <svg *ngIf="isDarkMode" xmlns="http://www.w3.org/2000/svg" class="h-[18px] w-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z" />
+        </svg>
+      </button>
+
+      <!-- Notifications -->
+      <div class="relative">
+        <button aria-label="Notifications"
+                class="flex h-9 w-9 items-center justify-center rounded-xl text-surface-500 dark:text-surface-400 transition-all duration-150 hover:bg-surface-100 dark:hover:bg-surface-800 active:scale-95">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-[18px] w-[18px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0" />
+          </svg>
+          <!-- Notification dot -->
+          <span class="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-brand-500 ring-2 ring-white dark:ring-surface-900"></span>
+        </button>
+      </div>
+
+      <div class="h-5 w-px bg-surface-200 dark:bg-surface-700 mx-1"></div>
+
+      <!-- User menu -->
+      <div class="user-menu-wrapper relative">
+        <button (click)="toggleUserMenu()"
+                aria-label="Open user menu"
+                class="flex items-center gap-2.5 rounded-xl px-2.5 py-1.5 transition-all duration-150 hover:bg-surface-100 dark:hover:bg-surface-800 active:scale-95">
+          <div class="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-brand-400 to-brand-600 text-xs font-bold text-white shadow-sm shrink-0">A</div>
+          <div class="hidden sm:flex flex-col items-start">
+            <span class="text-[13px] font-semibold text-surface-800 dark:text-surface-200 leading-tight">Agent</span>
+            <span class="text-[10px] text-surface-400 dark:text-surface-500 leading-tight">Sending Agent</span>
+          </div>
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-surface-400 ml-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+          </svg>
+        </button>
+
+        <!-- Dropdown -->
+        <div *ngIf="showUserMenu"
+             class="absolute right-0 top-full mt-2 w-56 rounded-2xl border border-surface-200 dark:border-surface-700 bg-white dark:bg-surface-800 py-1.5 shadow-xl shadow-surface-900/10 dark:shadow-surface-950/40 animate-fade-in">
+          <div class="flex items-center gap-3 px-4 py-3">
+            <div class="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-brand-400 to-brand-600 text-sm font-bold text-white shadow-sm shrink-0">A</div>
+            <div class="overflow-hidden">
+              <div class="text-[13px] font-semibold text-surface-900 dark:text-surface-100 truncate">Agent User</div>
+              <div class="text-xs text-surface-500 dark:text-surface-400 truncate">Sending Agent</div>
+            </div>
+          </div>
+          <div class="mx-3 my-1 border-t border-surface-100 dark:border-surface-700"></div>
+          <button class="flex w-full items-center gap-3 px-4 py-2 text-[13px] text-surface-700 dark:text-surface-300 transition-colors hover:bg-surface-50 dark:hover:bg-surface-700/60 rounded-lg mx-0">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-surface-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+            </svg>
+            My Profile
+          </button>
+          <div class="mx-3 my-1 border-t border-surface-100 dark:border-surface-700"></div>
+          <a routerLink="/"
+             class="flex w-full items-center gap-3 px-4 py-2 text-[13px] text-danger-600 dark:text-danger-400 transition-colors hover:bg-danger-50 dark:hover:bg-danger-900/20 rounded-lg">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.75">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
+            </svg>
+            Sign Out
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <!-- Page content -->
+    <main class="flex-1 overflow-y-auto bg-surface-50 dark:bg-surface-950 p-6">
+      <div class="mx-auto max-w-7xl">
+        <router-outlet></router-outlet>
+      </div>
+    </main>
+  </div>
+</div>

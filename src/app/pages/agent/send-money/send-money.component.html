@@ -1,0 +1,1364 @@
+<!-- =========================================================================
+     Send Money — Professional Redesign
+     ========================================================================= -->
+<div class="min-h-screen bg-slate-50 dark:bg-slate-950 pb-20">
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       SUCCESS OVERLAY
+       ═══════════════════════════════════════════════════════════════ -->
+  <div *ngIf="successResult"
+       class="success-overlay fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+    <div class="success-card bg-white dark:bg-slate-800 rounded-3xl shadow-2xl w-full max-w-md overflow-hidden">
+
+      <div class="bg-gradient-to-br from-emerald-500 to-green-600 px-8 pt-10 pb-6 text-center text-white">
+        <div class="mx-auto mb-4 w-16 h-16 rounded-full bg-white/20 flex items-center justify-center">
+          <svg viewBox="0 0 60 60" class="w-10 h-10" fill="none">
+            <path class="checkmark-path" d="M12 30 L24 42 L48 18"
+                  stroke="white" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <h2 class="text-2xl font-bold">Transaction Submitted!</h2>
+        <p class="mt-1 text-emerald-100 text-sm">Ref: {{ successResult.referenceNumber }}</p>
+      </div>
+
+      <div class="px-8 py-6 space-y-4">
+        <div class="flex items-center justify-between bg-slate-50 dark:bg-slate-700/50 rounded-2xl p-4">
+          <div class="text-center">
+            <p class="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wide font-medium">You Send</p>
+            <p class="text-2xl font-bold text-slate-900 dark:text-white tabular-nums mt-1">
+              {{ successResult.sendAmount | number:'1.2-2' }}
+            </p>
+            <p class="text-sm text-slate-500 dark:text-slate-400">{{ successResult.sendCurrency }}</p>
+          </div>
+          <div class="flex flex-col items-center gap-1.5">
+            <div class="w-10 h-10 rounded-full bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center">
+              <svg class="w-5 h-5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
+              </svg>
+            </div>
+            <p class="text-xs text-slate-400 tabular-nums">{{ successResult.exchangeRateApplied | number:'1.4-4' }}</p>
+          </div>
+          <div class="text-center">
+            <p class="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wide font-medium">They Get</p>
+            <p class="text-2xl font-bold text-emerald-600 dark:text-emerald-400 tabular-nums mt-1">
+              {{ successResult.receiveAmount | number:'1.2-2' }}
+            </p>
+            <p class="text-sm text-slate-500 dark:text-slate-400">{{ successResult.receiveCurrency }}</p>
+          </div>
+        </div>
+
+        <div class="space-y-0 text-sm">
+          <div class="flex justify-between items-center py-2.5 border-b border-slate-100 dark:border-slate-700">
+            <span class="text-slate-500 dark:text-slate-400">Sender</span>
+            <span class="font-semibold text-slate-900 dark:text-white">{{ successResult.senderName }}</span>
+          </div>
+          <div class="flex justify-between items-center py-2.5 border-b border-slate-100 dark:border-slate-700">
+            <span class="text-slate-500 dark:text-slate-400">Receiver</span>
+            <span class="font-semibold text-slate-900 dark:text-white">{{ successResult.receiverName }}</span>
+          </div>
+          <div class="flex justify-between items-center py-2.5 border-b border-slate-100 dark:border-slate-700">
+            <span class="text-slate-500 dark:text-slate-400">Country</span>
+            <span class="font-semibold text-slate-900 dark:text-white">{{ successResult.receiverCountry }}</span>
+          </div>
+          <div class="flex justify-between items-center py-2.5">
+            <span class="text-slate-500 dark:text-slate-400">Status</span>
+            <span class="font-semibold text-amber-600 dark:text-amber-400">{{ getStatusLabel(successResult.status) }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="px-8 pb-8 flex gap-3">
+        <button (click)="downloadReceipt()"
+                class="flex-1 flex items-center justify-center gap-2 py-3.5 rounded-xl border-2 border-blue-500 text-blue-600 dark:text-blue-400 font-semibold text-sm hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+          </svg>
+          Receipt
+        </button>
+        <button (click)="startNewTransaction()"
+                class="flex-1 py-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm transition-colors">
+          New Transfer
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       PIN DIALOG
+       ═══════════════════════════════════════════════════════════════ -->
+  <div *ngIf="showPinDialog"
+       class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm"
+       (click)="closePinDialog()">
+    <div class="pin-dialog absolute top-1/2 left-1/2 w-full max-w-sm bg-white dark:bg-slate-800 rounded-2xl shadow-2xl overflow-hidden"
+         (click)="$event.stopPropagation()">
+
+      <div class="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-5 flex items-center justify-between">
+        <div>
+          <h3 class="text-white font-bold text-lg">
+            {{ pinMode === 'set' ? 'Create Transaction PIN' : 'Authorize Transfer' }}
+          </h3>
+          <p class="text-blue-100 text-xs mt-0.5">
+            {{ pinMode === 'set' ? 'Set a 4–6 digit PIN to secure your transactions' : 'Enter your PIN to confirm this transfer' }}
+          </p>
+        </div>
+        <button (click)="closePinDialog()" class="w-8 h-8 rounded-lg flex items-center justify-center text-white/70 hover:text-white hover:bg-white/10 transition-colors">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="px-6 py-6 space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+            {{ pinMode === 'set' ? 'New PIN' : 'Transaction PIN' }}
+          </label>
+          <input type="password" inputmode="numeric" maxlength="6"
+                 [(ngModel)]="pinInput" placeholder="••••"
+                 class="w-full px-4 py-4 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white text-center text-2xl tracking-[0.5em] font-bold focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"/>
+        </div>
+        <div *ngIf="pinMode === 'set'">
+          <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Confirm PIN</label>
+          <input type="password" inputmode="numeric" maxlength="6"
+                 [(ngModel)]="pinConfirm" placeholder="••••"
+                 class="w-full px-4 py-4 rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-white text-center text-2xl tracking-[0.5em] font-bold focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"/>
+        </div>
+        <div *ngIf="pinError"
+             class="flex items-center gap-2 p-3 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 text-sm">
+          <svg class="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+          </svg>
+          {{ pinError }}
+        </div>
+        <button (click)="onPinSubmit()" [disabled]="pinLoading"
+                class="w-full py-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold text-sm transition-colors flex items-center justify-center gap-2">
+          <svg *ngIf="pinLoading" class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+          </svg>
+          {{ pinLoading ? 'Verifying...' : (pinMode === 'set' ? 'Set PIN & Continue' : 'Authorize Transfer') }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       BRANCH POPUP
+       ═══════════════════════════════════════════════════════════════ -->
+  <div *ngIf="showBranchPopup"
+       class="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4"
+       (click)="closeBranchPopup()">
+    <div class="branch-popup w-full max-w-lg bg-white dark:bg-slate-800 rounded-2xl shadow-2xl overflow-hidden"
+         (click)="$event.stopPropagation()">
+
+      <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between">
+        <div>
+          <h3 class="font-bold text-slate-900 dark:text-white">Select Branch</h3>
+          <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{{ branchBank?.bankName }}</p>
+        </div>
+        <button (click)="closeBranchPopup()" class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:text-slate-300 dark:hover:bg-slate-700 transition-colors">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="px-4 pt-4 pb-2">
+        <div class="relative">
+          <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0"/>
+          </svg>
+          <input type="text" [(ngModel)]="branchSearch" (input)="filterBranches()"
+                 placeholder="Search by name, code or address..."
+                 class="w-full pl-9 pr-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent focus:bg-white dark:focus:bg-slate-600 transition"/>
+        </div>
+      </div>
+
+      <div class="overflow-y-auto max-h-64 px-3 pb-4 space-y-1">
+        <div *ngFor="let branch of filteredBranches"
+             (click)="selectBranch(branch)"
+             class="flex items-center justify-between p-3.5 rounded-xl cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900/20 border border-transparent hover:border-blue-200 dark:hover:border-blue-700 transition-all group">
+          <div>
+            <p class="font-semibold text-sm text-slate-900 dark:text-white group-hover:text-blue-700 dark:group-hover:text-blue-400">{{ branch.branchName }}</p>
+            <p *ngIf="branch.branchCode" class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Code: {{ branch.branchCode }}</p>
+            <p *ngIf="branch.address" class="text-xs text-slate-400 dark:text-slate-500 mt-0.5">{{ branch.address }}</p>
+          </div>
+          <svg class="w-4 h-4 text-slate-300 group-hover:text-blue-500 flex-shrink-0 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+          </svg>
+        </div>
+        <div *ngIf="filteredBranches.length === 0"
+             class="py-10 text-center text-slate-400 dark:text-slate-500 text-sm">
+          No branches found
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       PAGE HEADER
+       ═══════════════════════════════════════════════════════════════ -->
+  <div class="bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 sticky top-0 z-30 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between gap-4">
+
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-sm flex-shrink-0">
+          <svg class="w-[18px] h-[18px] text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5"/>
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-sm font-bold text-slate-900 dark:text-white leading-tight">Send Money</h1>
+          <p class="text-xs text-slate-500 dark:text-slate-400 leading-tight">
+            {{ agentProfile?.businessName || 'Agent Portal' }}<span *ngIf="senderCurrency"> &middot; {{ senderCurrency }}</span>
+          </p>
+        </div>
+      </div>
+
+      <!-- Step progress -->
+      <div class="hidden sm:flex items-center gap-2 text-xs font-medium">
+        <div class="flex items-center gap-1.5">
+          <div class="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0"
+               [ngClass]="canProceedStep1() ? 'bg-emerald-500 text-white' : 'bg-blue-600 text-white'">
+            <svg *ngIf="canProceedStep1()" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+            <span *ngIf="!canProceedStep1()" class="text-[10px] font-bold">1</span>
+          </div>
+          <span [ngClass]="canProceedStep1() ? 'text-emerald-600 dark:text-emerald-400' : 'text-blue-600 dark:text-blue-400'">Customer</span>
+        </div>
+        <svg class="w-3 h-3 text-slate-300 dark:text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+        <div class="flex items-center gap-1.5">
+          <div class="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0"
+               [ngClass]="canProceedStep2() ? 'bg-emerald-500 text-white' : (canProceedStep1() ? 'bg-blue-600 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-400')">
+            <svg *ngIf="canProceedStep2()" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+            <span *ngIf="!canProceedStep2()" class="text-[10px] font-bold">2</span>
+          </div>
+          <span [ngClass]="canProceedStep2() ? 'text-emerald-600 dark:text-emerald-400' : (canProceedStep1() ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400 dark:text-slate-500')">Transfer</span>
+        </div>
+        <svg class="w-3 h-3 text-slate-300 dark:text-slate-700" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+        <div class="flex items-center gap-1.5">
+          <div class="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0"
+               [ngClass]="selectedReceiver ? 'bg-emerald-500 text-white' : (canProceedStep1() ? 'bg-blue-600 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-400')">
+            <svg *ngIf="selectedReceiver" class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+            <span *ngIf="!selectedReceiver" class="text-[10px] font-bold">3</span>
+          </div>
+          <span [ngClass]="selectedReceiver ? 'text-emerald-600 dark:text-emerald-400' : (step >= 2 ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400 dark:text-slate-500')">Receiver</span>
+        </div>
+      </div>
+
+      <!-- Zero balance badge -->
+      <div *ngIf="agentBalanceZero"
+           class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 text-xs font-semibold flex-shrink-0">
+        <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+        </svg>
+        Insufficient Balance
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+       MAIN CANVAS
+       ═══════════════════════════════════════════════════════════════ -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <div class="flex gap-6 items-start">
+
+      <!-- ══════════════════════════════════════════════════
+           LEFT COLUMN
+           ══════════════════════════════════════════════════ -->
+      <div class="flex-1 min-w-0 flex flex-col gap-5">
+
+        <!-- ─── SECTION 1: CUSTOMER ─────────────────────── -->
+        <section class="canvas-section bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden">
+
+          <div class="px-5 py-4 flex items-center gap-3.5 border-b border-slate-100 dark:border-slate-800">
+            <div class="w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0 transition-all duration-200"
+                 [ngClass]="canProceedStep1() ? 'bg-emerald-500 text-white' : 'bg-blue-600 text-white step-num-active'">
+              <svg *ngIf="canProceedStep1()" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+              </svg>
+              <span *ngIf="!canProceedStep1()">1</span>
+            </div>
+            <div class="flex-1 min-w-0">
+              <h2 class="text-sm font-semibold text-slate-900 dark:text-white">Customer</h2>
+              <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Search existing or register a new customer</p>
+            </div>
+            <button *ngIf="!showCreateCustomer && !selectedCustomer"
+                    (click)="toggleCreateCustomer()"
+                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 text-xs font-semibold hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors flex-shrink-0">
+              <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+              </svg>
+              New Customer
+            </button>
+          </div>
+
+          <div class="px-5 py-5 space-y-4">
+
+            <!-- Warnings -->
+            <div *ngIf="appSettings.kycEnabled && kycWarning"
+                 class="flex items-start gap-3 p-4 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 text-sm">
+              <svg class="w-4 h-4 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+              </svg>
+              {{ kycWarning }}
+            </div>
+            <div *ngIf="dobWarning"
+                 class="flex items-start gap-3 p-4 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-400 text-sm">
+              <svg class="w-4 h-4 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+              </svg>
+              {{ dobWarning }}
+            </div>
+
+            <!-- Selected Customer card -->
+            <div *ngIf="selectedCustomer"
+                 class="selected-card-appear flex items-center justify-between p-4 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
+              <div class="flex items-center gap-3 min-w-0">
+                <div class="w-11 h-11 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-base flex-shrink-0">
+                  {{ selectedCustomer.fullName.charAt(0).toUpperCase() }}
+                </div>
+                <div class="min-w-0">
+                  <p class="font-semibold text-slate-900 dark:text-white text-sm truncate">{{ selectedCustomer.fullName }}</p>
+                  <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5 truncate">
+                    {{ selectedCustomer.phone }}<span *ngIf="selectedCustomer.idDocumentType"> &middot; {{ selectedCustomer.idDocumentType }}</span>
+                  </p>
+                </div>
+              </div>
+              <div class="flex items-center gap-2 flex-shrink-0 ml-2">
+                <span *ngIf="appSettings.kycEnabled && selectedCustomer.isKycVerified"
+                      class="hidden sm:inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 text-xs font-semibold">
+                  <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                  </svg>
+                  KYC
+                </span>
+                <button (click)="clearSelectedCustomer()"
+                        class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all">
+                  <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <!-- Search box -->
+            <div *ngIf="!selectedCustomer && !showCreateCustomer">
+              <div class="flex gap-2">
+                <div class="relative flex-1">
+                  <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0"/>
+                  </svg>
+                  <input type="text" [(ngModel)]="customerSearch"
+                         (input)="filterCustomers(); showCustomerDropdown = true"
+                         (keyup.enter)="filterCustomers(); showCustomerDropdown = true"
+                         placeholder="Search by name, phone or email..."
+                         class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent focus:bg-white dark:focus:bg-slate-700 transition"/>
+                </div>
+                <button (click)="filterCustomers(); showCustomerDropdown = true"
+                        class="flex items-center gap-1.5 px-4 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-95 text-white text-sm font-semibold transition-all flex-shrink-0 shadow-sm">
+                  <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0"/>
+                  </svg>
+                  Search
+                </button>
+              </div>
+
+              <!-- Dropdown results -->
+              <div *ngIf="showCustomerDropdown && filteredCustomers.length > 0"
+                   class="search-dropdown relative z-20 w-full mt-2 bg-white dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700 shadow-xl overflow-hidden">
+                <div class="flex items-center justify-between px-4 pt-3 pb-2.5 border-b border-slate-50 dark:border-slate-700">
+                  <p class="text-xs font-medium text-slate-500 dark:text-slate-400">{{ filteredCustomers.length }} result(s) found</p>
+                  <button (click)="showCustomerDropdown = false" class="w-6 h-6 flex items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 rounded">
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                  </button>
+                </div>
+                <div class="max-h-52 overflow-y-auto divide-y divide-slate-50 dark:divide-slate-700/50">
+                  <button *ngFor="let c of filteredCustomers"
+                          (click)="selectCustomer(c)"
+                          class="w-full flex items-center gap-3 px-4 py-3 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors text-left">
+                    <div class="w-9 h-9 rounded-full bg-gradient-to-br from-slate-400 to-slate-600 flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
+                      {{ c.fullName.charAt(0).toUpperCase() }}
+                    </div>
+                    <div class="flex-1 min-w-0">
+                      <p class="text-sm font-semibold text-slate-900 dark:text-white truncate">{{ c.fullName }}</p>
+                      <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{{ c.phone }}</p>
+                    </div>
+                    <span *ngIf="appSettings.kycEnabled && c.isKycVerified"
+                          class="flex-shrink-0 w-5 h-5 rounded-full bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center">
+                      <svg class="w-3 h-3 text-emerald-600 dark:text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                      </svg>
+                    </span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- No results -->
+              <div *ngIf="showCustomerDropdown && filteredCustomers.length === 0 && customers.length > 0"
+                   class="relative z-20 w-full mt-2 bg-white dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700 shadow-xl p-6 text-center">
+                <p class="text-sm text-slate-500 dark:text-slate-400">No customers found<span *ngIf="customerSearch"> for "{{ customerSearch }}"</span></p>
+                <button (click)="toggleCreateCustomer()"
+                        class="mt-2 text-sm text-blue-600 dark:text-blue-400 font-semibold hover:underline">
+                  + Create new customer
+                </button>
+              </div>
+            </div>
+
+            <!-- ── NEW CUSTOMER FORM ─────────────────────── -->
+            <div *ngIf="showCreateCustomer">
+              <div class="mb-5 flex items-center justify-between">
+                <div>
+                  <h3 class="font-semibold text-slate-900 dark:text-white text-sm">New Customer</h3>
+                  <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Fill in the details to register</p>
+                </div>
+                <button (click)="toggleCreateCustomer()"
+                        class="flex items-center gap-1 text-xs text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 font-medium transition-colors">
+                  <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                  </svg>
+                  Cancel
+                </button>
+              </div>
+
+              <form [formGroup]="customerForm" class="space-y-5">
+                <!-- Personal Info -->
+                <fieldset>
+                  <legend class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-4">Personal Information</legend>
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="sm:col-span-2">
+                      <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Full Name <span class="text-red-500">*</span></label>
+                      <input type="text" formControlName="fullName" placeholder="John Doe"
+                             class="w-full px-3.5 py-3 rounded-xl border text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                             [ngClass]="customerFormErrors['fullName'] ? 'border-red-400 bg-red-50 dark:bg-red-900/20' : 'border-slate-200 dark:border-slate-700'"/>
+                      <p *ngIf="customerFormErrors['fullName']" class="mt-1.5 text-xs text-red-500 font-medium">{{ customerFormErrors['fullName'] }}</p>
+                    </div>
+                    <div>
+                      <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Phone <span class="text-red-500">*</span></label>
+                      <input type="tel" formControlName="phone" placeholder="+1 555 0100"
+                             class="w-full px-3.5 py-3 rounded-xl border text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                             [ngClass]="customerFormErrors['phone'] ? 'border-red-400 bg-red-50 dark:bg-red-900/20' : 'border-slate-200 dark:border-slate-700'"/>
+                      <p *ngIf="customerFormErrors['phone']" class="mt-1.5 text-xs text-red-500 font-medium">{{ customerFormErrors['phone'] }}</p>
+                    </div>
+                    <div>
+                      <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Email</label>
+                      <input type="email" formControlName="email" placeholder="john@example.com"
+                             class="w-full px-3.5 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"/>
+                    </div>
+                    <div>
+                      <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Date of Birth</label>
+                      <p-datepicker formControlName="dateOfBirth" [maxDate]="maxDobDate"
+                                    dateFormat="yy-mm-dd" placeholder="YYYY-MM-DD" [showIcon]="true"
+                                    appendTo="body" styleClass="w-full"/>
+                    </div>
+                    <div>
+                      <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Gender</label>
+                      <select formControlName="gender"
+                              class="w-full px-3.5 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+                        <option value="">Select gender</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Other">Other</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Nationality <span class="text-red-500">*</span></label>
+                      <select formControlName="nationality"
+                              class="w-full px-3.5 py-3 rounded-xl border text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                              [ngClass]="customerFormErrors['nationality'] ? 'border-red-400' : 'border-slate-200 dark:border-slate-700'">
+                        <option value="">Select nationality</option>
+                        <option *ngFor="let c of countries" [value]="c.name">{{ c.name }}</option>
+                      </select>
+                      <p *ngIf="customerFormErrors['nationality']" class="mt-1.5 text-xs text-red-500 font-medium">{{ customerFormErrors['nationality'] }}</p>
+                    </div>
+                    <div>
+                      <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Country <span class="text-red-500">*</span></label>
+                      <select formControlName="country"
+                              class="w-full px-3.5 py-3 rounded-xl border text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                              [ngClass]="customerFormErrors['country'] ? 'border-red-400' : 'border-slate-200 dark:border-slate-700'">
+                        <option value="">Select country</option>
+                        <option *ngFor="let c of countries" [value]="c.name">{{ c.name }}</option>
+                      </select>
+                      <p *ngIf="customerFormErrors['country']" class="mt-1.5 text-xs text-red-500 font-medium">{{ customerFormErrors['country'] }}</p>
+                    </div>
+                    <div>
+                      <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">City</label>
+                      <input type="text" formControlName="city"
+                             class="w-full px-3.5 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"/>
+                    </div>
+                    <div>
+                      <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">State / Province</label>
+                      <input type="text" formControlName="state"
+                             class="w-full px-3.5 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"/>
+                    </div>
+                    <div>
+                      <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Postal Code</label>
+                      <input type="text" formControlName="postalCode"
+                             class="w-full px-3.5 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"/>
+                    </div>
+                    <div class="sm:col-span-2">
+                      <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Address</label>
+                      <input type="text" formControlName="address"
+                             class="w-full px-3.5 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"/>
+                    </div>
+                  </div>
+                </fieldset>
+
+                <!-- ID Document -->
+                <fieldset class="pt-5 border-t border-slate-100 dark:border-slate-800">
+                  <legend class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-4">ID Document</legend>
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Document Type <span class="text-red-500">*</span></label>
+                      <select formControlName="idDocumentType"
+                              class="w-full px-3.5 py-3 rounded-xl border text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                              [ngClass]="customerFormErrors['idDocumentType'] ? 'border-red-400' : 'border-slate-200 dark:border-slate-700'">
+                        <option value="">Select type</option>
+                        <option *ngFor="let t of idTypes" [value]="t">{{ t }}</option>
+                      </select>
+                      <p *ngIf="customerFormErrors['idDocumentType']" class="mt-1.5 text-xs text-red-500 font-medium">{{ customerFormErrors['idDocumentType'] }}</p>
+                    </div>
+                    <div>
+                      <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Document Number <span class="text-red-500">*</span></label>
+                      <input type="text" formControlName="idDocumentNumber"
+                             class="w-full px-3.5 py-3 rounded-xl border text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                             [ngClass]="customerFormErrors['idDocumentNumber'] ? 'border-red-400' : 'border-slate-200 dark:border-slate-700'"/>
+                      <p *ngIf="customerFormErrors['idDocumentNumber']" class="mt-1.5 text-xs text-red-500 font-medium">{{ customerFormErrors['idDocumentNumber'] }}</p>
+                    </div>
+                    <div>
+                      <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Issue Date</label>
+                      <p-datepicker formControlName="docIssueDate" [maxDate]="todayDate"
+                                    dateFormat="yy-mm-dd" placeholder="YYYY-MM-DD" [showIcon]="true"
+                                    appendTo="body" styleClass="w-full"/>
+                    </div>
+                    <div>
+                      <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Expiry Date</label>
+                      <p-datepicker formControlName="docExpiryDate" [minDate]="minExpiryDate"
+                                    dateFormat="yy-mm-dd" placeholder="YYYY-MM-DD" [showIcon]="true"
+                                    appendTo="body" styleClass="w-full"/>
+                    </div>
+                    <div class="sm:col-span-2">
+                      <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Issuing Country</label>
+                      <select formControlName="docIssuingCountry"
+                              class="w-full px-3.5 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+                        <option value="">Select country</option>
+                        <option *ngFor="let c of countries" [value]="c.name">{{ c.name }}</option>
+                      </select>
+                    </div>
+                  </div>
+                </fieldset>
+
+                <!-- Document Images -->
+                <fieldset *ngIf="!appSettings.skipDocumentUpload" class="pt-5 border-t border-slate-100 dark:border-slate-800">
+                  <legend class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-4">Document Images</legend>
+                  <div class="grid grid-cols-2 gap-4">
+                    <div>
+                      <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Front Side <span class="text-red-500">*</span></label>
+                      <label class="relative flex flex-col items-center justify-center h-32 rounded-xl border-2 border-dashed cursor-pointer transition-all"
+                             [ngClass]="frontImagePreview ? 'border-emerald-400 bg-emerald-50 dark:bg-emerald-900/10' : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/10'">
+                        <input type="file" accept="image/*" class="sr-only" (change)="onFrontImageSelected($event)"/>
+                        <img *ngIf="frontImagePreview" [src]="frontImagePreview" alt="Front ID"
+                             class="absolute inset-0 w-full h-full object-cover rounded-xl opacity-80"/>
+                        <div *ngIf="!frontImagePreview" class="flex flex-col items-center gap-2 text-slate-400 dark:text-slate-500">
+                          <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/>
+                          </svg>
+                          <span class="text-xs font-medium">Upload front</span>
+                        </div>
+                      </label>
+                    </div>
+                    <div>
+                      <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Back Side</label>
+                      <label class="relative flex flex-col items-center justify-center h-32 rounded-xl border-2 border-dashed cursor-pointer transition-all"
+                             [ngClass]="backImagePreview ? 'border-emerald-400 bg-emerald-50 dark:bg-emerald-900/10' : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/10'">
+                        <input type="file" accept="image/*" class="sr-only" (change)="onBackImageSelected($event)"/>
+                        <img *ngIf="backImagePreview" [src]="backImagePreview" alt="Back ID"
+                             class="absolute inset-0 w-full h-full object-cover rounded-xl opacity-80"/>
+                        <div *ngIf="!backImagePreview" class="flex flex-col items-center gap-2 text-slate-400 dark:text-slate-500">
+                          <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/>
+                          </svg>
+                          <span class="text-xs font-medium">Upload back</span>
+                        </div>
+                      </label>
+                    </div>
+                  </div>
+                </fieldset>
+
+                <!-- Error & submit -->
+                <div *ngIf="customerFormError"
+                     class="p-4 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 text-sm">
+                  {{ customerFormError }}
+                </div>
+                <div class="flex gap-3 pt-2">
+                  <button type="button" (click)="toggleCreateCustomer()"
+                          class="flex-1 py-3 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 text-sm font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                    Cancel
+                  </button>
+                  <button type="button" (click)="saveNewCustomer()" [disabled]="savingCustomer"
+                          class="flex-1 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-semibold transition-colors flex items-center justify-center gap-2 shadow-sm">
+                    <svg *ngIf="savingCustomer" class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                    </svg>
+                    {{ savingCustomer ? 'Saving...' : 'Save Customer' }}
+                  </button>
+                </div>
+              </form>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- ─── SECTION 2: TRANSFER DETAILS ────────────── -->
+        <section class="canvas-section bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden"
+                 [class.section-locked]="!canProceedStep1()">
+
+          <div class="px-5 py-4 flex items-center gap-3.5 border-b border-slate-100 dark:border-slate-800">
+            <div class="w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0 transition-all duration-200"
+                 [ngClass]="canProceedStep2() ? 'bg-emerald-500 text-white' : (canProceedStep1() ? 'bg-blue-600 text-white step-num-active' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500')">
+              <svg *ngIf="canProceedStep2()" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+              </svg>
+              <span *ngIf="!canProceedStep2()">2</span>
+            </div>
+            <div>
+              <h2 class="text-sm font-semibold text-slate-900 dark:text-white">Transfer Details</h2>
+              <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Amount, destination and collection method</p>
+            </div>
+          </div>
+
+          <div class="px-5 py-5 space-y-5">
+
+            <!-- Destination + Method -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Send To <span class="text-red-500">*</span></label>
+                <select [(ngModel)]="receiverCountry" (change)="onReceiverCountryChange()"
+                        class="w-full px-3.5 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+                  <option value="">Select destination country</option>
+                  <option *ngFor="let c of countries" [value]="c.name">{{ c.name }}</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Collection Method <span class="text-red-500">*</span></label>
+                <select [(ngModel)]="selectedPaymentMethodId" (change)="onPaymentMethodChange()"
+                        class="w-full px-3.5 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+                  <option [ngValue]="null">Select method</option>
+                  <option *ngFor="let m of paymentMethods" [ngValue]="m.id">{{ m.name }}</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Route error -->
+            <div *ngIf="routeError"
+                 class="flex items-start gap-3 p-4 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-400 text-sm">
+              <svg class="w-4 h-4 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+              </svg>
+              {{ routeError }}
+            </div>
+
+            <!-- ── AMOUNT HERO PANEL ── -->
+            <div class="rounded-2xl overflow-hidden border border-slate-100 dark:border-slate-700">
+              <div class="bg-slate-50 dark:bg-slate-800/60 px-5 py-3 flex items-center justify-between border-b border-slate-100 dark:border-slate-700">
+                <span class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Exchange Calculator</span>
+                <div *ngIf="loadingCalc" class="flex items-center gap-1.5 text-xs text-blue-500 font-medium">
+                  <svg class="animate-spin w-3.5 h-3.5" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                  </svg>
+                  Calculating...
+                </div>
+                <div *ngIf="!loadingCalc && calculationDone" class="flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400 font-semibold">
+                  <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                  </svg>
+                  Rate confirmed
+                </div>
+              </div>
+
+              <div class="p-5 bg-white dark:bg-slate-900">
+                <div class="grid grid-cols-5 gap-4 items-end">
+
+                  <!-- Send side -->
+                  <div class="col-span-2 space-y-1.5">
+                    <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">You Send</label>
+                    <div class="relative">
+                      <div class="absolute left-3.5 top-1/2 -translate-y-1/2 flex items-center gap-1.5 pointer-events-none select-none z-10">
+                        <span class="text-sm font-bold text-slate-600 dark:text-slate-400">{{ senderCurrency }}</span>
+                        <span class="w-px h-5 bg-slate-200 dark:bg-slate-700"></span>
+                      </div>
+                      <input type="number" [(ngModel)]="sendAmount" (input)="onAmountChange()"
+                             min="0" step="0.01" placeholder="0.00"
+                             class="w-full pl-[5rem] pr-3 py-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-2xl font-bold focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition tabular-nums"/>
+                    </div>
+                  </div>
+
+                  <!-- Arrow -->
+                  <div class="col-span-1 flex flex-col items-center justify-center gap-2 pb-1">
+                    <div class="w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200"
+                         [ngClass]="calculationDone ? 'bg-blue-600 shadow-md shadow-blue-200/60 dark:shadow-blue-900' : 'bg-slate-100 dark:bg-slate-800'">
+                      <svg *ngIf="!loadingCalc" class="w-5 h-5 transition-colors"
+                           [ngClass]="calculationDone ? 'text-white' : 'text-slate-400'"
+                           fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
+                      </svg>
+                      <svg *ngIf="loadingCalc" class="animate-spin w-4 h-4 text-blue-500" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                      </svg>
+                    </div>
+                    <span *ngIf="exchangeRate > 0"
+                          class="text-[11px] font-semibold text-slate-500 dark:text-slate-400 tabular-nums text-center leading-tight">
+                      {{ exchangeRate | number:'1.4-4' }}
+                    </span>
+                  </div>
+
+                  <!-- Receive side -->
+                  <div class="col-span-2 space-y-1.5">
+                    <label class="block text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide">They Receive</label>
+                    <div class="relative">
+                      <div class="absolute left-3.5 top-1/2 -translate-y-1/2 flex items-center gap-1.5 pointer-events-none select-none z-10">
+                        <span class="text-sm font-bold transition-colors"
+                              [ngClass]="calculationDone && receiveAmount > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400'">
+                          {{ receiverCurrency }}
+                        </span>
+                        <span class="w-px h-5 bg-slate-200 dark:bg-slate-700"></span>
+                      </div>
+                      <div class="pl-[5rem] pr-3 py-4 rounded-xl border text-2xl font-bold tabular-nums min-h-[60px] flex items-center transition-all"
+                           [ngClass]="calculationDone && receiveAmount > 0
+                             ? 'border-emerald-300 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400'
+                             : 'border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 text-slate-300 dark:text-slate-600'">
+                        {{ receiveAmount > 0 ? (receiveAmount | number:'1.2-2') : '0.00' }}
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+
+                <!-- Charge breakdown -->
+                <div *ngIf="calculationDone" class="mt-5 pt-4 border-t border-slate-100 dark:border-slate-800 flex flex-wrap gap-x-6 gap-y-2">
+                  <div class="flex items-center gap-2 text-sm">
+                    <span class="text-slate-500 dark:text-slate-400">Service charge</span>
+                    <span class="font-semibold text-slate-700 dark:text-slate-300 tabular-nums">{{ serviceCharge | number:'1.2-2' }} {{ senderCurrency }}</span>
+                  </div>
+                  <div class="flex items-center gap-2 text-sm">
+                    <span class="text-slate-500 dark:text-slate-400">Total payable</span>
+                    <span class="font-bold text-blue-700 dark:text-blue-400 tabular-nums">{{ totalPayable | number:'1.2-2' }} {{ senderCurrency }}</span>
+                  </div>
+                  <div *ngIf="agentAvailableBalance !== null" class="flex items-center gap-2 text-sm ml-auto">
+                    <span class="text-slate-500 dark:text-slate-400">Your balance</span>
+                    <span class="font-semibold tabular-nums"
+                          [ngClass]="agentAvailableBalance >= totalPayable ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'">
+                      {{ agentAvailableBalance | number:'1.2-2' }} {{ senderCurrency }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Calc error -->
+            <div *ngIf="calcError"
+                 class="flex items-start gap-3 p-4 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 text-sm">
+              <svg class="w-4 h-4 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+              </svg>
+              {{ calcError }}
+            </div>
+
+            <!-- Balance warning -->
+            <div *ngIf="balanceWarning"
+                 class="flex items-start gap-3 p-4 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 text-sm">
+              <svg class="w-4 h-4 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+              </svg>
+              {{ balanceWarning }}
+            </div>
+
+            <!-- Limit warnings -->
+            <div *ngIf="exceedsSingleLimit"
+                 class="flex items-start gap-3 p-4 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 text-sm">
+              <svg class="w-4 h-4 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+              </svg>
+              <span>Amount exceeds single transaction limit of <strong class="tabular-nums">{{ singleTxnLimit | number:'1.2-2' }} {{ senderCurrency }}</strong></span>
+            </div>
+
+            <div *ngIf="needsManagerApproval && !exceedsSingleLimit"
+                 class="flex items-start gap-3 p-4 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-400 text-sm">
+              <svg class="w-4 h-4 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+              </svg>
+              <span>This amount requires manager approval (threshold: <strong class="tabular-nums">{{ managerApprovalThreshold | number:'1.2-2' }} {{ senderCurrency }}</strong>)</span>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- ─── SECTION 3: RECEIVER ──────────────────────── -->
+        <section class="canvas-section bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden"
+                 [class.section-locked]="!canProceedStep1()">
+
+          <div class="px-5 py-4 flex items-center gap-3.5 border-b border-slate-100 dark:border-slate-800">
+            <div class="w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0 transition-all duration-200"
+                 [ngClass]="selectedReceiver ? 'bg-emerald-500 text-white' : (canProceedStep1() ? 'bg-blue-600 text-white step-num-active' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500')">
+              <svg *ngIf="selectedReceiver" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+              </svg>
+              <span *ngIf="!selectedReceiver">3</span>
+            </div>
+            <div class="flex-1 min-w-0">
+              <h2 class="text-sm font-semibold text-slate-900 dark:text-white">Receiver</h2>
+              <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5 truncate">
+                <span *ngIf="receiverCountry">Sending to {{ receiverCountry }}</span>
+                <span *ngIf="!receiverCountry">Select destination country first</span>
+              </p>
+            </div>
+            <button *ngIf="!showCreateReceiver && canProceedStep1()"
+                    (click)="toggleCreateReceiver()"
+                    class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-violet-50 dark:bg-violet-900/20 text-violet-600 dark:text-violet-400 text-xs font-semibold hover:bg-violet-100 dark:hover:bg-violet-900/40 transition-colors flex-shrink-0">
+              <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+              </svg>
+              New Receiver
+            </button>
+          </div>
+
+          <div class="px-5 py-5 space-y-4">
+
+            <!-- Selected Receiver card -->
+            <div *ngIf="selectedReceiver"
+                 class="selected-card-appear flex items-center justify-between p-4 rounded-xl bg-violet-50 dark:bg-violet-900/20 border border-violet-200 dark:border-violet-800">
+              <div class="flex items-center gap-3 min-w-0">
+                <div class="w-11 h-11 rounded-full bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center text-white font-bold text-base flex-shrink-0">
+                  {{ selectedReceiver.fullName.charAt(0).toUpperCase() }}
+                </div>
+                <div class="min-w-0">
+                  <p class="font-semibold text-slate-900 dark:text-white text-sm truncate">{{ selectedReceiver.fullName }}</p>
+                  <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5 truncate">
+                    {{ selectedReceiver.phone }}
+                    <span *ngIf="selectedReceiver.bankName"> &middot; {{ selectedReceiver.bankName }}</span>
+                    <span *ngIf="selectedReceiver.accountNumber"> &middot; {{ selectedReceiver.accountNumber }}</span>
+                  </p>
+                </div>
+              </div>
+              <button (click)="clearSelectedReceiver()"
+                      class="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all flex-shrink-0 ml-2">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+              </button>
+            </div>
+
+            <!-- Search box -->
+            <div *ngIf="!selectedReceiver && !showCreateReceiver" class="relative">
+              <svg class="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0"/>
+              </svg>
+              <input type="text" [(ngModel)]="receiverSearch" (input)="filterReceivers()"
+                     placeholder="Search receiver by name or phone..."
+                     class="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent focus:bg-white dark:focus:bg-slate-700 transition"/>
+            </div>
+
+            <!-- Receiver list -->
+            <div *ngIf="!selectedReceiver && !showCreateReceiver && filteredReceivers.length > 0"
+                 class="space-y-2 max-h-56 overflow-y-auto">
+              <div *ngFor="let r of filteredReceivers"
+                   (click)="selectReceiver(r)"
+                   class="flex items-center gap-3.5 p-4 rounded-xl border border-slate-100 dark:border-slate-800 hover:border-violet-300 dark:hover:border-violet-700 hover:bg-violet-50 dark:hover:bg-violet-900/10 cursor-pointer transition-all group">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-violet-400 to-purple-600 flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
+                  {{ r.fullName.charAt(0).toUpperCase() }}
+                </div>
+                <div class="flex-1 min-w-0">
+                  <p class="text-sm font-semibold text-slate-900 dark:text-white group-hover:text-violet-700 dark:group-hover:text-violet-400 truncate">{{ r.fullName }}</p>
+                  <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5 truncate">
+                    {{ r.phone }}<span *ngIf="r.bankName"> &middot; {{ r.bankName }}</span>
+                  </p>
+                </div>
+                <svg class="w-4 h-4 text-slate-300 group-hover:text-violet-500 flex-shrink-0 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/>
+                </svg>
+              </div>
+            </div>
+
+            <!-- Empty state -->
+            <div *ngIf="!selectedReceiver && !showCreateReceiver && filteredReceivers.length === 0 && canProceedStep1()"
+                 class="py-10 text-center">
+              <div class="w-14 h-14 mx-auto mb-4 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+                <svg class="w-7 h-7 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                </svg>
+              </div>
+              <p class="text-sm font-medium text-slate-600 dark:text-slate-400">No receivers found<span *ngIf="receiverCountry"> for {{ receiverCountry }}</span></p>
+              <p class="text-xs text-slate-400 dark:text-slate-500 mt-1 mb-4">Add a new receiver to proceed</p>
+              <button (click)="toggleCreateReceiver()"
+                      class="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-sm font-semibold transition-colors shadow-sm">
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
+                </svg>
+                Add Receiver
+              </button>
+            </div>
+
+            <!-- ── NEW RECEIVER FORM ─────────────────────── -->
+            <div *ngIf="showCreateReceiver">
+              <div class="mb-5 flex items-center justify-between">
+                <div>
+                  <h3 class="font-semibold text-slate-900 dark:text-white text-sm">New Receiver</h3>
+                  <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Enter receiver details below</p>
+                </div>
+                <button (click)="toggleCreateReceiver()"
+                        class="flex items-center gap-1 text-xs text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 font-medium transition-colors">
+                  <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+                  </svg>
+                  Cancel
+                </button>
+              </div>
+
+              <form [formGroup]="receiverForm" class="space-y-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div class="sm:col-span-2">
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Full Name <span class="text-red-500">*</span></label>
+                    <input type="text" formControlName="fullName"
+                           class="w-full px-3.5 py-3 rounded-xl border text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                           [ngClass]="receiverFormErrors['fullName'] ? 'border-red-400 bg-red-50 dark:bg-red-900/20' : 'border-slate-200 dark:border-slate-700'"/>
+                    <p *ngIf="receiverFormErrors['fullName']" class="mt-1.5 text-xs text-red-500 font-medium">{{ receiverFormErrors['fullName'] }}</p>
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Phone <span class="text-red-500">*</span></label>
+                    <input type="tel" formControlName="phone"
+                           class="w-full px-3.5 py-3 rounded-xl border text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                           [ngClass]="receiverFormErrors['phone'] ? 'border-red-400' : 'border-slate-200 dark:border-slate-700'"/>
+                    <p *ngIf="receiverFormErrors['phone']" class="mt-1.5 text-xs text-red-500 font-medium">{{ receiverFormErrors['phone'] }}</p>
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Email</label>
+                    <input type="email" formControlName="email"
+                           class="w-full px-3.5 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"/>
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Country</label>
+                    <select formControlName="country"
+                            class="w-full px-3.5 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+                      <option value="">Select country</option>
+                      <option *ngFor="let c of countries" [value]="c.name">{{ c.name }}</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">City</label>
+                    <input type="text" formControlName="city"
+                           class="w-full px-3.5 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"/>
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Relationship</label>
+                    <select formControlName="relationship"
+                            class="w-full px-3.5 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+                      <option value="">Select</option>
+                      <option value="Family">Family</option>
+                      <option value="Friend">Friend</option>
+                      <option value="Business">Business</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+                </div>
+
+                <!-- Bank Transfer fields -->
+                <div *ngIf="isBankTransfer()" class="pt-4 border-t border-slate-100 dark:border-slate-800 space-y-4">
+                  <p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Bank Details</p>
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div *ngIf="payoutBanks.length > 0" class="sm:col-span-2">
+                      <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Bank <span class="text-red-500">*</span></label>
+                      <select [(ngModel)]="selectedBankId" [ngModelOptions]="{standalone: true}" (change)="onBankSelected()"
+                              class="w-full px-3.5 py-3 rounded-xl border text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                              [ngClass]="receiverFormErrors['bankName'] ? 'border-red-400 bg-red-50 dark:bg-red-900/20' : 'border-slate-200 dark:border-slate-700'">
+                        <option [ngValue]="null">Select bank</option>
+                        <option *ngFor="let b of payoutBanks" [ngValue]="b.id">{{ b.bankName }}</option>
+                      </select>
+                      <p *ngIf="receiverFormErrors['bankName']" class="mt-1.5 text-xs text-red-500 font-medium">{{ receiverFormErrors['bankName'] }}</p>
+                    </div>
+                    <div *ngIf="!payoutBanks.length">
+                      <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Bank Name <span class="text-red-500">*</span></label>
+                      <input type="text" formControlName="bankName"
+                             class="w-full px-3.5 py-3 rounded-xl border text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                             [ngClass]="receiverFormErrors['bankName'] ? 'border-red-400 bg-red-50 dark:bg-red-900/20' : 'border-slate-200 dark:border-slate-700'"/>
+                      <p *ngIf="receiverFormErrors['bankName']" class="mt-1.5 text-xs text-red-500 font-medium">{{ receiverFormErrors['bankName'] }}</p>
+                    </div>
+                    <div>
+                      <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Account Number <span class="text-red-500">*</span></label>
+                      <input type="text" formControlName="accountNumber"
+                             class="w-full px-3.5 py-3 rounded-xl border text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                             [ngClass]="receiverFormErrors['accountNumber'] ? 'border-red-400 bg-red-50 dark:bg-red-900/20' : 'border-slate-200 dark:border-slate-700'"/>
+                      <p *ngIf="receiverFormErrors['accountNumber']" class="mt-1.5 text-xs text-red-500 font-medium">{{ receiverFormErrors['accountNumber'] }}</p>
+                    </div>
+                    <div *ngIf="selectedBankId && payoutBanks.length > 0" class="sm:col-span-2">
+                      <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Branch</label>
+                      <div class="flex gap-2">
+                        <div class="flex-1 px-3.5 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-sm min-h-[46px] flex items-center text-slate-700 dark:text-slate-300">
+                          {{ selectedBranch ? selectedBranch.branchName : 'No branch selected' }}
+                        </div>
+                        <button type="button" (click)="openBranchPopup()"
+                                class="px-4 py-3 rounded-xl border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 text-sm font-semibold hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors whitespace-nowrap">
+                          Browse
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Cash Transfer fields -->
+                <div *ngIf="isCashTransfer()" class="pt-4 border-t border-slate-100 dark:border-slate-800 space-y-3">
+                  <p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Pickup Location</p>
+                  <select [(ngModel)]="selectedLocationId" [ngModelOptions]="{standalone: true}" (change)="onLocationSelected()"
+                          class="w-full px-3.5 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+                    <option [ngValue]="null">Select pickup location</option>
+                    <option *ngFor="let l of payoutLocations" [ngValue]="l.id">{{ l.locationName }}</option>
+                  </select>
+                </div>
+
+                <!-- Wallet / Mobile Money fields -->
+                <div *ngIf="isWalletTransfer()" class="pt-4 border-t border-slate-100 dark:border-slate-800 space-y-3">
+                  <p class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Wallet / Mobile Money</p>
+                  <div *ngIf="payoutLocations.length > 0">
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">Provider</label>
+                    <select [(ngModel)]="selectedLocationId" [ngModelOptions]="{standalone: true}" (change)="onLocationSelected()"
+                            class="w-full px-3.5 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+                      <option [ngValue]="null">Select provider</option>
+                      <option *ngFor="let l of payoutLocations" [ngValue]="l.id">{{ l.locationName }}</option>
+                    </select>
+                  </div>
+                </div>
+
+                <!-- Error & submit -->
+                <div *ngIf="receiverFormError"
+                     class="p-4 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 text-sm">
+                  {{ receiverFormError }}
+                </div>
+                <div class="flex gap-3 pt-2">
+                  <button type="button" (click)="toggleCreateReceiver()"
+                          class="flex-1 py-3 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 text-sm font-semibold hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                    Cancel
+                  </button>
+                  <button type="button" (click)="saveNewReceiver()" [disabled]="savingReceiver"
+                          class="flex-1 py-3 rounded-xl bg-violet-600 hover:bg-violet-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-semibold transition-colors flex items-center justify-center gap-2 shadow-sm">
+                    <svg *ngIf="savingReceiver" class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                    </svg>
+                    {{ savingReceiver ? 'Saving...' : 'Save Receiver' }}
+                  </button>
+                </div>
+              </form>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- ─── SECTION 4: COMPLIANCE ────────────────────── -->
+        <section class="canvas-section bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden"
+                 [class.section-locked]="!selectedReceiver">
+
+          <div class="px-5 py-4 flex items-center gap-3.5 border-b border-slate-100 dark:border-slate-800">
+            <div class="w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm flex-shrink-0 transition-all duration-200"
+                 [ngClass]="canProceedStep3() ? 'bg-emerald-500 text-white' : (selectedReceiver ? 'bg-blue-600 text-white step-num-active' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500')">
+              <svg *ngIf="canProceedStep3()" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+              </svg>
+              <span *ngIf="!canProceedStep3()">4</span>
+            </div>
+            <div>
+              <h2 class="text-sm font-semibold text-slate-900 dark:text-white">Compliance Information</h2>
+              <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Purpose &amp; source of funds declaration</p>
+            </div>
+          </div>
+
+          <div class="px-5 py-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                Purpose of Remittance <span class="text-red-500">*</span>
+              </label>
+              <select [(ngModel)]="purpose"
+                      class="w-full px-3.5 py-3 rounded-xl border text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                      [ngClass]="selectedReceiver && !purpose ? 'border-red-400 bg-red-50 dark:bg-red-900/20' : 'border-slate-200 dark:border-slate-700'">
+                <option value="">Select purpose</option>
+                <option value="Family Support">Family Support</option>
+                <option value="Education">Education</option>
+                <option value="Medical">Medical</option>
+                <option value="Business">Business</option>
+                <option value="Investment">Investment</option>
+                <option value="Gift">Gift</option>
+                <option value="Travel">Travel</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">
+                Source of Funds <span class="text-red-500">*</span>
+              </label>
+              <select [(ngModel)]="sourceOfFunds"
+                      class="w-full px-3.5 py-3 rounded-xl border text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                      [ngClass]="selectedReceiver && !sourceOfFunds ? 'border-red-400 bg-red-50 dark:bg-red-900/20' : 'border-slate-200 dark:border-slate-700'">
+                <option value="">Select source</option>
+                <option value="Salary">Salary / Employment</option>
+                <option value="Business">Business Income</option>
+                <option value="Savings">Savings</option>
+                <option value="Investment">Investment Returns</option>
+                <option value="Pension">Pension / Retirement</option>
+                <option value="Gift">Gift / Inheritance</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+          </div>
+        </section>
+
+        <!-- ─── MOBILE SUBMIT ────────────────────────────── -->
+        <div class="lg:hidden space-y-4">
+          <div *ngIf="complianceViolations.length > 0" class="space-y-2">
+            <div *ngFor="let v of complianceViolations; let i = index"
+                 class="alert-item flex items-start gap-3 p-4 rounded-xl text-sm border"
+                 [style.animation-delay.ms]="i * 50"
+                 [ngClass]="v.action === 'Block'
+                   ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-700 dark:text-red-400'
+                   : 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-400'">
+              <svg class="w-4 h-4 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+              </svg>
+              <div>
+                <p class="font-semibold">{{ v.ruleName }}</p>
+                <p class="text-xs opacity-80 mt-0.5">{{ v.description }}</p>
+              </div>
+            </div>
+          </div>
+
+          <button (click)="submitTransaction()"
+                  [disabled]="!canProceedStep3() || submitting || complianceBlocked || agentBalanceZero || exceedsSingleLimit"
+                  class="w-full py-4 rounded-2xl font-bold text-base transition-all flex items-center justify-center gap-2.5"
+                  [ngClass]="canProceedStep3() && !complianceBlocked && !agentBalanceZero && !exceedsSingleLimit
+                    ? 'bg-blue-600 hover:bg-blue-700 active:scale-[0.98] text-white shadow-lg shadow-blue-200/60 dark:shadow-blue-900/50'
+                    : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed'">
+            <svg *ngIf="submitting" class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+            </svg>
+            <svg *ngIf="!submitting" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5"/>
+            </svg>
+            {{ submitting ? 'Processing...' : 'Submit Transaction' }}
+          </button>
+        </div>
+
+      </div><!-- /LEFT COLUMN -->
+
+      <!-- ══════════════════════════════════════════════════
+           RIGHT STICKY PANEL
+           ══════════════════════════════════════════════════ -->
+      <aside class="w-72 xl:w-80 flex-shrink-0 hidden lg:block">
+        <div class="sticky top-[57px] flex flex-col gap-4">
+
+          <!-- BALANCE CARD -->
+          <div class="relative bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-700 rounded-2xl p-5 text-white overflow-hidden shadow-lg shadow-blue-200/50 dark:shadow-blue-900/40">
+            <div class="absolute -top-6 -right-6 w-28 h-28 rounded-full bg-white/5 pointer-events-none"></div>
+            <div class="absolute -bottom-4 -left-4 w-20 h-20 rounded-full bg-white/5 pointer-events-none"></div>
+            <div class="relative">
+              <div class="flex items-start justify-between mb-4">
+                <div>
+                  <p class="text-blue-200 text-xs font-semibold uppercase tracking-wider mb-1">Available Balance</p>
+                  <p class="text-3xl font-bold tabular-nums leading-none">
+                    {{ agentProfile ? ((agentProfile.creditLimit - agentProfile.currentBalance) | number:'1.2-2') : '—' }}
+                  </p>
+                  <p class="text-blue-200 text-sm mt-1.5">{{ senderCurrency }}</p>
+                </div>
+                <div class="w-11 h-11 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
+                  <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+                  </svg>
+                </div>
+              </div>
+              <div *ngIf="agentProfile && agentProfile.creditLimit > 0">
+                <div class="flex justify-between text-xs text-blue-200 mb-2">
+                  <span>Credit used</span>
+                  <span class="tabular-nums font-medium">
+                    {{ agentProfile.currentBalance | number:'1.0-0' }} / {{ agentProfile.creditLimit | number:'1.0-0' }}
+                  </span>
+                </div>
+                <div class="h-2 rounded-full bg-white/20 overflow-hidden">
+                  <div class="balance-bar-fill h-full rounded-full"
+                       [ngClass]="(agentProfile.currentBalance / agentProfile.creditLimit) > 0.85 ? 'bg-red-300' : 'bg-white/70'"
+                       [style.width.%]="agentProfile.creditLimit > 0 ? (agentProfile.currentBalance / agentProfile.creditLimit * 100) : 0">
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- LIVE CALCULATOR -->
+          <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden">
+            <div class="px-5 py-3.5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <div class="w-7 h-7 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center flex-shrink-0">
+                  <svg class="w-4 h-4 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                  </svg>
+                </div>
+                <h3 class="text-sm font-semibold text-slate-900 dark:text-white">Live Calculator</h3>
+              </div>
+              <svg *ngIf="loadingCalc" class="animate-spin w-4 h-4 text-blue-500" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+              </svg>
+            </div>
+
+            <div class="px-5 py-4 space-y-4">
+              <!-- Corridor -->
+              <div class="flex items-center gap-2 bg-slate-50 dark:bg-slate-800/60 rounded-xl p-3">
+                <div class="flex-1 text-center">
+                  <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-wide mb-0.5">From</p>
+                  <p class="font-bold text-sm text-slate-800 dark:text-slate-200">{{ senderCurrency || '—' }}</p>
+                  <p class="text-[11px] text-slate-500 dark:text-slate-400 truncate">{{ senderCountry || '—' }}</p>
+                </div>
+                <div class="flex-shrink-0">
+                  <div class="w-8 h-8 rounded-full flex items-center justify-center transition-colors"
+                       [ngClass]="calculationDone ? 'bg-emerald-100 dark:bg-emerald-900/30' : 'bg-slate-200 dark:bg-slate-700'">
+                    <svg class="w-4 h-4 transition-colors"
+                         [ngClass]="calculationDone ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400'"
+                         fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"/>
+                    </svg>
+                  </div>
+                </div>
+                <div class="flex-1 text-center">
+                  <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-wide mb-0.5">To</p>
+                  <p class="font-bold text-sm text-slate-800 dark:text-slate-200">{{ receiverCurrency || '—' }}</p>
+                  <p class="text-[11px] text-slate-500 dark:text-slate-400 truncate">{{ receiverCountry || '—' }}</p>
+                </div>
+              </div>
+
+              <!-- Breakdown rows -->
+              <div class="space-y-2.5">
+                <div class="flex justify-between items-center">
+                  <span class="text-sm text-slate-500 dark:text-slate-400">You Send</span>
+                  <span class="text-sm font-bold text-slate-900 dark:text-white tabular-nums">
+                    {{ sendAmount > 0 ? (sendAmount | number:'1.2-2') : '—' }}
+                    <span class="text-xs font-normal text-slate-400"> {{ senderCurrency }}</span>
+                  </span>
+                </div>
+                <div class="flex justify-between items-center">
+                  <span class="text-sm text-slate-500 dark:text-slate-400">Exchange Rate</span>
+                  <span class="text-sm font-medium text-slate-700 dark:text-slate-300 tabular-nums">
+                    {{ exchangeRate > 0 ? '1 = ' + (exchangeRate | number:'1.4-4') : '—' }}
+                  </span>
+                </div>
+                <div class="flex justify-between items-center">
+                  <span class="text-sm text-slate-500 dark:text-slate-400">Service Charge</span>
+                  <span class="text-sm font-medium text-slate-700 dark:text-slate-300 tabular-nums">
+                    {{ serviceCharge > 0 ? (serviceCharge | number:'1.2-2') + ' ' + senderCurrency : '—' }}
+                  </span>
+                </div>
+                <div class="flex justify-between items-center">
+                  <span class="text-sm font-medium text-slate-600 dark:text-slate-400">Total Payable</span>
+                  <span class="text-sm font-bold text-blue-700 dark:text-blue-400 tabular-nums">
+                    {{ totalPayable > 0 ? (totalPayable | number:'1.2-2') + ' ' + senderCurrency : '—' }}
+                  </span>
+                </div>
+                <div class="h-px bg-slate-100 dark:bg-slate-800"></div>
+                <div class="flex justify-between items-center">
+                  <span class="text-sm font-semibold text-slate-700 dark:text-slate-300">They Receive</span>
+                  <span class="text-xl font-bold tabular-nums transition-colors"
+                        [ngClass]="receiveAmount > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-300 dark:text-slate-600'">
+                    {{ receiveAmount > 0 ? (receiveAmount | number:'1.2-2') : '0.00' }}
+                    <span *ngIf="receiverCurrency" class="text-sm font-normal text-slate-400 dark:text-slate-500"> {{ receiverCurrency }}</span>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- COMPLIANCE ALERTS -->
+          <div *ngIf="complianceViolations.length > 0" class="space-y-2">
+            <div *ngFor="let v of complianceViolations; let i = index"
+                 class="alert-item flex items-start gap-3 p-4 rounded-xl text-sm border"
+                 [style.animation-delay.ms]="i * 50"
+                 [ngClass]="v.action === 'Block'
+                   ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-700 dark:text-red-400'
+                   : 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-400'">
+              <svg class="w-4 h-4 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+              </svg>
+              <div>
+                <p class="font-semibold">{{ v.ruleName }}</p>
+                <p class="text-xs opacity-80 mt-0.5">{{ v.description }}</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- TRANSACTION SUMMARY -->
+          <div *ngIf="selectedReceiver && calculationDone"
+               class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm overflow-hidden">
+            <div class="px-5 py-3.5 border-b border-slate-100 dark:border-slate-800">
+              <h3 class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Transaction Summary</h3>
+            </div>
+            <div class="px-5 py-4 space-y-3">
+              <div class="flex justify-between items-start gap-3">
+                <span class="text-sm text-slate-500 dark:text-slate-400 shrink-0">Sender</span>
+                <span class="font-semibold text-sm text-slate-900 dark:text-white text-right truncate">{{ selectedCustomer?.fullName || '—' }}</span>
+              </div>
+              <div class="flex justify-between items-start gap-3">
+                <span class="text-sm text-slate-500 dark:text-slate-400 shrink-0">Receiver</span>
+                <span class="font-semibold text-sm text-slate-900 dark:text-white text-right truncate">{{ selectedReceiver.fullName }}</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-sm text-slate-500 dark:text-slate-400">Destination</span>
+                <span class="font-semibold text-sm text-slate-900 dark:text-white">{{ receiverCountry }}</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-sm text-slate-500 dark:text-slate-400">Method</span>
+                <span class="font-semibold text-sm text-slate-900 dark:text-white">{{ getPayoutModeName() || '—' }}</span>
+              </div>
+              <div *ngIf="selectedBranch" class="flex justify-between items-start gap-3">
+                <span class="text-sm text-slate-500 dark:text-slate-400 shrink-0">Branch</span>
+                <span class="font-semibold text-sm text-slate-900 dark:text-white text-right truncate">{{ selectedBranch.branchName }}</span>
+              </div>
+              <div *ngIf="needsManagerApproval" class="flex items-center gap-2 pt-1 text-xs text-amber-600 dark:text-amber-400 font-semibold">
+                <svg class="w-3.5 h-3.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                </svg>
+                Requires manager approval
+              </div>
+            </div>
+          </div>
+
+          <!-- SUBMIT BUTTON -->
+          <button (click)="submitTransaction()"
+                  [disabled]="!canProceedStep3() || submitting || complianceBlocked || agentBalanceZero || exceedsSingleLimit"
+                  class="w-full py-4 rounded-2xl font-bold text-sm transition-all flex items-center justify-center gap-2.5"
+                  [ngClass]="canProceedStep3() && !complianceBlocked && !agentBalanceZero && !exceedsSingleLimit
+                    ? 'bg-blue-600 hover:bg-blue-700 active:scale-[0.98] text-white shadow-lg shadow-blue-200/60 dark:shadow-blue-900/50'
+                    : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed'">
+            <svg *ngIf="submitting" class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+            </svg>
+            <svg *ngIf="!submitting" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5"/>
+            </svg>
+            {{ submitting ? 'Processing...' : 'Submit Transaction' }}
+          </button>
+
+          <!-- Hint -->
+          <p *ngIf="!canProceedStep3()" class="text-xs text-center text-slate-400 dark:text-slate-500 -mt-1 px-2 leading-relaxed">
+            <ng-container *ngIf="!selectedCustomer">Select a customer to begin</ng-container>
+            <ng-container *ngIf="selectedCustomer && !calculationDone">Enter amount &amp; destination to calculate</ng-container>
+            <ng-container *ngIf="selectedCustomer && calculationDone && !selectedReceiver">Select or add a receiver</ng-container>
+            <ng-container *ngIf="selectedCustomer && calculationDone && selectedReceiver && !purpose">Select purpose of remittance</ng-container>
+            <ng-container *ngIf="selectedCustomer && calculationDone && selectedReceiver && !!purpose && !sourceOfFunds">Select source of funds</ng-container>
+          </p>
+
+        </div>
+      </aside>
+
+    </div>
+  </div>
+
+</div>

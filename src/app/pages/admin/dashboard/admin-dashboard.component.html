@@ -1,0 +1,466 @@
+<!-- Admin Dashboard -->
+<div class="space-y-6">
+
+  <!-- Page Header -->
+  <div class="flex items-center justify-between">
+    <div>
+      <h2 class="text-2xl font-bold tracking-tight text-surface-900 dark:text-surface-50">Dashboard</h2>
+      <p class="mt-0.5 text-sm text-surface-500 dark:text-surface-400">{{ getGreeting() }}! Here's your operational overview.</p>
+    </div>
+    <a routerLink="/admin/transactions"
+       class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold shadow-sm transition-all duration-150 active:scale-95">
+      <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15a2.25 2.25 0 0 1 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25Z"/>
+      </svg>
+      View Transactions
+    </a>
+  </div>
+
+  <!-- Loading Skeleton -->
+  <ng-container *ngIf="loading">
+
+    <!-- Primary Stat Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+      <div *ngFor="let i of [1,2,3,4]"
+           class="rounded-2xl border border-surface-100 dark:border-surface-700 bg-white dark:bg-surface-800 p-5 shadow-sm animate-pulse">
+        <div class="flex items-start justify-between">
+          <div class="space-y-3 flex-1">
+            <div class="h-3 w-28 rounded-full bg-surface-100 dark:bg-surface-700/50"></div>
+            <div class="h-8 w-24 rounded-lg bg-surface-100 dark:bg-surface-700/50"></div>
+            <div class="h-2.5 w-20 rounded-full bg-surface-100 dark:bg-surface-700/50"></div>
+          </div>
+          <div class="h-11 w-11 rounded-xl bg-surface-100 dark:bg-surface-700/50 flex-shrink-0"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Charts Row Skeleton -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div class="rounded-2xl border border-surface-100 dark:border-surface-700 bg-white dark:bg-surface-800 p-6 shadow-sm animate-pulse">
+        <div class="h-4 w-48 rounded-full bg-surface-100 dark:bg-surface-700/50 mb-6"></div>
+        <div class="flex items-end gap-3 h-44 px-1">
+          <div *ngFor="let i of [1,2,3,4,5,6]" class="flex-1 rounded-t-md bg-surface-100 dark:bg-surface-700/50"
+               [style.height]="['55%','70%','40%','85%','60%','75%'][i-1]"></div>
+        </div>
+      </div>
+      <div class="rounded-2xl border border-surface-100 dark:border-surface-700 bg-white dark:bg-surface-800 p-6 shadow-sm animate-pulse">
+        <div class="h-4 w-40 rounded-full bg-surface-100 dark:bg-surface-700/50 mb-6"></div>
+        <div class="flex items-center gap-8">
+          <div class="relative flex-shrink-0 w-36 h-36">
+            <div class="w-36 h-36 rounded-full bg-surface-100 dark:bg-surface-700/50"></div>
+            <div class="absolute inset-0 m-auto w-[84px] h-[84px] rounded-full bg-white dark:bg-surface-800"></div>
+          </div>
+          <div class="flex-1 space-y-3.5">
+            <div *ngFor="let i of [1,2,3]" class="flex items-center gap-2">
+              <div class="h-3 w-3 rounded-sm bg-surface-100 dark:bg-surface-700/50 flex-shrink-0"></div>
+              <div class="h-3 rounded-full bg-surface-100 dark:bg-surface-700/50" [style.width]="['8rem','6rem','7rem'][i-1]"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Row Skeleton -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div class="lg:col-span-2 rounded-2xl border border-surface-100 dark:border-surface-700 bg-white dark:bg-surface-800 p-6 shadow-sm animate-pulse">
+        <div class="h-4 w-44 rounded-full bg-surface-100 dark:bg-surface-700/50 mb-5"></div>
+        <div *ngFor="let i of [1,2,3,4,5]" class="flex gap-4 py-3.5 border-b border-surface-50 dark:border-surface-700">
+          <div class="h-3 w-20 rounded-full bg-surface-100 dark:bg-surface-700/50"></div>
+          <div class="h-3 w-24 rounded-full bg-surface-100 dark:bg-surface-700/50"></div>
+          <div class="h-3 w-16 rounded-full bg-surface-100 dark:bg-surface-700/50 ml-auto"></div>
+        </div>
+      </div>
+      <div class="space-y-5">
+        <div class="rounded-2xl border border-surface-100 dark:border-surface-700 bg-white dark:bg-surface-800 p-6 shadow-sm animate-pulse">
+          <div class="h-4 w-40 rounded-full bg-surface-100 dark:bg-surface-700/50 mb-5"></div>
+          <div *ngFor="let i of [1,2,3]" class="flex items-center justify-between py-3 border-b border-surface-50 dark:border-surface-700">
+            <div class="h-3 w-20 rounded-full bg-surface-100 dark:bg-surface-700/50"></div>
+            <div class="h-3 w-12 rounded-full bg-surface-100 dark:bg-surface-700/50"></div>
+          </div>
+        </div>
+        <div class="rounded-2xl border border-surface-100 dark:border-surface-700 bg-white dark:bg-surface-800 p-6 shadow-sm animate-pulse">
+          <div class="h-4 w-32 rounded-full bg-surface-100 dark:bg-surface-700/50 mb-4"></div>
+          <div class="space-y-2">
+            <div *ngFor="let i of [1,2,3]" class="h-10 w-full rounded-xl bg-surface-100 dark:bg-surface-700/50"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </ng-container>
+
+  <ng-container *ngIf="!loading && dashboard">
+
+    <!-- ── Primary KPI Cards ── -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 animate-fade-in">
+
+      <!-- Total Transactions -->
+      <a routerLink="/admin/transactions"
+         class="group rounded-2xl bg-white dark:bg-surface-800 border border-surface-100 dark:border-surface-700 p-5
+                shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-0.5 no-underline">
+        <div class="flex items-start justify-between gap-3">
+          <div class="space-y-1 min-w-0">
+            <p class="text-xs font-bold uppercase tracking-wider text-surface-400 dark:text-surface-500">Total Transactions</p>
+            <p class="text-2xl font-bold tabular-nums text-surface-900 dark:text-surface-50">{{ dashboard.totalTransactions | number }}</p>
+            <p class="text-xs font-medium truncate"
+               [ngClass]="monthChangeClass(dashboard.transactionsThisMonth, dashboard.transactionsLastMonth)">
+              {{ monthChangeText(dashboard.transactionsThisMonth, dashboard.transactionsLastMonth) }} this month
+            </p>
+          </div>
+          <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-50 dark:bg-brand-950/60 text-brand-600 dark:text-brand-400 flex-shrink-0 group-hover:scale-110 transition-transform duration-200">
+            <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15a2.25 2.25 0 0 1 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25Z"/>
+            </svg>
+          </div>
+        </div>
+      </a>
+
+      <!-- Service Charge Revenue -->
+      <a routerLink="/admin/reports/commissions"
+         class="group rounded-2xl bg-white dark:bg-surface-800 border border-surface-100 dark:border-surface-700 p-5
+                shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-0.5 no-underline">
+        <div class="flex items-start justify-between gap-3">
+          <div class="space-y-1 min-w-0">
+            <p class="text-xs font-bold uppercase tracking-wider text-surface-400 dark:text-surface-500">Service Charge Revenue</p>
+            <p class="text-2xl font-bold tabular-nums text-success-600 dark:text-success-400">{{ formatCurrency(dashboard.totalCommissionRevenue) }}</p>
+            <p class="text-xs font-medium truncate"
+               [ngClass]="monthChangeClass(dashboard.commissionThisMonth, dashboard.commissionLastMonth)">
+              {{ monthChangeText(dashboard.commissionThisMonth, dashboard.commissionLastMonth) }} this month
+            </p>
+          </div>
+          <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-success-50 dark:bg-success-900/20 text-success-600 dark:text-success-400 flex-shrink-0 group-hover:scale-110 transition-transform duration-200">
+            <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18 9 11.25l4.306 4.306a11.95 11.95 0 0 1 5.814-5.518l2.74-1.22m0 0-5.94-2.281m5.94 2.28-2.28 5.941"/>
+            </svg>
+          </div>
+        </div>
+      </a>
+
+      <!-- Active Agents -->
+      <a routerLink="/admin/agents"
+         class="group rounded-2xl bg-white dark:bg-surface-800 border border-surface-100 dark:border-surface-700 p-5
+                shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-0.5 no-underline">
+        <div class="flex items-start justify-between gap-3">
+          <div class="space-y-1 min-w-0">
+            <p class="text-xs font-bold uppercase tracking-wider text-surface-400 dark:text-surface-500">Active Agents</p>
+            <p class="text-2xl font-bold tabular-nums text-surface-900 dark:text-surface-50">{{ dashboard.activeAgents }}</p>
+            <p *ngIf="dashboard.pendingAgents > 0" class="text-xs font-medium text-brand-600 dark:text-brand-400 truncate">
+              {{ dashboard.pendingAgents }} pending approval
+            </p>
+            <p *ngIf="dashboard.pendingAgents === 0" class="text-xs font-medium text-success-600 dark:text-success-400">
+              No pending approvals
+            </p>
+          </div>
+          <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-warning-50 dark:bg-warning-900/20 text-warning-600 dark:text-warning-400 flex-shrink-0 group-hover:scale-110 transition-transform duration-200">
+            <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z"/>
+            </svg>
+          </div>
+        </div>
+      </a>
+
+      <!-- Compliance Alerts -->
+      <a routerLink="/admin/compliance"
+         class="group rounded-2xl bg-white dark:bg-surface-800 border border-surface-100 dark:border-surface-700 p-5
+                shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-0.5 no-underline">
+        <div class="flex items-start justify-between gap-3">
+          <div class="space-y-1 min-w-0">
+            <p class="text-xs font-bold uppercase tracking-wider text-surface-400 dark:text-surface-500">Compliance Alerts</p>
+            <p class="text-2xl font-bold tabular-nums"
+               [ngClass]="dashboard.unresolvedAlerts > 0 ? 'text-danger-600 dark:text-danger-400' : 'text-surface-900 dark:text-surface-50'">
+              {{ dashboard.unresolvedAlerts }}
+            </p>
+            <p *ngIf="dashboard.unresolvedAlerts > 0" class="text-xs font-medium text-danger-600 dark:text-danger-400">Requires attention</p>
+            <p *ngIf="dashboard.unresolvedAlerts === 0" class="text-xs font-medium text-success-600 dark:text-success-400">All clear</p>
+          </div>
+          <div class="flex h-11 w-11 items-center justify-center rounded-xl flex-shrink-0 group-hover:scale-110 transition-transform duration-200"
+               [ngClass]="dashboard.unresolvedAlerts > 0
+                 ? 'bg-danger-50 dark:bg-danger-900/20 text-danger-600 dark:text-danger-400'
+                 : 'bg-success-50 dark:bg-success-900/20 text-success-600 dark:text-success-400'">
+            <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/>
+            </svg>
+          </div>
+        </div>
+      </a>
+    </div>
+
+    <!-- ── Secondary Metrics Strip ── -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 animate-fade-in">
+      <div class="rounded-xl bg-white dark:bg-surface-800 border border-surface-100 dark:border-surface-700 px-4 py-3 shadow-sm">
+        <p class="text-[11px] font-bold uppercase tracking-wider text-surface-400 dark:text-surface-500 mb-0.5">Total Volume</p>
+        <p class="text-base font-bold tabular-nums text-surface-800 dark:text-surface-100">{{ formatCurrency(dashboard.totalVolume) }}</p>
+      </div>
+      <div class="rounded-xl bg-white dark:bg-surface-800 border border-surface-100 dark:border-surface-700 px-4 py-3 shadow-sm">
+        <p class="text-[11px] font-bold uppercase tracking-wider text-surface-400 dark:text-surface-500 mb-0.5">Customers</p>
+        <p class="text-base font-bold tabular-nums text-surface-800 dark:text-surface-100">{{ dashboard.totalCustomers | number }}</p>
+      </div>
+      <div class="rounded-xl bg-white dark:bg-surface-800 border border-surface-100 dark:border-surface-700 px-4 py-3 shadow-sm">
+        <p class="text-[11px] font-bold uppercase tracking-wider text-surface-400 dark:text-surface-500 mb-0.5">Active Corridors</p>
+        <p class="text-base font-bold tabular-nums text-surface-800 dark:text-surface-100">{{ dashboard.activeCorridors }}</p>
+      </div>
+      <div class="rounded-xl bg-white dark:bg-surface-800 border border-surface-100 dark:border-surface-700 px-4 py-3 shadow-sm">
+        <p class="text-[11px] font-bold uppercase tracking-wider text-surface-400 dark:text-surface-500 mb-0.5">This Month Volume</p>
+        <p class="text-base font-bold tabular-nums text-surface-800 dark:text-surface-100">{{ formatCurrency(dashboard.volumeThisMonth) }}</p>
+      </div>
+    </div>
+
+    <!-- ── Requires Action Banner ── -->
+    <div *ngIf="dashboard.failedTransactions > 0 || dashboard.onHoldTransactions > 0"
+         class="rounded-2xl border border-danger-200 dark:border-danger-800/60 bg-danger-50 dark:bg-danger-900/20 p-4 shadow-sm animate-fade-in">
+      <div class="flex items-center gap-3">
+        <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-danger-100 dark:bg-danger-800/40 text-danger-600 dark:text-danger-400 flex-shrink-0">
+          <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/>
+          </svg>
+        </div>
+        <div class="flex-1">
+          <p class="text-sm font-bold text-danger-800 dark:text-danger-300">Requires Action</p>
+          <p class="text-xs text-danger-600 dark:text-danger-400 mt-0.5">
+            {{ dashboard.failedTransactions }} failed &middot; {{ dashboard.onHoldTransactions }} on hold
+          </p>
+        </div>
+        <a routerLink="/admin/transactions" [queryParams]="{status: 'Failed'}"
+           class="px-3 py-1.5 rounded-lg bg-danger-600 hover:bg-danger-700 active:scale-95 text-white text-xs font-semibold transition-all duration-150 no-underline">
+          Review Now
+        </a>
+      </div>
+    </div>
+
+    <!-- ── Transaction Status Overview ── -->
+    <div class="rounded-2xl border border-surface-100 dark:border-surface-700 bg-white dark:bg-surface-800 p-5 shadow-sm animate-fade-in">
+      <h3 class="text-xs font-bold uppercase tracking-wider text-surface-400 dark:text-surface-500 mb-3">Transaction Status</h3>
+      <div class="grid grid-cols-3 sm:grid-cols-6 gap-2">
+        <a routerLink="/admin/transactions" [queryParams]="{status: 'Failed'}"
+           class="flex flex-col items-center gap-1.5 p-3 rounded-xl border border-danger-200 dark:border-danger-800/60 bg-danger-50 dark:bg-danger-900/20 hover:bg-danger-100 dark:hover:bg-danger-900/30 transition-colors cursor-pointer no-underline">
+          <span class="text-xl font-bold tabular-nums text-danger-600 dark:text-danger-400">{{ dashboard.failedTransactions }}</span>
+          <span class="text-[11px] font-semibold text-danger-700 dark:text-danger-400">Failed</span>
+        </a>
+        <a routerLink="/admin/transactions" [queryParams]="{status: 'OnHold'}"
+           class="flex flex-col items-center gap-1.5 p-3 rounded-xl border border-warning-200 dark:border-warning-800/60 bg-warning-50 dark:bg-warning-900/20 hover:bg-warning-100 dark:hover:bg-warning-900/30 transition-colors cursor-pointer no-underline">
+          <span class="text-xl font-bold tabular-nums text-warning-600 dark:text-warning-400">{{ dashboard.onHoldTransactions }}</span>
+          <span class="text-[11px] font-semibold text-warning-700 dark:text-warning-400">On Hold</span>
+        </a>
+        <a routerLink="/admin/transactions" [queryParams]="{status: 'Pending'}"
+           class="flex flex-col items-center gap-1.5 p-3 rounded-xl border border-warning-100 dark:border-warning-900/40 bg-warning-50/60 dark:bg-warning-900/10 hover:bg-warning-100 dark:hover:bg-warning-900/20 transition-colors cursor-pointer no-underline">
+          <span class="text-xl font-bold tabular-nums text-warning-600 dark:text-warning-400">{{ dashboard.pendingTransactions }}</span>
+          <span class="text-[11px] font-semibold text-warning-700 dark:text-warning-400">Pending</span>
+        </a>
+        <a routerLink="/admin/transactions" [queryParams]="{status: 'Processing'}"
+           class="flex flex-col items-center gap-1.5 p-3 rounded-xl border border-brand-200 dark:border-brand-800/60 bg-brand-50 dark:bg-brand-900/20 hover:bg-brand-100 dark:hover:bg-brand-900/30 transition-colors cursor-pointer no-underline">
+          <span class="text-xl font-bold tabular-nums text-brand-600 dark:text-brand-400">{{ dashboard.processingTransactions }}</span>
+          <span class="text-[11px] font-semibold text-brand-700 dark:text-brand-400">Processing</span>
+        </a>
+        <a routerLink="/admin/transactions" [queryParams]="{status: 'Completed'}"
+           class="flex flex-col items-center gap-1.5 p-3 rounded-xl border border-success-200 dark:border-success-800/60 bg-success-50 dark:bg-success-900/20 hover:bg-success-100 dark:hover:bg-success-900/30 transition-colors cursor-pointer no-underline">
+          <span class="text-xl font-bold tabular-nums text-success-600 dark:text-success-400">{{ dashboard.completedTransactions }}</span>
+          <span class="text-[11px] font-semibold text-success-700 dark:text-success-400">Completed</span>
+        </a>
+        <a routerLink="/admin/transactions" [queryParams]="{status: 'Cancelled'}"
+           class="flex flex-col items-center gap-1.5 p-3 rounded-xl border border-surface-200 dark:border-surface-700 bg-surface-50 dark:bg-surface-800/60 hover:bg-surface-100 dark:hover:bg-surface-750 transition-colors cursor-pointer no-underline">
+          <span class="text-xl font-bold tabular-nums text-surface-500 dark:text-surface-400">{{ dashboard.cancelledTransactions }}</span>
+          <span class="text-[11px] font-semibold text-surface-500 dark:text-surface-400">Cancelled</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- ── Charts Section ── -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-fade-in">
+      <div class="rounded-2xl border border-surface-100 dark:border-surface-700 bg-white dark:bg-surface-800 p-6 shadow-sm">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-sm font-bold text-surface-800 dark:text-surface-100">Transaction Volume</h3>
+          <a routerLink="/admin/reports/transactions" class="text-xs font-semibold text-brand-600 dark:text-brand-400 hover:text-brand-700 dark:hover:text-brand-300 transition-colors">Full Report →</a>
+        </div>
+        <div echarts [options]="volumeChartOptions" class="w-full h-64"></div>
+      </div>
+      <div class="rounded-2xl border border-surface-100 dark:border-surface-700 bg-white dark:bg-surface-800 p-6 shadow-sm">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-sm font-bold text-surface-800 dark:text-surface-100">Revenue Breakdown</h3>
+          <a routerLink="/admin/reports/revenue" class="text-xs font-semibold text-brand-600 dark:text-brand-400 hover:text-brand-700 dark:hover:text-brand-300 transition-colors">Full Report →</a>
+        </div>
+        <div echarts [options]="revenueChartOptions" class="w-full h-64"></div>
+      </div>
+    </div>
+
+    <!-- ── Bottom Grid: Transactions + Right Column ── -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-slide-up">
+
+      <!-- Recent Transactions (2/3) -->
+      <div class="lg:col-span-2 rounded-2xl border border-surface-100 dark:border-surface-700 bg-white dark:bg-surface-800 shadow-sm overflow-hidden">
+        <div class="flex items-center justify-between px-6 py-4 border-b border-surface-100 dark:border-surface-700">
+          <h3 class="text-sm font-bold uppercase tracking-wider text-surface-400 dark:text-surface-500">Recent Transactions</h3>
+          <a routerLink="/admin/transactions" class="text-xs font-semibold text-brand-600 dark:text-brand-400 hover:text-brand-700 dark:hover:text-brand-300 transition-colors">
+            View all →
+          </a>
+        </div>
+
+        <div *ngIf="dashboard.recentTransactions.length === 0"
+             class="flex flex-col items-center justify-center py-14 px-6 text-center">
+          <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-surface-100 dark:bg-surface-700/50 mb-4">
+            <svg class="h-7 w-7 text-surface-400" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15a2.25 2.25 0 0 1 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25Z"/>
+            </svg>
+          </div>
+          <p class="text-sm font-medium text-surface-700 dark:text-surface-300">No transactions yet</p>
+          <p class="text-xs text-surface-400 dark:text-surface-500 mt-1">Recent activity will appear here</p>
+        </div>
+
+        <div *ngIf="dashboard.recentTransactions.length > 0" class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead>
+              @for (headerGroup of table.getHeaderGroups(); track headerGroup.id) {
+                <tr class="bg-surface-50/70 dark:bg-surface-900/60">
+                  @for (header of headerGroup.headers; track header.id) {
+                    <th scope="col"
+                        class="px-4 py-3 text-left text-[11px] font-bold uppercase tracking-wider text-surface-400 dark:text-surface-500 cursor-pointer select-none hover:text-surface-600 dark:hover:text-surface-300 transition-colors"
+                        (click)="header.column.getToggleSortingHandler()?.($event)">
+                      <div class="flex items-center gap-1.5">
+                        <ng-container *flexRender="header.column.columnDef.header; props: header.getContext(); let headerText">
+                          {{ headerText }}
+                        </ng-container>
+                        <span class="text-surface-400 dark:text-surface-500 text-2xs">{{ getSortIcon(header.column.id) }}</span>
+                      </div>
+                    </th>
+                  }
+                </tr>
+              }
+            </thead>
+            <tbody class="divide-y divide-surface-50 dark:divide-surface-700/50">
+              @for (row of table.getRowModel().rows; track row.id) {
+                <tr class="hover:bg-surface-50/70 dark:hover:bg-surface-750/60 transition-colors duration-100 cursor-pointer"
+                    [routerLink]="['/admin/transactions', row.original.referenceNumber]">
+                  @for (cell of row.getVisibleCells(); track cell.id) {
+                    <td class="px-4 py-3 whitespace-nowrap">
+                      <!-- Reference Number -->
+                      <ng-container *ngIf="cell.column.id === 'referenceNumber'">
+                        <span class="font-mono text-xs font-medium text-surface-600 dark:text-surface-400 bg-surface-100 dark:bg-surface-700/60 px-2 py-0.5 rounded-md">
+                          <ng-container *flexRender="cell.column.columnDef.cell; props: cell.getContext(); let cellValue">{{ cellValue }}</ng-container>
+                        </span>
+                      </ng-container>
+                      <!-- Status -->
+                      <ng-container *ngIf="cell.column.id === 'status'">
+                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold"
+                              [ngClass]="getStatusClass('' + cell.getValue())">
+                          <span class="h-1.5 w-1.5 rounded-full bg-current opacity-80"></span>
+                          <ng-container *flexRender="cell.column.columnDef.cell; props: cell.getContext(); let cellValue">{{ cellValue }}</ng-container>
+                        </span>
+                      </ng-container>
+                      <!-- Default cells -->
+                      <ng-container *ngIf="cell.column.id !== 'referenceNumber' && cell.column.id !== 'status'">
+                        <span class="text-surface-700 dark:text-surface-300">
+                          <ng-container *flexRender="cell.column.columnDef.cell; props: cell.getContext(); let cellValue">{{ cellValue }}</ng-container>
+                        </span>
+                      </ng-container>
+                    </td>
+                  }
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Right Column (1/3) -->
+      <div class="space-y-5">
+
+        <!-- Active Exchange Rates -->
+        <div class="rounded-2xl border border-surface-100 dark:border-surface-700 bg-white dark:bg-surface-800 shadow-sm overflow-hidden">
+          <div class="flex items-center justify-between px-5 py-4 border-b border-surface-100 dark:border-surface-700">
+            <h3 class="text-sm font-bold uppercase tracking-wider text-surface-400 dark:text-surface-500">Exchange Rates</h3>
+            <a routerLink="/admin/rates" class="text-xs font-semibold text-brand-600 dark:text-brand-400 hover:text-brand-700 dark:hover:text-brand-300 transition-colors">Edit</a>
+          </div>
+
+          <div *ngIf="dashboard.activeExchangeRates.length === 0"
+               class="px-5 py-6 text-sm text-surface-500 dark:text-surface-400 text-center">
+            No active rates configured.
+          </div>
+
+          <div *ngIf="dashboard.activeExchangeRates.length > 0"
+               class="divide-y divide-surface-50 dark:divide-surface-700/40">
+            <div *ngFor="let rate of dashboard.activeExchangeRates"
+                 class="flex items-center justify-between px-5 py-3 hover:bg-surface-50/70 dark:hover:bg-surface-700/40 transition-colors">
+              <div class="flex items-center gap-1.5">
+                <span class="text-sm font-semibold text-surface-700 dark:text-surface-300">{{ rate.sourceCurrency }}</span>
+                <svg class="w-3.5 h-3.5 text-surface-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"/>
+                </svg>
+                <span class="text-sm font-semibold text-surface-700 dark:text-surface-300">{{ rate.destinationCurrency }}</span>
+              </div>
+              <span class="text-sm font-bold tabular-nums text-success-600 dark:text-success-400 font-mono">
+                {{ rate.rate | number:'1.2-4' }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="rounded-2xl border border-surface-100 dark:border-surface-700 bg-white dark:bg-surface-800 p-5 shadow-sm">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-surface-400 dark:text-surface-500 mb-3">Quick Actions</h3>
+          <div class="space-y-2">
+            <a routerLink="/admin/rates"
+               class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold
+                      text-white bg-brand-600 hover:bg-brand-700 active:scale-[0.98]
+                      transition-all duration-150 no-underline shadow-sm">
+              <div class="flex h-7 w-7 items-center justify-center rounded-lg bg-white/20 shrink-0">
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/>
+                </svg>
+              </div>
+              <span>Update Rates</span>
+              <svg class="h-4 w-4 ml-auto opacity-70 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/>
+              </svg>
+            </a>
+            <a routerLink="/admin/agents"
+               class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold
+                      text-surface-700 dark:text-surface-200 bg-surface-50 dark:bg-surface-700/40
+                      hover:bg-surface-100 dark:hover:bg-surface-700/70 active:scale-[0.98]
+                      transition-all duration-150 no-underline border border-transparent dark:border-surface-700/50">
+              <div class="flex h-7 w-7 items-center justify-center rounded-lg bg-warning-100 dark:bg-warning-900/30 text-warning-600 dark:text-warning-400 shrink-0">
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.766Z"/>
+                </svg>
+              </div>
+              <span>Add Agent</span>
+              <svg class="h-4 w-4 ml-auto opacity-40 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/>
+              </svg>
+            </a>
+            <a routerLink="/admin/compliance"
+               class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold
+                      text-danger-700 dark:text-danger-400 bg-danger-50 dark:bg-danger-900/20
+                      hover:bg-danger-100 dark:hover:bg-danger-900/30 active:scale-[0.98]
+                      transition-all duration-150 no-underline">
+              <div class="flex h-7 w-7 items-center justify-center rounded-lg bg-danger-100 dark:bg-danger-800/40 text-danger-600 dark:text-danger-400 shrink-0">
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z"/>
+                </svg>
+              </div>
+              <span>View Alerts</span>
+              <svg class="h-4 w-4 ml-auto opacity-40 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/>
+              </svg>
+            </a>
+            <a routerLink="/admin/routing"
+               class="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold
+                      text-surface-700 dark:text-surface-200 bg-surface-50 dark:bg-surface-700/40
+                      hover:bg-surface-100 dark:hover:bg-surface-700/70 active:scale-[0.98]
+                      transition-all duration-150 no-underline border border-transparent dark:border-surface-700/50">
+              <div class="flex h-7 w-7 items-center justify-center rounded-lg bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 shrink-0">
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 21 3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5"/>
+                </svg>
+              </div>
+              <span>Configure Routing</span>
+              <svg class="h-4 w-4 ml-auto opacity-40 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5"/>
+              </svg>
+            </a>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </ng-container>
+</div>

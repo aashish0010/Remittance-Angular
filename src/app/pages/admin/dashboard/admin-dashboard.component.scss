@@ -1,0 +1,17 @@
+// ---------------------------------------------------------------------------
+// Admin Dashboard Styles — Tailwind-first, minimal SCSS overrides
+// ---------------------------------------------------------------------------
+
+// Ensure anchor tags used as cards don't inherit link styles
+:host {
+  display: block;
+
+  a {
+    text-decoration: none;
+  }
+}
+
+// No-underline helper (backup for template class)
+.no-underline {
+  text-decoration: none;
+}

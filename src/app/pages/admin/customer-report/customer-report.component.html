@@ -1,0 +1,260 @@
+<!-- Page Header -->
+<div class="mb-6">
+  <h2 class="text-2xl font-bold text-surface-900 dark:text-surface-100">Customer Report</h2>
+</div>
+
+<!-- Summary Cards -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-5">
+  <!-- Total Customers -->
+  <div class="flex items-center gap-3.5 px-5 py-4 rounded-xl bg-white dark:bg-surface-800 border border-surface-200 dark:border-surface-700 shadow-sm">
+    <div class="w-10 h-10 rounded-xl bg-brand-600 flex items-center justify-center flex-shrink-0">
+      <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128H9m6 0a5.972 5.972 0 0 0-.786-3.07M9 19.128A9.38 9.38 0 0 1 6.375 19.5a9.337 9.337 0 0 1-4.121-.952 4.125 4.125 0 0 1 7.533-2.493M9 19.128v-.003c0-1.113.285-2.16.786-3.07m0 0a5.97 5.97 0 0 1 4.428-2.223 5.97 5.97 0 0 1 4.428 2.223M12 9.75a3.375 3.375 0 1 1 0-6.75 3.375 3.375 0 0 1 0 6.75Z"/></svg>
+    </div>
+    <div class="flex flex-col gap-px">
+      <span class="text-[22px] font-bold leading-tight text-surface-900 dark:text-surface-100">{{ totalCustomers }}</span>
+      <span class="text-xs font-medium text-surface-500 dark:text-surface-400">Total Customers</span>
+    </div>
+  </div>
+
+  <!-- KYC Verified -->
+  <div class="flex items-center gap-3.5 px-5 py-4 rounded-xl bg-white dark:bg-surface-800 border border-surface-200 dark:border-surface-700 shadow-sm">
+    <div class="w-10 h-10 rounded-xl bg-success-600 flex items-center justify-center flex-shrink-0">
+      <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z"/></svg>
+    </div>
+    <div class="flex flex-col gap-px">
+      <span class="text-[22px] font-bold leading-tight text-success-600">{{ kycVerified }}</span>
+      <span class="text-xs font-medium text-surface-500 dark:text-surface-400">KYC Verified</span>
+    </div>
+  </div>
+
+  <!-- KYC Pending -->
+  <div class="flex items-center gap-3.5 px-5 py-4 rounded-xl bg-white dark:bg-surface-800 border border-surface-200 dark:border-surface-700 shadow-sm">
+    <div class="w-10 h-10 rounded-xl bg-warning-600 flex items-center justify-center flex-shrink-0">
+      <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+    </div>
+    <div class="flex flex-col gap-px">
+      <span class="text-[22px] font-bold leading-tight text-warning-600">{{ kycPending }}</span>
+      <span class="text-xs font-medium text-surface-500 dark:text-surface-400">KYC Pending</span>
+    </div>
+  </div>
+</div>
+
+<!-- Loading -->
+<div *ngIf="loading" class="flex items-center justify-center py-16">
+  <svg class="animate-spin h-10 w-10 text-brand-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+  </svg>
+</div>
+
+<!-- Search + Table -->
+<div *ngIf="!loading" class="rounded-2xl border border-surface-200 dark:border-surface-700 bg-white dark:bg-surface-800 p-6 shadow-soft">
+  <!-- Search -->
+  <div class="relative mb-5">
+    <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-surface-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/></svg>
+    <input
+      type="text"
+      placeholder="Search customers..."
+      [(ngModel)]="searchString"
+      (ngModelChange)="applyFilter()"
+      class="w-full pl-10 pr-3 py-2 rounded-lg border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-700 text-surface-900 dark:text-surface-100 focus:ring-2 focus:ring-brand-500 outline-none transition placeholder:text-surface-400"
+    />
+  </div>
+
+  <!-- Table -->
+  <div class="overflow-x-auto">
+    <table class="w-full text-sm text-left">
+      <thead>
+        <tr class="border-b border-surface-200 dark:border-surface-700">
+          <th scope="col" class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-300">Full Name</th>
+          <th scope="col" class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-300">Email</th>
+          <th scope="col" class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-300">Phone</th>
+          <th scope="col" class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-300">Country</th>
+          <th scope="col" class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-300">KYC</th>
+          <th scope="col" class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-300">Created</th>
+          <th scope="col" class="px-4 py-3 font-semibold text-surface-600 dark:text-surface-300">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let c of filteredCustomers" class="border-b border-surface-100 dark:border-surface-700 hover:bg-surface-50 dark:hover:bg-surface-750 transition-colors">
+          <td class="px-4 py-3 text-surface-900 dark:text-surface-100 font-medium">{{ c.fullName }}</td>
+          <td class="px-4 py-3 text-surface-700 dark:text-surface-300">{{ c.email || '-' }}</td>
+          <td class="px-4 py-3 text-surface-700 dark:text-surface-300">{{ c.phone || '-' }}</td>
+          <td class="px-4 py-3 text-surface-700 dark:text-surface-300">{{ c.country }}</td>
+          <td class="px-4 py-3">
+            <span
+              class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold"
+              [ngClass]="c.isKycVerified
+                ? 'bg-success-100 text-success-700 dark:bg-success-900/30 dark:text-success-400'
+                : 'bg-warning-100 text-warning-700 dark:bg-warning-900/30 dark:text-warning-400'"
+            >
+              {{ c.isKycVerified ? 'Verified' : 'Pending' }}
+            </span>
+          </td>
+          <td class="px-4 py-3 text-surface-700 dark:text-surface-300">{{ c.createdAt | date:'dd/MM/yyyy' }}</td>
+          <td class="px-4 py-3">
+            <div class="flex items-center gap-1">
+              <!-- View Details -->
+              <button
+                aria-label="View Details"
+                (click)="viewDetail(c)"
+                class="p-1.5 rounded-lg text-brand-600 dark:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-colors"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>
+              </button>
+              <!-- Documents -->
+              <button
+                aria-label="Documents"
+                (click)="viewDocuments(c)"
+                class="p-1.5 rounded-lg text-brand-500 dark:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-colors"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 9.776c.112-.017.227-.026.344-.026h15.812c.117 0 .232.009.344.026m-16.5 0a2.25 2.25 0 0 0-1.883 2.542l.857 6a2.25 2.25 0 0 0 2.227 1.932H19.05a2.25 2.25 0 0 0 2.227-1.932l.857-6a2.25 2.25 0 0 0-1.883-2.542m-16.5 0V6A2.25 2.25 0 0 1 6 3.75h3.879a1.5 1.5 0 0 1 1.06.44l2.122 2.12a1.5 1.5 0 0 0 1.06.44H18A2.25 2.25 0 0 1 20.25 9v.776"/></svg>
+              </button>
+              <!-- Approve KYC -->
+              <button
+                *ngIf="!c.isKycVerified"
+                aria-label="Approve KYC"
+                (click)="approveKyc(c)"
+                class="p-1.5 rounded-lg text-success-600 dark:text-success-400 hover:bg-success-50 dark:hover:bg-success-900/20 transition-colors"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+              </button>
+              <!-- Reject KYC -->
+              <button
+                *ngIf="c.isKycVerified"
+                aria-label="Reject KYC"
+                (click)="rejectKyc(c)"
+                class="p-1.5 rounded-lg text-danger-600 dark:text-danger-400 hover:bg-danger-50 dark:hover:bg-danger-900/20 transition-colors"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Empty state -->
+  <div *ngIf="!filteredCustomers.length && !loading" class="py-12 text-center text-surface-400 dark:text-surface-500 text-sm">
+    No customers found.
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- Detail Popup                                                  -->
+<!-- ============================================================ -->
+<div *ngIf="showDetail && detailCustomer" class="fixed inset-0 bg-black/50 z-50" (click)="closeDetail()"></div>
+<div *ngIf="showDetail && detailCustomer"
+     role="dialog" aria-modal="true" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[51] w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl bg-white dark:bg-surface-800 shadow-xl p-6">
+  <!-- Header -->
+  <div class="flex items-center justify-between mb-5">
+    <h3 class="flex items-center gap-2 text-lg font-semibold text-surface-900 dark:text-surface-100">
+      <svg class="w-5 h-5 text-brand-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/></svg>
+      Customer Details
+    </h3>
+    <button (click)="closeDetail()" class="p-1.5 rounded-lg text-surface-500 hover:bg-surface-100 dark:hover:bg-surface-700 transition-colors">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
+    </button>
+  </div>
+
+  <!-- Detail Grid -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <div class="flex flex-col gap-1"><span class="text-xs font-medium text-surface-500 dark:text-surface-400">Full Name</span><span class="text-sm text-surface-900 dark:text-surface-100">{{ detailCustomer.fullName }}</span></div>
+    <div class="flex flex-col gap-1"><span class="text-xs font-medium text-surface-500 dark:text-surface-400">Email</span><span class="text-sm text-surface-900 dark:text-surface-100">{{ detailCustomer.email || '-' }}</span></div>
+    <div class="flex flex-col gap-1"><span class="text-xs font-medium text-surface-500 dark:text-surface-400">Phone</span><span class="text-sm text-surface-900 dark:text-surface-100">{{ detailCustomer.phone || '-' }}</span></div>
+    <div class="flex flex-col gap-1"><span class="text-xs font-medium text-surface-500 dark:text-surface-400">Date of Birth</span><span class="text-sm text-surface-900 dark:text-surface-100">{{ detailCustomer.dateOfBirth || '-' }}</span></div>
+    <div class="flex flex-col gap-1"><span class="text-xs font-medium text-surface-500 dark:text-surface-400">Gender</span><span class="text-sm text-surface-900 dark:text-surface-100">{{ detailCustomer.gender || '-' }}</span></div>
+    <div class="flex flex-col gap-1"><span class="text-xs font-medium text-surface-500 dark:text-surface-400">Nationality</span><span class="text-sm text-surface-900 dark:text-surface-100">{{ detailCustomer.nationality || '-' }}</span></div>
+    <div class="flex flex-col gap-1"><span class="text-xs font-medium text-surface-500 dark:text-surface-400">Country</span><span class="text-sm text-surface-900 dark:text-surface-100">{{ detailCustomer.country }}</span></div>
+    <div class="flex flex-col gap-1"><span class="text-xs font-medium text-surface-500 dark:text-surface-400">City</span><span class="text-sm text-surface-900 dark:text-surface-100">{{ detailCustomer.city || '-' }}</span></div>
+    <div class="flex flex-col gap-1"><span class="text-xs font-medium text-surface-500 dark:text-surface-400">State</span><span class="text-sm text-surface-900 dark:text-surface-100">{{ detailCustomer.state || '-' }}</span></div>
+    <div class="flex flex-col gap-1"><span class="text-xs font-medium text-surface-500 dark:text-surface-400">Postal Code</span><span class="text-sm text-surface-900 dark:text-surface-100">{{ detailCustomer.postalCode || '-' }}</span></div>
+    <div class="flex flex-col gap-1 sm:col-span-2"><span class="text-xs font-medium text-surface-500 dark:text-surface-400">Address</span><span class="text-sm text-surface-900 dark:text-surface-100">{{ detailCustomer.address || '-' }}</span></div>
+    <div class="flex flex-col gap-1"><span class="text-xs font-medium text-surface-500 dark:text-surface-400">Document Type</span><span class="text-sm text-surface-900 dark:text-surface-100">{{ detailCustomer.idDocumentType || '-' }}</span></div>
+    <div class="flex flex-col gap-1"><span class="text-xs font-medium text-surface-500 dark:text-surface-400">Document Number</span><span class="text-sm text-surface-900 dark:text-surface-100">{{ detailCustomer.idDocumentNumber || '-' }}</span></div>
+    <div class="flex flex-col gap-1">
+      <span class="text-xs font-medium text-surface-500 dark:text-surface-400">KYC Status</span>
+      <span
+        class="inline-flex items-center self-start px-2.5 py-0.5 rounded-full text-xs font-semibold"
+        [ngClass]="detailCustomer.isKycVerified
+          ? 'bg-success-100 text-success-700 dark:bg-success-900/30 dark:text-success-400'
+          : 'bg-warning-100 text-warning-700 dark:bg-warning-900/30 dark:text-warning-400'"
+      >
+        {{ detailCustomer.isKycVerified ? 'Verified' : 'Pending' }}
+      </span>
+    </div>
+    <div class="flex flex-col gap-1"><span class="text-xs font-medium text-surface-500 dark:text-surface-400">Created</span><span class="text-sm text-surface-900 dark:text-surface-100">{{ detailCustomer.createdAt | date:'dd/MM/yyyy' }}</span></div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- Document Viewer Popup                                         -->
+<!-- ============================================================ -->
+<div *ngIf="showDocViewer" class="fixed inset-0 bg-black/50 z-50" (click)="closeDocViewer()"></div>
+<div *ngIf="showDocViewer"
+     role="dialog" aria-modal="true" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[51] w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-2xl bg-white dark:bg-surface-800 shadow-xl p-6">
+  <!-- Header -->
+  <div class="flex items-center justify-between mb-5">
+    <h3 class="text-lg font-semibold text-surface-900 dark:text-surface-100">Documents &mdash; {{ docViewerCustomer?.fullName }}</h3>
+    <button (click)="closeDocViewer()" class="p-1.5 rounded-lg text-surface-500 hover:bg-surface-100 dark:hover:bg-surface-700 transition-colors">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
+    </button>
+  </div>
+
+  <!-- Loading docs -->
+  <div *ngIf="loadingDocs" class="flex items-center justify-center py-12">
+    <svg class="animate-spin h-8 w-8 text-brand-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+    </svg>
+  </div>
+
+  <!-- No docs -->
+  <div *ngIf="!loadingDocs && customerDocs.length === 0" class="flex items-center justify-center gap-2 py-12 text-surface-400 dark:text-surface-500 text-sm">
+    <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 9.776c.112-.017.227-.026.344-.026h15.812c.117 0 .232.009.344.026m-16.5 0a2.25 2.25 0 0 0-1.883 2.542l.857 6a2.25 2.25 0 0 0 2.227 1.932H19.05a2.25 2.25 0 0 0 2.227-1.932l.857-6a2.25 2.25 0 0 0-1.883-2.542m-16.5 0V6A2.25 2.25 0 0 1 6 3.75h3.879a1.5 1.5 0 0 1 1.06.44l2.122 2.12a1.5 1.5 0 0 0 1.06.44H18A2.25 2.25 0 0 1 20.25 9v.776"/></svg>
+    <span>No documents uploaded for this customer.</span>
+  </div>
+
+  <!-- Doc cards -->
+  <div *ngIf="!loadingDocs && customerDocs.length > 0" class="grid grid-cols-1 gap-3.5">
+    <div *ngFor="let doc of customerDocs" class="border border-surface-200 dark:border-surface-700 rounded-lg p-3.5 bg-surface-50 dark:bg-surface-750">
+      <div class="flex justify-between items-center mb-1">
+        <strong class="text-sm text-surface-900 dark:text-surface-100">{{ doc.documentType }}</strong>
+        <span
+          class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold"
+          [ngClass]="doc.isVerified
+            ? 'bg-success-100 text-success-700 dark:bg-success-900/30 dark:text-success-400'
+            : 'bg-warning-100 text-warning-700 dark:bg-warning-900/30 dark:text-warning-400'"
+        >
+          {{ doc.isVerified ? 'Verified' : 'Pending' }}
+        </span>
+      </div>
+      <div class="text-xs text-surface-500 dark:text-surface-400 mb-2.5">
+        <span *ngIf="doc.documentNumber">No: {{ doc.documentNumber }}</span>
+        <span *ngIf="doc.issuingCountry"> &middot; {{ doc.issuingCountry }}</span>
+      </div>
+      <div class="flex gap-3">
+        <div *ngIf="doc.frontImagePath" class="text-center cursor-pointer" (click)="openImagePopup(doc.frontImagePath)">
+          <img [src]="getDocImageFullUrl(doc.frontImagePath)" alt="Front"
+               class="w-[120px] h-[80px] object-cover rounded-md border border-surface-300 dark:border-surface-600 transition-transform hover:scale-105 hover:shadow-lg" />
+          <span class="block text-[11px] text-surface-500 dark:text-surface-400 mt-1">Front</span>
+        </div>
+        <div *ngIf="doc.backImagePath" class="text-center cursor-pointer" (click)="openImagePopup(doc.backImagePath)">
+          <img [src]="getDocImageFullUrl(doc.backImagePath)" alt="Back"
+               class="w-[120px] h-[80px] object-cover rounded-md border border-surface-300 dark:border-surface-600 transition-transform hover:scale-105 hover:shadow-lg" />
+          <span class="block text-[11px] text-surface-500 dark:text-surface-400 mt-1">Back</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Image Full View Popup -->
+<div *ngIf="showImagePopup" class="fixed inset-0 bg-black/60 z-[52]" (click)="closeImagePopup()"></div>
+<div *ngIf="showImagePopup" role="dialog" aria-modal="true" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[53] bg-white dark:bg-surface-800 rounded-xl p-3 shadow-2xl max-w-[90vw] max-h-[90vh]">
+  <button (click)="closeImagePopup()" class="absolute top-1 right-1 z-10 p-1.5 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors">
+    <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12"/></svg>
+  </button>
+  <img [src]="docImageUrl" alt="Document Image" class="block max-w-[80vw] max-h-[80vh] rounded-md" />
+</div>
