@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(fly status:*)",
+      "Read(//c/Users/pudas/AppData/Local/Temp/claude/c--Users-pudas-OneDrive-Desktop-Remittance/tasks/**)",
+      "Bash(npx ng:*)",
+      "Bash(find c:UserspudasOneDriveDesktopRemittanceRemittance.Web -name *.cs -type f)",
+      "Bash(grep -r header-actions c:UserspudasOneDriveDesktopRemittanceRemittance.Angularsrcapppagesadmin --include=*.html)",
+      "Bash(find /c/Users/pudas/OneDrive/Desktop/Remittance -name *.cs -type f -exec grep -l \"Notification\\\\|Email\\\\|SignalR\\\\|Webhook\" {})",
+      "Bash(2)",
+      "Bash(grep -r \"Polly\\\\|CircuitBreaker\\\\|Retry\\\\|Idempotent\\\\|Outbox\\\\|DomainEvent\\\\|MediatR\\\\|CQRS\\\\|Saga\" /c/Users/pudas/OneDrive/Desktop/Remittance --include=*.csproj --include=*.cs)",
+      "Bash(grep -r \"i18n\\\\|ngx-translate\\\\|@ngx-translate\" c:UserspudasOneDriveDesktopRemittanceRemittance.Angular --include=*.ts --include=*.json)",
+      "Bash(grep -r \"SoftDelete\\\\|IsDeleted\\\\|Audit\\\\|CreatedBy\\\\|UpdatedBy\\\\|RowVersion\\\\|ConcurrencyToken\" /c/Users/pudas/OneDrive/Desktop/Remittance/Remittance.Domain/Entities --include=*.cs)",
+      "Bash(grep -r \"Health\\\\|Swagger\\\\|OpenAPI\\\\|VersionApi\\\\|Webhook\" /c/Users/pudas/OneDrive/Desktop/Remittance/Remittance.API --include=*.cs)",
+      "Bash(grep -r \"Multi.*Currency\\\\|Currency\\\\|Exchange\" /c/Users/pudas/OneDrive/Desktop/Remittance/Remittance.Domain/Entities --include=*.cs)",
+      "Bash(grep -r class.*Service /c/Users/pudas/OneDrive/Desktop/Remittance/Remittance.Application/Services --include=*.cs)",
+      "Bash(grep -E \"\\\\.\\(cs|json\\)$\")"
+    ]
+  }
+}

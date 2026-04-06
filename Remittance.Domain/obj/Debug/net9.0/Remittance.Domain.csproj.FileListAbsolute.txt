@@ -1,0 +1,12 @@
+C:\Users\pudas\OneDrive\Desktop\RemittanceProjects\Remittance.Main\Remittance.Domain\bin\Debug\net9.0\Remittance.Domain.deps.json
+C:\Users\pudas\OneDrive\Desktop\RemittanceProjects\Remittance.Main\Remittance.Domain\bin\Debug\net9.0\Remittance.Domain.dll
+C:\Users\pudas\OneDrive\Desktop\RemittanceProjects\Remittance.Main\Remittance.Domain\bin\Debug\net9.0\Remittance.Domain.pdb
+C:\Users\pudas\OneDrive\Desktop\RemittanceProjects\Remittance.Main\Remittance.Domain\obj\Debug\net9.0\Remittance.Domain.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\pudas\OneDrive\Desktop\RemittanceProjects\Remittance.Main\Remittance.Domain\obj\Debug\net9.0\Remittance.Domain.AssemblyInfoInputs.cache
+C:\Users\pudas\OneDrive\Desktop\RemittanceProjects\Remittance.Main\Remittance.Domain\obj\Debug\net9.0\Remittance.Domain.AssemblyInfo.cs
+C:\Users\pudas\OneDrive\Desktop\RemittanceProjects\Remittance.Main\Remittance.Domain\obj\Debug\net9.0\Remittance.Domain.csproj.CoreCompileInputs.cache
+C:\Users\pudas\OneDrive\Desktop\RemittanceProjects\Remittance.Main\Remittance.Domain\obj\Debug\net9.0\Remittance.Domain.dll
+C:\Users\pudas\OneDrive\Desktop\RemittanceProjects\Remittance.Main\Remittance.Domain\obj\Debug\net9.0\refint\Remittance.Domain.dll
+C:\Users\pudas\OneDrive\Desktop\RemittanceProjects\Remittance.Main\Remittance.Domain\obj\Debug\net9.0\Remittance.Domain.pdb
+C:\Users\pudas\OneDrive\Desktop\RemittanceProjects\Remittance.Main\Remittance.Domain\obj\Debug\net9.0\ref\Remittance.Domain.dll
+C:\Users\pudas\OneDrive\Desktop\RemittanceProjects\Remittance.Main\Remittance.Domain\obj\Debug\net9.0\Remittance.Domain.sourcelink.json

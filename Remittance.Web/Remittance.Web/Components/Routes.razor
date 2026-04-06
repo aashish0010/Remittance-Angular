@@ -1,0 +1,32 @@
+<Router AppAssembly="typeof(Program).Assembly" AdditionalAssemblies="new[] { typeof(Client._Imports).Assembly }">
+    <Found Context="routeData">
+        <RouteView RouteData="routeData" DefaultLayout="@GetLayout(routeData)" />
+        <FocusOnNavigate RouteData="routeData" Selector="h1" />
+    </Found>
+</Router>
+
+@code {
+    private Type GetLayout(RouteData routeData)
+    {
+        var pageType = routeData.PageType;
+        var pageName = pageType.FullName ?? "";
+
+        // Check page route attributes
+        var routeAttrs = pageType.GetCustomAttributes(typeof(Microsoft.AspNetCore.Components.RouteAttribute), false);
+        foreach (Microsoft.AspNetCore.Components.RouteAttribute attr in routeAttrs)
+        {
+            var template = attr.Template.ToLowerInvariant();
+
+            if (template == "/" || template.StartsWith("/auth"))
+                return typeof(Layout.LoginLayout);
+            if (template.StartsWith("/admin"))
+                return typeof(Layout.AdminLayout);
+            if (template.StartsWith("/agent"))
+                return typeof(Layout.AgentLayout);
+            if (template.StartsWith("/customer"))
+                return typeof(Layout.CustomerLayout);
+        }
+
+        return typeof(Layout.LoginLayout);
+    }
+}

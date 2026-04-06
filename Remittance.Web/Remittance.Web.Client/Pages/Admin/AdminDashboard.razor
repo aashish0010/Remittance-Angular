@@ -1,0 +1,335 @@
+@page "/admin/dashboard"
+@using Remittance.Web.Client.Models
+@using Remittance.Web.Client.Services
+
+<PageTitle>Admin Dashboard - Remittance</PageTitle>
+
+<MudText Typo="Typo.h5" Class="mb-4" Style="font-weight: 700;">Admin Dashboard</MudText>
+
+@if (_loading)
+{
+    <MudProgressLinear Indeterminate="true" Color="Color.Primary" Class="mb-4" />
+}
+
+@if (!string.IsNullOrEmpty(_error))
+{
+    <MudAlert Severity="Severity.Error" Class="mb-4" Dense="true">@_error</MudAlert>
+}
+
+@if (_data != null)
+{
+    @* ---- Summary Cards ---- *@
+    <MudGrid>
+        <MudItem xs="12" sm="6" md="3">
+            <MudPaper Elevation="4" Class="pa-4 rounded-lg">
+                <div class="d-flex justify-space-between align-center">
+                    <div>
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">Total Transactions</MudText>
+                        <MudText Typo="Typo.h4" Style="font-weight: 700;">@_data.TotalTransactions.ToString("N0")</MudText>
+                        <MudText Typo="Typo.caption" Color="@(MonthChangeColor(_data.TransactionsThisMonth, _data.TransactionsLastMonth))">
+                            @MonthChangeText(_data.TransactionsThisMonth, _data.TransactionsLastMonth) this month
+                        </MudText>
+                    </div>
+                    <MudIcon Icon="@Icons.Material.Filled.ReceiptLong" Size="Size.Large" Color="Color.Primary" />
+                </div>
+            </MudPaper>
+        </MudItem>
+
+        <MudItem xs="12" sm="6" md="3">
+            <MudPaper Elevation="4" Class="pa-4 rounded-lg">
+                <div class="d-flex justify-space-between align-center">
+                    <div>
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">Commission Revenue</MudText>
+                        <MudText Typo="Typo.h4" Style="font-weight: 700;">@FormatCurrency(_data.TotalCommissionRevenue)</MudText>
+                        <MudText Typo="Typo.caption" Color="@(MonthChangeColor(_data.CommissionThisMonth, _data.CommissionLastMonth))">
+                            @MonthChangeText(_data.CommissionThisMonth, _data.CommissionLastMonth) this month
+                        </MudText>
+                    </div>
+                    <MudIcon Icon="@Icons.Material.Filled.TrendingUp" Size="Size.Large" Color="Color.Success" />
+                </div>
+            </MudPaper>
+        </MudItem>
+
+        <MudItem xs="12" sm="6" md="3">
+            <MudPaper Elevation="4" Class="pa-4 rounded-lg">
+                <div class="d-flex justify-space-between align-center">
+                    <div>
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">Active Agents</MudText>
+                        <MudText Typo="Typo.h4" Style="font-weight: 700;">@_data.ActiveAgents</MudText>
+                        @if (_data.PendingAgents > 0)
+                        {
+                            <MudText Typo="Typo.caption" Color="Color.Info">@_data.PendingAgents pending approval</MudText>
+                        }
+                        else
+                        {
+                            <MudText Typo="Typo.caption" Color="Color.Success">No pending approvals</MudText>
+                        }
+                    </div>
+                    <MudIcon Icon="@Icons.Material.Filled.People" Size="Size.Large" Color="Color.Info" />
+                </div>
+            </MudPaper>
+        </MudItem>
+
+        <MudItem xs="12" sm="6" md="3">
+            <MudPaper Elevation="4" Class="pa-4 rounded-lg">
+                <div class="d-flex justify-space-between align-center">
+                    <div>
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">Compliance Alerts</MudText>
+                        <MudText Typo="Typo.h4" Style="font-weight: 700;">@_data.UnresolvedAlerts</MudText>
+                        @if (_data.UnresolvedAlerts > 0)
+                        {
+                            <MudText Typo="Typo.caption" Color="Color.Warning">Requires attention</MudText>
+                        }
+                        else
+                        {
+                            <MudText Typo="Typo.caption" Color="Color.Success">All clear</MudText>
+                        }
+                    </div>
+                    <MudIcon Icon="@Icons.Material.Filled.Warning" Size="Size.Large" Color="Color.Warning" />
+                </div>
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+
+    @* ---- Secondary Stats Row ---- *@
+    <MudGrid Class="mt-2">
+        <MudItem xs="12" sm="6" md="3">
+            <MudPaper Elevation="2" Class="pa-3 rounded-lg">
+                <div class="d-flex justify-space-between align-center">
+                    <div>
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">Total Volume</MudText>
+                        <MudText Typo="Typo.h5" Style="font-weight: 700;">@FormatCurrency(_data.TotalVolume)</MudText>
+                    </div>
+                    <MudIcon Icon="@Icons.Material.Filled.AccountBalance" Size="Size.Medium" Color="Color.Primary" />
+                </div>
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="12" sm="6" md="3">
+            <MudPaper Elevation="2" Class="pa-3 rounded-lg">
+                <div class="d-flex justify-space-between align-center">
+                    <div>
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">Customers</MudText>
+                        <MudText Typo="Typo.h5" Style="font-weight: 700;">@_data.TotalCustomers.ToString("N0")</MudText>
+                    </div>
+                    <MudIcon Icon="@Icons.Material.Filled.PersonAdd" Size="Size.Medium" Color="Color.Secondary" />
+                </div>
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="12" sm="6" md="3">
+            <MudPaper Elevation="2" Class="pa-3 rounded-lg">
+                <div class="d-flex justify-space-between align-center">
+                    <div>
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">Active Corridors</MudText>
+                        <MudText Typo="Typo.h5" Style="font-weight: 700;">@_data.ActiveCorridors</MudText>
+                    </div>
+                    <MudIcon Icon="@Icons.Material.Filled.AltRoute" Size="Size.Medium" Color="Color.Tertiary" />
+                </div>
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="12" sm="6" md="3">
+            <MudPaper Elevation="2" Class="pa-3 rounded-lg">
+                <div class="d-flex justify-space-between align-center">
+                    <div>
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">This Month Volume</MudText>
+                        <MudText Typo="Typo.h5" Style="font-weight: 700;">@FormatCurrency(_data.VolumeThisMonth)</MudText>
+                    </div>
+                    <MudIcon Icon="@Icons.Material.Filled.CalendarMonth" Size="Size.Medium" Color="Color.Info" />
+                </div>
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+
+    @* ---- Transaction Status Breakdown ---- *@
+    <MudGrid Class="mt-4">
+        <MudItem xs="12">
+            <MudPaper Elevation="4" Class="pa-4 rounded-lg">
+                <MudText Typo="Typo.h6" Class="mb-3" Style="font-weight: 600;">Transaction Status Overview</MudText>
+                <div class="d-flex flex-wrap gap-4">
+                    <div class="d-flex align-center gap-2">
+                        <MudChip T="string" Size="Size.Small" Color="Color.Warning" Style="min-width: 40px; justify-content: center;">@_data.PendingTransactions</MudChip>
+                        <MudText Typo="Typo.body2">Pending</MudText>
+                    </div>
+                    <div class="d-flex align-center gap-2">
+                        <MudChip T="string" Size="Size.Small" Color="Color.Info" Style="min-width: 40px; justify-content: center;">@_data.ProcessingTransactions</MudChip>
+                        <MudText Typo="Typo.body2">Processing</MudText>
+                    </div>
+                    <div class="d-flex align-center gap-2">
+                        <MudChip T="string" Size="Size.Small" Color="Color.Success" Style="min-width: 40px; justify-content: center;">@_data.CompletedTransactions</MudChip>
+                        <MudText Typo="Typo.body2">Completed</MudText>
+                    </div>
+                    <div class="d-flex align-center gap-2">
+                        <MudChip T="string" Size="Size.Small" Color="Color.Dark" Style="min-width: 40px; justify-content: center;">@_data.OnHoldTransactions</MudChip>
+                        <MudText Typo="Typo.body2">On Hold</MudText>
+                    </div>
+                    <div class="d-flex align-center gap-2">
+                        <MudChip T="string" Size="Size.Small" Color="Color.Default" Style="min-width: 40px; justify-content: center;">@_data.CancelledTransactions</MudChip>
+                        <MudText Typo="Typo.body2">Cancelled</MudText>
+                    </div>
+                    <div class="d-flex align-center gap-2">
+                        <MudChip T="string" Size="Size.Small" Color="Color.Error" Style="min-width: 40px; justify-content: center;">@_data.FailedTransactions</MudChip>
+                        <MudText Typo="Typo.body2">Failed</MudText>
+                    </div>
+                </div>
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+
+    @* ---- Recent Transactions + Exchange Rates ---- *@
+    <MudGrid Class="mt-4">
+        <MudItem xs="12" md="8">
+            <MudPaper Elevation="4" Class="pa-4 rounded-lg">
+                <MudText Typo="Typo.h6" Class="mb-4" Style="font-weight: 600;">Recent Transactions</MudText>
+                @if (_data.RecentTransactions.Any())
+                {
+                    <MudSimpleTable Hover="true" Dense="true" Striped="true">
+                        <thead>
+                            <tr>
+                                <th>Reference</th>
+                                <th>Sender</th>
+                                <th>Receiver</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var txn in _data.RecentTransactions)
+                            {
+                                <tr>
+                                    <td><MudText Typo="Typo.body2" Style="font-family: monospace;">@txn.ReferenceNumber</MudText></td>
+                                    <td>@txn.SenderName</td>
+                                    <td>@txn.ReceiverName</td>
+                                    <td>@txn.SendAmount.ToString("N2") @txn.SendCurrency</td>
+                                    <td>
+                                        <MudChip T="string" Size="Size.Small" Color="@GetStatusColor(txn.Status)">@txn.Status</MudChip>
+                                    </td>
+                                    <td>@txn.CreatedAt.ToString("MMM dd, HH:mm")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </MudSimpleTable>
+                }
+                else
+                {
+                    <MudText Typo="Typo.body2" Color="Color.Secondary">No transactions yet.</MudText>
+                }
+            </MudPaper>
+        </MudItem>
+
+        <MudItem xs="12" md="4">
+            <MudPaper Elevation="4" Class="pa-4 rounded-lg">
+                <MudText Typo="Typo.h6" Class="mb-4" Style="font-weight: 600;">Active Exchange Rates</MudText>
+                @if (_data.ActiveExchangeRates.Any())
+                {
+                    <MudList T="string" Dense="true">
+                        @foreach (var rate in _data.ActiveExchangeRates)
+                        {
+                            <MudListItem>
+                                <div class="d-flex justify-space-between">
+                                    <MudText><strong>@rate.SourceCurrency → @rate.DestinationCurrency</strong></MudText>
+                                    <MudText Color="Color.Success">@rate.Rate.ToString("N2")</MudText>
+                                </div>
+                            </MudListItem>
+                        }
+                    </MudList>
+                }
+                else
+                {
+                    <MudText Typo="Typo.body2" Color="Color.Secondary">No active rates configured.</MudText>
+                }
+            </MudPaper>
+
+            <MudPaper Elevation="4" Class="pa-4 rounded-lg mt-4">
+                <MudText Typo="Typo.h6" Class="mb-4" Style="font-weight: 600;">Quick Actions</MudText>
+                <MudButton Variant="Variant.Outlined" Color="Color.Primary" FullWidth="true" Class="mb-2"
+                           Href="/admin/rates" StartIcon="@Icons.Material.Filled.CurrencyExchange">
+                    Update Rates
+                </MudButton>
+                <MudButton Variant="Variant.Outlined" Color="Color.Secondary" FullWidth="true" Class="mb-2"
+                           Href="/admin/agents" StartIcon="@Icons.Material.Filled.PersonAdd">
+                    Add New Agent
+                </MudButton>
+                <MudButton Variant="Variant.Outlined" Color="Color.Warning" FullWidth="true" Class="mb-2"
+                           Href="/admin/compliance" StartIcon="@Icons.Material.Filled.Security">
+                    View Alerts
+                </MudButton>
+                <MudButton Variant="Variant.Outlined" Color="Color.Tertiary" FullWidth="true"
+                           Href="/admin/routing" StartIcon="@Icons.Material.Filled.AltRoute">
+                    Manage Routing
+                </MudButton>
+            </MudPaper>
+        </MudItem>
+    </MudGrid>
+}
+
+@code {
+    [Inject] private ApiService Api { get; set; } = null!;
+    [Inject] private AuthStateService Auth { get; set; } = null!;
+
+    private DashboardModel? _data;
+    private bool _loading;
+    private string _error = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Auth.LoadFromSessionAsync();
+        await LoadDashboard();
+    }
+
+    private async Task LoadDashboard()
+    {
+        _loading = true;
+        _error = "";
+        try
+        {
+            var r = await Api.GetDashboardAsync();
+            if (r?.Success == true && r.Data != null)
+                _data = r.Data;
+            else
+                _error = r?.Message ?? "Failed to load dashboard data.";
+        }
+        catch (Exception ex)
+        {
+            _error = $"Error loading dashboard: {ex.Message}";
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private static string FormatCurrency(decimal amount)
+    {
+        if (amount >= 1_000_000) return $"${amount / 1_000_000:N1}M";
+        if (amount >= 1_000) return $"${amount / 1_000:N1}K";
+        return $"${amount:N2}";
+    }
+
+    private static string MonthChangeText(decimal current, decimal previous)
+    {
+        if (previous == 0) return current > 0 ? "+100%" : "0%";
+        var pct = ((current - previous) / previous) * 100;
+        return pct >= 0 ? $"+{pct:N1}%" : $"{pct:N1}%";
+    }
+
+    private static string MonthChangeText(int current, int previous)
+        => MonthChangeText((decimal)current, previous);
+
+    private static Color MonthChangeColor(decimal current, decimal previous)
+        => current >= previous ? Color.Success : Color.Error;
+
+    private static Color MonthChangeColor(int current, int previous)
+        => current >= previous ? Color.Success : Color.Error;
+
+    private static Color GetStatusColor(string status) => status switch
+    {
+        "Completed" => Color.Success,
+        "Pending" => Color.Warning,
+        "Processing" or "Approved" => Color.Info,
+        "OnHold" => Color.Dark,
+        "Failed" => Color.Error,
+        "Cancelled" => Color.Default,
+        _ => Color.Default
+    };
+
+}

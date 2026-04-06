@@ -1,0 +1,403 @@
+@page "/admin/customer-register"
+@using Remittance.Web.Client.Models
+@using Remittance.Web.Client.Services
+@inject ApiService Api
+@inject AuthStateService Auth
+
+<MudText Typo="Typo.h5" Class="mb-4" Style="font-weight: 700;">Customer Register</MudText>
+
+@if (!string.IsNullOrEmpty(_message))
+{
+    <MudAlert Severity="@_severity" Class="mb-3" ShowCloseIcon="true" CloseIconClicked="() => _message = string.Empty">@_message</MudAlert>
+}
+
+<MudButton Variant="Variant.Filled" Color="Color.Primary" Class="mb-3" OnClick="OpenCreatePopup">
+    Add Customer
+</MudButton>
+
+<MudTable Items="_customers" Hover="true" Striped="true" Dense="true" Loading="_loading" Elevation="2">
+    <HeaderContent>
+        <MudTh>Name</MudTh>
+        <MudTh>Phone</MudTh>
+        <MudTh>Country</MudTh>
+        <MudTh>KYC</MudTh>
+        <MudTh>Actions</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd>@context.FullName</MudTd>
+        <MudTd>@context.Phone</MudTd>
+        <MudTd>@context.Country</MudTd>
+        <MudTd>
+            <MudChip T="string" Size="Size.Small" Color="@(context.IsKycVerified ? Color.Success : Color.Warning)">
+                @(context.IsKycVerified ? "Verified" : "Pending")
+            </MudChip>
+        </MudTd>
+        <MudTd>
+            <MudTooltip Text="View Details">
+                <MudIconButton Icon="@Icons.Material.Filled.Visibility" Size="Size.Small" Color="Color.Info" OnClick="@(() => ViewCustomerDetail(context))" />
+            </MudTooltip>
+            <MudTooltip Text="Edit">
+                <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" Color="Color.Primary" OnClick="@(() => OpenEditPopup(context))" />
+            </MudTooltip>
+            <MudTooltip Text="Delete">
+                <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error" OnClick="@(() => DeleteCustomer(context.Id))" />
+            </MudTooltip>
+        </MudTd>
+    </RowTemplate>
+</MudTable>
+
+@* Customer Detail Popup *@
+@if (_showDetail && _detailCustomer != null)
+{
+    <div style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1300;" @onclick="@(() => _showDetail = false)"></div>
+    <div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1400; width: 550px; max-width: 95vw; max-height: 90vh; overflow-y: auto;">
+        <MudPaper Elevation="8" Class="pa-6" Style="border-radius: 12px;">
+            <div class="d-flex justify-space-between align-center mb-4">
+                <MudText Typo="Typo.h6" Style="font-weight: 600;">Customer Details</MudText>
+                <MudIconButton Icon="@Icons.Material.Filled.Close" Size="Size.Small" OnClick="@(() => _showDetail = false)" />
+            </div>
+            <MudGrid>
+                <MudItem xs="6"><MudText Typo="Typo.caption" Color="Color.Secondary">Full Name</MudText><MudText>@_detailCustomer.FullName</MudText></MudItem>
+                <MudItem xs="6"><MudText Typo="Typo.caption" Color="Color.Secondary">Email</MudText><MudText>@(_detailCustomer.Email ?? "-")</MudText></MudItem>
+                <MudItem xs="6"><MudText Typo="Typo.caption" Color="Color.Secondary">Phone</MudText><MudText>@(_detailCustomer.Phone ?? "-")</MudText></MudItem>
+                <MudItem xs="6"><MudText Typo="Typo.caption" Color="Color.Secondary">Country</MudText><MudText>@_detailCustomer.Country</MudText></MudItem>
+                <MudItem xs="6"><MudText Typo="Typo.caption" Color="Color.Secondary">Date of Birth</MudText><MudText>@(_detailCustomer.DateOfBirth?.ToString("yyyy-MM-dd") ?? "-")</MudText></MudItem>
+                <MudItem xs="6"><MudText Typo="Typo.caption" Color="Color.Secondary">Gender</MudText><MudText>@(_detailCustomer.Gender ?? "-")</MudText></MudItem>
+                <MudItem xs="6"><MudText Typo="Typo.caption" Color="Color.Secondary">Nationality</MudText><MudText>@(_detailCustomer.Nationality ?? "-")</MudText></MudItem>
+                <MudItem xs="6"><MudText Typo="Typo.caption" Color="Color.Secondary">City</MudText><MudText>@(_detailCustomer.City ?? "-")</MudText></MudItem>
+                <MudItem xs="6"><MudText Typo="Typo.caption" Color="Color.Secondary">ID Type</MudText><MudText>@(_detailCustomer.IdDocumentType ?? "-")</MudText></MudItem>
+                <MudItem xs="6"><MudText Typo="Typo.caption" Color="Color.Secondary">ID Number</MudText><MudText>@(_detailCustomer.IdDocumentNumber ?? "-")</MudText></MudItem>
+                <MudItem xs="6"><MudText Typo="Typo.caption" Color="Color.Secondary">KYC Status</MudText>
+                    <MudChip T="string" Size="Size.Small" Color="@(_detailCustomer.IsKycVerified ? Color.Success : Color.Warning)">@(_detailCustomer.IsKycVerified ? "Verified" : "Pending")</MudChip>
+                </MudItem>
+                <MudItem xs="6"><MudText Typo="Typo.caption" Color="Color.Secondary">Created</MudText><MudText>@_detailCustomer.CreatedAt.ToString("yyyy-MM-dd")</MudText></MudItem>
+            </MudGrid>
+        </MudPaper>
+    </div>
+}
+
+@* Create/Edit Popup with 3 Tabs *@
+@if (_showPopup)
+{
+    <div style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1300;" @onclick="() => _showPopup = false"></div>
+    <div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1400; width: 650px; max-height: 85vh;">
+        <MudPaper Elevation="8" Class="pa-6" Style="border-radius: 12px; overflow-y: auto; max-height: 85vh;">
+            <MudText Typo="Typo.h6" Class="mb-4">@(_editingId > 0 ? "Edit Customer" : "Register Customer")</MudText>
+
+            @if (!string.IsNullOrEmpty(_formError))
+            {
+                <MudAlert Severity="Severity.Error" Dense="true" Class="mb-3">@_formError</MudAlert>
+            }
+
+            <MudTabs Elevation="0" Rounded="true" ApplyEffectsToContainer="true" Class="mb-4">
+                <MudTabPanel Text="Personal Info">
+                    <MudGrid Class="mt-2">
+                        <MudItem xs="12" sm="6">
+                            <MudTextField @bind-Value="_fullName" Label="Full Name *" Variant="Variant.Outlined" />
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudDatePicker @bind-Date="_dateOfBirth" Label="Date of Birth *" Variant="Variant.Outlined"
+                                           MaxDate="@(DateTime.Today.AddYears(-18))" />
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudSelect @bind-Value="_gender" Label="Gender *" Variant="Variant.Outlined" T="string">
+                                <MudSelectItem T="string" Value="@("Male")">Male</MudSelectItem>
+                                <MudSelectItem T="string" Value="@("Female")">Female</MudSelectItem>
+                                <MudSelectItem T="string" Value="@("Other")">Other</MudSelectItem>
+                            </MudSelect>
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudSelect T="string" @bind-Value="_nationality" Label="Nationality *" Variant="Variant.Outlined">
+                                @foreach (var c in _countries) { <MudSelectItem Value="@c">@c</MudSelectItem> }
+                            </MudSelect>
+                        </MudItem>
+                    </MudGrid>
+                </MudTabPanel>
+
+                <MudTabPanel Text="Contact">
+                    <MudGrid Class="mt-2">
+                        <MudItem xs="12" sm="6">
+                            <MudTextField @bind-Value="_email" Label="Email" Variant="Variant.Outlined" InputType="InputType.Email" />
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudTextField @bind-Value="_phone" Label="Phone *" Variant="Variant.Outlined" />
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudSelect T="string" @bind-Value="_country" Label="Country *" Variant="Variant.Outlined">
+                                @foreach (var c in _countries) { <MudSelectItem Value="@c">@c</MudSelectItem> }
+                            </MudSelect>
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudTextField @bind-Value="_city" Label="City" Variant="Variant.Outlined" />
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudTextField @bind-Value="_state" Label="State" Variant="Variant.Outlined" />
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudTextField @bind-Value="_postalCode" Label="Postal Code" Variant="Variant.Outlined" />
+                        </MudItem>
+                        <MudItem xs="12">
+                            <MudTextField @bind-Value="_address" Label="Address" Variant="Variant.Outlined" />
+                        </MudItem>
+                    </MudGrid>
+                </MudTabPanel>
+
+                <MudTabPanel Text="ID Document">
+                    <MudGrid Class="mt-2">
+                        <MudItem xs="12" sm="6">
+                            <MudSelect @bind-Value="_idDocType" Label="Document Type *" Variant="Variant.Outlined" T="string">
+                                <MudSelectItem T="string" Value="@("Passport")">Passport</MudSelectItem>
+                                <MudSelectItem T="string" Value="@("NationalID")">National ID</MudSelectItem>
+                                <MudSelectItem T="string" Value="@("DrivingLicense")">Driving License</MudSelectItem>
+                            </MudSelect>
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudTextField @bind-Value="_idDocNumber" Label="Document Number *" Variant="Variant.Outlined" />
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudDatePicker @bind-Date="_docIssueDate" Label="Issue Date *" Variant="Variant.Outlined"
+                                           MaxDate="@DateTime.Today" />
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudDatePicker @bind-Date="_docExpiryDate" Label="Expiry Date *" Variant="Variant.Outlined"
+                                           MinDate="@(DateTime.Today.AddDays(1))" />
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudSelect T="string" @bind-Value="_docIssuingCountry" Label="Issuing Country *" Variant="Variant.Outlined">
+                                @foreach (var c in _countries) { <MudSelectItem Value="@c">@c</MudSelectItem> }
+                            </MudSelect>
+                        </MudItem>
+                    </MudGrid>
+                </MudTabPanel>
+            </MudTabs>
+
+            <div class="d-flex justify-end gap-2">
+                <MudButton Variant="Variant.Text" StartIcon="@Icons.Material.Filled.Close" OnClick="() => _showPopup = false">Cancel</MudButton>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Save" OnClick="SaveCustomer" Disabled="_saving">
+                    @if (_saving) { <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" /> }
+                    Save
+                </MudButton>
+            </div>
+        </MudPaper>
+    </div>
+}
+
+@code {
+    private List<CustomerModel> _customers = new();
+    private bool _loading;
+    private bool _showPopup;
+    private bool _saving;
+    private string _message = string.Empty;
+    private string _formError = string.Empty;
+    private Severity _severity = Severity.Info;
+    private bool _showDetail;
+    private CustomerModel? _detailCustomer;
+
+    private int _editingId;
+    private string _fullName = string.Empty;
+    private string? _email;
+    private string? _phone;
+    private DateTime? _dateOfBirth;
+    private string? _gender;
+    private string? _nationality;
+    private string _country = string.Empty;
+    private string? _city;
+    private string? _state;
+    private string? _postalCode;
+    private string? _address;
+    private string? _idDocType;
+    private string? _idDocNumber;
+    private DateTime? _docIssueDate;
+    private DateTime? _docExpiryDate;
+    private string? _docIssuingCountry;
+
+    private List<string> _countries = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Auth.LoadFromSessionAsync();
+        await Task.WhenAll(LoadReferenceData(), LoadData());
+    }
+
+    private Task<IEnumerable<string>> SearchCountries(string value, CancellationToken token)
+        => Task.FromResult(string.IsNullOrEmpty(value)
+            ? _countries.AsEnumerable()
+            : _countries.Where(c => c.Contains(value, StringComparison.OrdinalIgnoreCase)));
+
+    private async Task LoadReferenceData()
+    {
+        try
+        {
+            var cr = await Api.GetCountriesAsync();
+            if (cr?.Success == true && cr.Data != null)
+                _countries = cr.Data.Select(c => c.Name).ToList();
+        }
+        catch { }
+    }
+
+    private async Task LoadData()
+    {
+        _loading = true;
+        var result = await Api.GetCustomersAsync();
+        if (result?.Success == true)
+            _customers = result.Data ?? new();
+        _loading = false;
+    }
+
+    private void ViewCustomerDetail(CustomerModel c)
+    {
+        _detailCustomer = c;
+        _showDetail = true;
+    }
+
+    private void OpenCreatePopup()
+    {
+        _editingId = 0; _formError = string.Empty;
+        _fullName = string.Empty; _email = null; _phone = null;
+        _dateOfBirth = null; _gender = null; _nationality = null;
+        _country = string.Empty; _city = null; _state = null; _postalCode = null; _address = null;
+        _idDocType = null; _idDocNumber = null; _docIssueDate = null; _docExpiryDate = null; _docIssuingCountry = null;
+        _showPopup = true;
+    }
+
+    private void OpenEditPopup(CustomerModel c)
+    {
+        _editingId = c.Id; _formError = string.Empty;
+        _fullName = c.FullName; _email = c.Email; _phone = c.Phone;
+        _dateOfBirth = c.DateOfBirth; _gender = c.Gender; _nationality = c.Nationality;
+        _country = c.Country; _city = c.City; _state = c.State; _postalCode = c.PostalCode; _address = c.Address;
+        _idDocType = c.IdDocumentType; _idDocNumber = c.IdDocumentNumber;
+        if (c.Documents.Count > 0)
+        {
+            _docIssueDate = c.Documents[0].IssueDate;
+            _docExpiryDate = c.Documents[0].ExpiryDate;
+            _docIssuingCountry = c.Documents[0].IssuingCountry;
+        }
+        _showPopup = true;
+    }
+
+    private string? ValidateForm()
+    {
+        // Personal Info
+        if (string.IsNullOrWhiteSpace(_fullName))
+            return "Full Name is required.";
+        if (_dateOfBirth == null)
+            return "Date of Birth is required.";
+        if (_dateOfBirth > DateTime.Today)
+            return "Date of Birth cannot be in the future.";
+        if (_dateOfBirth > DateTime.Today.AddYears(-18))
+            return "Customer must be at least 18 years old.";
+        if (string.IsNullOrWhiteSpace(_gender))
+            return "Gender is required.";
+        if (string.IsNullOrWhiteSpace(_nationality))
+            return "Nationality is required.";
+
+        // Contact
+        if (string.IsNullOrWhiteSpace(_phone))
+            return "Phone is required.";
+        if (string.IsNullOrWhiteSpace(_country))
+            return "Country is required.";
+        if (!string.IsNullOrWhiteSpace(_email) && (!_email.Contains('@') || !_email.Contains('.')))
+            return "Invalid email format.";
+
+        // ID Document - all mandatory
+        if (string.IsNullOrWhiteSpace(_idDocType))
+            return "Document Type is required.";
+        if (string.IsNullOrWhiteSpace(_idDocNumber))
+            return "Document Number is required.";
+        if (_docIssueDate == null)
+            return "Document Issue Date is required.";
+        if (_docIssueDate > DateTime.Today)
+            return "Document Issue Date cannot be in the future.";
+        if (_docExpiryDate == null)
+            return "Document Expiry Date is required.";
+        if (_docExpiryDate <= DateTime.Today)
+            return "Document Expiry Date must be in the future.";
+        if (_docIssueDate >= _docExpiryDate)
+            return "Issue Date must be before Expiry Date.";
+        if (string.IsNullOrWhiteSpace(_docIssuingCountry))
+            return "Issuing Country is required.";
+
+        return null;
+    }
+
+    private async Task SaveCustomer()
+    {
+        _formError = string.Empty;
+
+        var validationError = ValidateForm();
+        if (validationError != null)
+        { _formError = validationError; return; }
+
+        _saving = true;
+        try
+        {
+            var dto = new
+            {
+                FullName = _fullName,
+                Email = _email,
+                Phone = _phone,
+                DateOfBirth = _dateOfBirth,
+                Gender = _gender,
+                Nationality = _nationality,
+                Country = _country,
+                City = _city,
+                State = _state,
+                PostalCode = _postalCode,
+                Address = _address,
+                IdDocumentType = _idDocType,
+                IdDocumentNumber = _idDocNumber,
+                DocIssueDate = _docIssueDate,
+                DocExpiryDate = _docExpiryDate,
+                DocIssuingCountry = _docIssuingCountry
+            };
+
+            if (_editingId > 0)
+            {
+                var result = await Api.UpdateCustomerAsync(_editingId, dto);
+                if (result?.Success == true)
+                {
+                    _message = "Customer updated.";
+                    _severity = Severity.Success;
+                    _showPopup = false;
+                    await LoadData();
+                }
+                else
+                {
+                    _formError = result?.Message ?? "Failed to update customer.";
+                }
+            }
+            else
+            {
+                var result = await Api.CreateCustomerAsync(dto);
+                if (result?.Success == true)
+                {
+                    _message = "Customer created.";
+                    _severity = Severity.Success;
+                    _showPopup = false;
+                    await LoadData();
+                }
+                else
+                {
+                    _formError = result?.Message ?? "Failed to create customer.";
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _formError = $"Error: {ex.Message}";
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+
+    private async Task DeleteCustomer(int id)
+    {
+        var result = await Api.DeleteCustomerAsync(id);
+        _message = result?.Success == true ? "Customer deleted." : (result?.Message ?? "Failed.");
+        _severity = result?.Success == true ? Severity.Success : Severity.Error;
+        await LoadData();
+    }
+}

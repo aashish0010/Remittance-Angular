@@ -1,0 +1,91 @@
+@inherits LayoutComponentBase
+
+<MudThemeProvider @ref="_themeProvider" @bind-IsDarkMode="_isDarkMode" Theme="_theme" />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<MudLayout>
+    <MudAppBar Elevation="4" Dense="true" Style="background: linear-gradient(90deg, #0D47A1, #1565C0);">
+        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start"
+                       OnClick="@ToggleDrawer" />
+        <MudIcon Icon="@Icons.Material.Filled.AdminPanelSettings" Class="ml-2" />
+        <MudText Typo="Typo.h6" Class="ml-2" Style="font-weight: 700; letter-spacing: 1px;">
+            ADMIN PORTAL
+        </MudText>
+        <MudSpacer />
+        <MudIconButton Icon="@(_isDarkMode ? Icons.Material.Filled.LightMode : Icons.Material.Filled.DarkMode)"
+                       Color="Color.Inherit" OnClick="@ToggleDarkMode" />
+        <MudIconButton Icon="@Icons.Material.Filled.Notifications" Color="Color.Inherit" />
+        <MudMenu Icon="@Icons.Material.Filled.AccountCircle" Color="Color.Inherit">
+            <MudMenuItem Icon="@Icons.Material.Filled.Person">Profile</MudMenuItem>
+            <MudDivider />
+            <MudMenuItem Href="/" Icon="@Icons.Material.Filled.Logout">Logout</MudMenuItem>
+        </MudMenu>
+    </MudAppBar>
+
+    <MudDrawer @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2"
+               Variant="DrawerVariant.Mini" OpenMiniOnHover="true">
+        <MudNavMenu>
+            <MudNavLink Href="/admin/dashboard" Icon="@Icons.Material.Filled.Dashboard" Match="NavLinkMatch.All">Dashboard</MudNavLink>
+            <MudNavGroup Title="Agent Management" Icon="@Icons.Material.Filled.People">
+                <MudNavLink Href="/admin/agents" Icon="@Icons.Material.Filled.AppRegistration">Register</MudNavLink>
+                <MudNavLink Href="/admin/setup" Icon="@Icons.Material.Filled.Settings">Setup</MudNavLink>
+            </MudNavGroup>
+            <MudNavGroup Title="Customers" Icon="@Icons.Material.Filled.PersonAdd">
+                <MudNavLink Href="/admin/customer-register" Icon="@Icons.Material.Filled.AppRegistration">Register</MudNavLink>
+                <MudNavLink Href="/admin/customer-report" Icon="@Icons.Material.Filled.Assessment">Report</MudNavLink>
+            </MudNavGroup>
+            <MudNavLink Href="/admin/receivers" Icon="@Icons.Material.Filled.ContactPhone">Receivers</MudNavLink>
+            <MudNavLink Href="/admin/rates" Icon="@Icons.Material.Filled.CurrencyExchange">Exchange Rates</MudNavLink>
+            <MudNavLink Href="/admin/commissions" Icon="@Icons.Material.Filled.Payments">Commissions</MudNavLink>
+            <MudNavLink Href="/admin/routing" Icon="@Icons.Material.Filled.AltRoute">Routing</MudNavLink>
+            <MudNavLink Href="/admin/transactions" Icon="@Icons.Material.Filled.ReceiptLong">Transactions</MudNavLink>
+            <MudNavGroup Title="Compliance" Icon="@Icons.Material.Filled.Security">
+                <MudNavLink Href="/admin/compliance-setup" Icon="@Icons.Material.Filled.Settings">Setup</MudNavLink>
+                <MudNavLink Href="/admin/compliance" Icon="@Icons.Material.Filled.Assessment">Report</MudNavLink>
+            </MudNavGroup>
+            <MudDivider Class="my-2" />
+            <MudNavLink Href="/" Icon="@Icons.Material.Filled.Logout">Logout</MudNavLink>
+        </MudNavMenu>
+    </MudDrawer>
+
+    <MudMainContent Class="pa-4" Style="min-height: 100vh; padding-top: 80px !important;">
+        @Body
+    </MudMainContent>
+</MudLayout>
+
+@code {
+    private MudThemeProvider _themeProvider = null!;
+    private bool _isDarkMode = false;
+    private bool _drawerOpen = true;
+
+    private readonly MudTheme _theme = new()
+    {
+        PaletteLight = new PaletteLight
+        {
+            Primary = "#1976D2",
+            Secondary = "#7C4DFF",
+            AppbarBackground = "#0D47A1",
+            Background = "#F5F5F5",
+            Surface = "#FFFFFF",
+            DrawerBackground = "#FAFAFA"
+        },
+        PaletteDark = new PaletteDark
+        {
+            Primary = "#42A5F5",
+            Secondary = "#B388FF",
+            AppbarBackground = "#0D47A1",
+            Background = "#121212",
+            Surface = "#1E1E1E",
+            DrawerBackground = "#1A1A2E"
+        },
+        Typography = new Typography
+        {
+            Default = new DefaultTypography { FontFamily = new[] { "Inter", "Helvetica", "Arial", "sans-serif" } }
+        }
+    };
+
+    private void ToggleDrawer() => _drawerOpen = !_drawerOpen;
+    private void ToggleDarkMode() => _isDarkMode = !_isDarkMode;
+}

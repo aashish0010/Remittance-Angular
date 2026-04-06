@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["src/app/layouts/login-layout/login-layout.component.ts", "src/app/layouts/login-layout/login-layout.component.html"],
-  "sourcesContent": ["import { Component, OnInit } from '@angular/core';\r\nimport { RouterModule } from '@angular/router';\r\n\r\n@Component({\r\n  selector: 'app-login-layout',\r\n  standalone: true,\r\n  imports: [RouterModule],\r\n  templateUrl: './login-layout.component.html',\r\n  styleUrls: ['./login-layout.component.scss']\r\n})\r\nexport class LoginLayoutComponent implements OnInit {\r\n  ngOnInit(): void {\r\n    const isDark = localStorage.getItem('darkMode') === 'true';\r\n    document.body.classList.toggle('dark-mode', isDark);\r\n  }\r\n}\r\n", "<router-outlet></router-outlet>\n"],
-  "mappings": ";;;;;;;;;;;;;;AAUM,IAAO,uBAAP,MAAO,sBAAoB;EAC/B,WAAQ;AACN,UAAM,SAAS,aAAa,QAAQ,UAAU,MAAM;AACpD,aAAS,KAAK,UAAU,OAAO,aAAa,MAAM;EACpD;;;uCAJW,uBAAoB;IAAA;EAAA;;yEAApB,uBAAoB,WAAA,CAAA,CAAA,kBAAA,CAAA,GAAA,OAAA,GAAA,MAAA,GAAA,UAAA,SAAA,8BAAA,IAAA,KAAA;AAAA,UAAA,KAAA,GAAA;ACVjC,QAAA,oBAAA,GAAA,eAAA;;sBDMY,cAAY,YAAA,GAAA,QAAA,CAAA,yKAAA,EAAA,CAAA;EAAA;;;sEAIX,sBAAoB,CAAA;UAPhC;uBACW,oBAAkB,YAChB,MAAI,SACP,CAAC,YAAY,GAAC,UAAA,qCAAA,QAAA,CAAA,4NAAA,EAAA,CAAA;;;;6EAIZ,sBAAoB,EAAA,WAAA,wBAAA,UAAA,0DAAA,YAAA,GAAA,CAAA;AAAA,GAAA;",
-  "names": []
-}

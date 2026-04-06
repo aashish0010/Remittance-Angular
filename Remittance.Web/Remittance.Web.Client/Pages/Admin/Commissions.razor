@@ -1,0 +1,425 @@
+@page "/admin/commissions"
+@using Remittance.Web.Client.Models
+@using Remittance.Web.Client.Services
+
+<PageTitle>Commissions - Remittance</PageTitle>
+
+<div class="d-flex justify-space-between align-center mb-4">
+    <MudText Typo="Typo.h5" Style="font-weight: 700;">Commission Configuration</MudText>
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add"
+               OnClick="@(() => { _editModel = new(); _commissionMode = "Percentage"; _showForm = true; _editId = null; _formError = string.Empty; _sendingAgentName = string.Empty; _payoutAgentName = string.Empty; })">
+        Add Rate
+    </MudButton>
+</div>
+
+@if (!string.IsNullOrEmpty(_message))
+{
+    <MudAlert Severity="@_msgSev" Class="mb-4" Dense="true" ShowCloseIcon="true"
+              CloseIconClicked="@(() => _message = string.Empty)">@_message</MudAlert>
+}
+
+<MudPaper Elevation="4" Class="rounded-lg">
+    <MudTable Items="_rates" Hover="true" Striped="true" Dense="true" Loading="_loading">
+        <HeaderContent>
+            <MudTh>Sending Agent</MudTh>
+            <MudTh>Payout Partner</MudTh>
+            <MudTh>Amount Range</MudTh>
+            <MudTh>Commission</MudTh>
+            <MudTh>Actions</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd>@(string.IsNullOrEmpty(context.AgentName) ? "All Agents" : context.AgentName)</MudTd>
+            <MudTd>@context.PayoutAgentName</MudTd>
+            <MudTd>@context.MinAmount.ToString("N0") - @context.MaxAmount.ToString("N0")</MudTd>
+            <MudTd>
+                @if (context.CommissionPercent > 0)
+                {
+                    <MudChip T="string" Size="Size.Small" Color="Color.Info">@context.CommissionPercent.ToString("N2")%</MudChip>
+                }
+                else
+                {
+                    <MudChip T="string" Size="Size.Small" Color="Color.Warning">Flat @(context.FlatFee?.ToString("N2") ?? "0.00")</MudChip>
+                }
+            </MudTd>
+            <MudTd>
+                <MudTooltip Text="View Details">
+                    <MudIconButton Icon="@Icons.Material.Filled.Visibility" Size="Size.Small" Color="Color.Info"
+                                   OnClick="@(() => ViewCommission(context))" />
+                </MudTooltip>
+                <MudTooltip Text="Edit">
+                    <MudIconButton Icon="@Icons.Material.Filled.Edit" Size="Size.Small" Color="Color.Primary"
+                                   OnClick="@(() => StartEdit(context))" />
+                </MudTooltip>
+                <MudTooltip Text="Delete">
+                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Size="Size.Small" Color="Color.Error"
+                                   OnClick="@(() => DeleteRate(context))" />
+                </MudTooltip>
+            </MudTd>
+        </RowTemplate>
+    </MudTable>
+</MudPaper>
+
+@* Commission Detail Popup *@
+@if (_showDetailPopup && _detailRate != null)
+{
+    <MudOverlay Visible="true" DarkBackground="true" ZIndex="9999" OnClick="@(() => _showDetailPopup = false)" />
+    <div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 10000; width: 520px; max-width: 95vw;">
+        <MudPaper Elevation="12" Class="pa-6 rounded-lg">
+            <div class="d-flex justify-space-between align-center mb-4">
+                <MudText Typo="Typo.h6" Style="font-weight: 600;">Commission Details</MudText>
+                <MudIconButton Icon="@Icons.Material.Filled.Close" Size="Size.Small" OnClick="@(() => _showDetailPopup = false)" />
+            </div>
+            <MudGrid Spacing="3">
+                <MudItem xs="6"><MudText Typo="Typo.caption" Color="Color.Secondary">Sending Agent</MudText><MudText>@(string.IsNullOrEmpty(_detailRate.AgentName) ? "All Agents" : _detailRate.AgentName)</MudText></MudItem>
+                <MudItem xs="6"><MudText Typo="Typo.caption" Color="Color.Secondary">Payout Partner</MudText><MudText>@_detailRate.PayoutAgentName</MudText></MudItem>
+                <MudItem xs="6"><MudText Typo="Typo.caption" Color="Color.Secondary">Mode</MudText><MudText>@(_detailRate.CommissionPercent > 0 ? "Percentage" : "Flat")</MudText></MudItem>
+                <MudItem xs="6"><MudText Typo="Typo.caption" Color="Color.Secondary">Commission</MudText><MudText><strong>@(_detailRate.CommissionPercent > 0 ? $"{_detailRate.CommissionPercent:N2}%" : $"{_detailRate.FlatFee?.ToString("N2") ?? "0.00"}")</strong></MudText></MudItem>
+                <MudItem xs="6"><MudText Typo="Typo.caption" Color="Color.Secondary">Amount Range</MudText><MudText>@_detailRate.MinAmount.ToString("N2") - @_detailRate.MaxAmount.ToString("N2")</MudText></MudItem>
+                <MudItem xs="6"><MudText Typo="Typo.caption" Color="Color.Secondary">Payment Method</MudText><MudText>@(_detailRate.PaymentMethod ?? "All")</MudText></MudItem>
+                <MudItem xs="6"><MudText Typo="Typo.caption" Color="Color.Secondary">Source Country</MudText><MudText>@(_detailRate.SourceCountry ?? "All")</MudText></MudItem>
+                <MudItem xs="6"><MudText Typo="Typo.caption" Color="Color.Secondary">Destination Country</MudText><MudText>@(_detailRate.DestinationCountry ?? "All")</MudText></MudItem>
+                <MudItem xs="6"><MudText Typo="Typo.caption" Color="Color.Secondary">Source Currency</MudText><MudText>@(_detailRate.SourceCurrency ?? "All")</MudText></MudItem>
+                <MudItem xs="6"><MudText Typo="Typo.caption" Color="Color.Secondary">Destination Currency</MudText><MudText>@(_detailRate.DestinationCurrency ?? "All")</MudText></MudItem>
+            </MudGrid>
+        </MudPaper>
+    </div>
+}
+
+@if (_showForm)
+{
+    <MudOverlay Visible="true" DarkBackground="true" ZIndex="9999" OnClick="@(() => _showForm = false)" />
+    <div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 10000; width: 720px; max-width: 95vw; max-height: 90vh; overflow-y: auto;">
+        <MudPaper Elevation="12" Class="pa-6 rounded-lg">
+            <div class="d-flex justify-space-between align-center mb-4">
+                <MudText Typo="Typo.h6" Style="font-weight: 600;">@(_editId.HasValue ? "Edit" : "Add") Commission Rate</MudText>
+                <MudIconButton Icon="@Icons.Material.Filled.Close" Size="Size.Small" OnClick="@(() => _showForm = false)" />
+            </div>
+            @if (!string.IsNullOrEmpty(_formError))
+            {
+                <MudAlert Severity="Severity.Error" Class="mb-3" Dense="true">@_formError</MudAlert>
+            }
+
+            @* Agent Scope *@
+            <MudText Typo="Typo.subtitle2" Class="mb-2" Style="font-weight:600;">Agents</MudText>
+            <MudGrid Spacing="3">
+                <MudItem xs="6">
+                    <MudAutocomplete T="string" Value="_sendingAgentName" ValueChanged="OnSendingAgentChanged"
+                                     Label="Sending Agent (optional)" SearchFunc="SearchSendingAgentNames"
+                                     Variant="Variant.Outlined" Clearable="true" Dense="true" MinCharacters="0" />
+                </MudItem>
+                <MudItem xs="6">
+                    <MudAutocomplete T="string" Value="_payoutAgentName" ValueChanged="OnPayoutAgentChanged"
+                                     Label="Payout Partner *" SearchFunc="SearchPayoutAgentNames"
+                                     Variant="Variant.Outlined" Dense="true" MinCharacters="0" />
+                </MudItem>
+            </MudGrid>
+
+            <MudDivider Class="my-4" />
+
+            @* Country & Currency *@
+            <MudText Typo="Typo.subtitle2" Class="mb-2" Style="font-weight:600;">Scope (Optional)</MudText>
+            <MudGrid Spacing="3">
+                <MudItem xs="6">
+                    <MudSelect T="string" @bind-Value="_editModel.SourceCountry" Label="Source Country"
+                               Variant="Variant.Outlined" Clearable="true" Dense="true">
+                        @foreach (var c in _countries) { <MudSelectItem Value="@c">@c</MudSelectItem> }
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="6">
+                    <MudSelect T="string" @bind-Value="_editModel.DestinationCountry" Label="Destination Country"
+                               Variant="Variant.Outlined" Clearable="true" Dense="true">
+                        @foreach (var c in _countries) { <MudSelectItem Value="@c">@c</MudSelectItem> }
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="4">
+                    <MudSelect T="string" @bind-Value="_editModel.SourceCurrency" Label="Source Currency"
+                               Variant="Variant.Outlined" Clearable="true" Dense="true">
+                        @foreach (var c in _currencies) { <MudSelectItem Value="@c">@c</MudSelectItem> }
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="4">
+                    <MudSelect T="string" @bind-Value="_editModel.DestinationCurrency" Label="Receiver Currency"
+                               Variant="Variant.Outlined" Clearable="true" Dense="true">
+                        @foreach (var c in _currencies) { <MudSelectItem Value="@c">@c</MudSelectItem> }
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="4">
+                    <MudSelect T="string" @bind-Value="_editModel.PaymentMethod" Label="Payment Method"
+                               Variant="Variant.Outlined" Clearable="true" Dense="true">
+                        @foreach (var p in _paymentMethods) { <MudSelectItem Value="@p.Name">@p.Name</MudSelectItem> }
+                    </MudSelect>
+                </MudItem>
+            </MudGrid>
+
+            <MudDivider Class="my-4" />
+
+            @* Amount Range *@
+            <MudText Typo="Typo.subtitle2" Class="mb-2" Style="font-weight:600;">Amount Range</MudText>
+            <MudGrid Spacing="3">
+                <MudItem xs="6"><MudNumericField T="decimal" @bind-Value="_editModel.MinAmount" Label="Min Amount *" Variant="Variant.Outlined" /></MudItem>
+                <MudItem xs="6"><MudNumericField T="decimal" @bind-Value="_editModel.MaxAmount" Label="Max Amount *" Variant="Variant.Outlined" /></MudItem>
+            </MudGrid>
+
+            <MudDivider Class="my-4" />
+
+            @* Commission Mode *@
+            <MudText Typo="Typo.subtitle2" Class="mb-2" Style="font-weight:600;">Commission</MudText>
+            <MudGrid Spacing="3">
+                <MudItem xs="6">
+                    <MudSelect T="string" @bind-Value="_commissionMode" Label="Commission Mode *" Variant="Variant.Outlined">
+                        <MudSelectItem Value="@("Percentage")">Percentage</MudSelectItem>
+                        <MudSelectItem Value="@("Flat")">Flat</MudSelectItem>
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="6">
+                    @if (_commissionMode == "Percentage")
+                    {
+                        <MudNumericField T="decimal" @bind-Value="_editModel.CommissionPercent" Label="Commission %" Variant="Variant.Outlined" />
+                    }
+                    else
+                    {
+                        <MudNumericField T="decimal?" @bind-Value="_editModel.FlatFee" Label="Flat Fee Amount" Variant="Variant.Outlined" />
+                    }
+                </MudItem>
+            </MudGrid>
+
+            <div class="d-flex justify-end gap-2 mt-4">
+                <MudButton StartIcon="@Icons.Material.Filled.Close" OnClick="@(() => _showForm = false)">Cancel</MudButton>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Save" OnClick="SaveRate" Disabled="_saving">
+                    @if (_saving) { <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" /> }
+                    Save
+                </MudButton>
+            </div>
+        </MudPaper>
+    </div>
+}
+
+@code {
+    private List<CommissionRateModel> _rates = new();
+    private List<AgentModel> _agents = new();
+    private List<PaymentMethodModel> _paymentMethods = new();
+    private bool _loading = true;
+    private bool _showForm;
+    private bool _saving;
+    private int? _editId;
+    private CommissionRateModel _editModel = new();
+    private string _commissionMode = "Percentage";
+    private string _message = string.Empty;
+    private string _formError = string.Empty;
+    private Severity _msgSev = Severity.Info;
+    private bool _showDetailPopup;
+    private CommissionRateModel? _detailRate;
+
+    [Inject] private ApiService Api { get; set; } = null!;
+    [Inject] private AuthStateService Auth { get; set; } = null!;
+
+    private List<string> _countries = new();
+    private List<string> _currencies = new();
+    private string _sendingAgentName = string.Empty;
+    private string _payoutAgentName = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Auth.LoadFromSessionAsync();
+        await Task.WhenAll(LoadAgents(), LoadReferenceData(), LoadRates(), LoadPaymentMethods());
+    }
+
+    private async Task LoadReferenceData()
+    {
+        try
+        {
+            var cr = await Api.GetCountriesAsync();
+            var cu = await Api.GetCurrenciesAsync();
+            if (cr?.Success == true && cr.Data != null)
+                _countries = cr.Data.Select(c => c.Name).ToList();
+            if (cu?.Success == true && cu.Data != null)
+                _currencies = cu.Data;
+        }
+        catch { }
+    }
+
+    private async Task LoadAgents()
+    {
+        try
+        {
+            var result = await Api.GetAgentsAsync();
+            if (result?.Success == true && result.Data != null)
+                _agents = result.Data;
+        }
+        catch { }
+    }
+
+    private async Task LoadPaymentMethods()
+    {
+        try
+        {
+            var result = await Api.GetPaymentMethodsAsync();
+            if (result?.Success == true && result.Data != null)
+                _paymentMethods = result.Data;
+        }
+        catch { }
+    }
+
+    private async Task LoadRates()
+    {
+        _loading = true;
+        try
+        {
+            var result = await Api.GetCommissionsAsync();
+            if (result?.Success == true && result.Data != null)
+                _rates = result.Data;
+            else
+            {
+                _rates = new();
+                _message = result?.Message ?? "Failed to load commissions.";
+                _msgSev = Severity.Error;
+            }
+        }
+        catch (Exception ex)
+        {
+            _rates = new();
+            _message = $"Could not connect to server: {ex.Message}";
+            _msgSev = Severity.Error;
+        }
+        finally { _loading = false; }
+    }
+
+    private Task<IEnumerable<string>> SearchSendingAgentNames(string value, CancellationToken _)
+        => Task.FromResult(_agents.Where(a => a.AgentType == "SendingAgent" && a.Status == "Approved")
+            .Where(a => string.IsNullOrEmpty(value) || a.BusinessName.Contains(value, StringComparison.OrdinalIgnoreCase))
+            .Select(a => a.BusinessName));
+
+    private Task<IEnumerable<string>> SearchPayoutAgentNames(string value, CancellationToken _)
+        => Task.FromResult(_agents.Where(a => a.AgentType == "PayoutAgent" && a.Status == "Approved")
+            .Where(a => string.IsNullOrEmpty(value) || a.BusinessName.Contains(value, StringComparison.OrdinalIgnoreCase))
+            .Select(a => a.BusinessName));
+
+    private void OnSendingAgentChanged(string name)
+    {
+        _sendingAgentName = name;
+        _editModel.AgentId = string.IsNullOrEmpty(name) ? null : _agents.FirstOrDefault(a => a.BusinessName == name)?.Id;
+    }
+
+    private void OnPayoutAgentChanged(string name)
+    {
+        _payoutAgentName = name;
+        _editModel.PayoutAgentId = _agents.FirstOrDefault(a => a.BusinessName == name)?.Id ?? 0;
+    }
+
+    private Task<IEnumerable<int>> SearchPayoutAgents(string value, CancellationToken token)
+        => Task.FromResult(_agents.Where(a => a.AgentType == "PayoutAgent" && a.Status == "Approved")
+            .Where(a => string.IsNullOrEmpty(value) || a.BusinessName.Contains(value, StringComparison.OrdinalIgnoreCase))
+            .Select(a => a.Id));
+
+    private Task<IEnumerable<int?>> SearchSendingAgents(string value, CancellationToken token)
+        => Task.FromResult(_agents.Where(a => a.AgentType == "SendingAgent" && a.Status == "Approved")
+            .Where(a => string.IsNullOrEmpty(value) || a.BusinessName.Contains(value, StringComparison.OrdinalIgnoreCase))
+            .Select(a => (int?)a.Id));
+
+    private Task<IEnumerable<string>> SearchCountries(string value, CancellationToken token)
+        => Task.FromResult(string.IsNullOrEmpty(value)
+            ? _countries.AsEnumerable()
+            : _countries.Where(c => c.Contains(value, StringComparison.OrdinalIgnoreCase)));
+
+    private Task<IEnumerable<string>> SearchCurrencies(string value, CancellationToken token)
+        => Task.FromResult(string.IsNullOrEmpty(value)
+            ? _currencies.AsEnumerable()
+            : _currencies.Where(c => c.Contains(value, StringComparison.OrdinalIgnoreCase)));
+
+    private Task<IEnumerable<string>> SearchPaymentMethods(string value, CancellationToken token)
+    {
+        var names = _paymentMethods.Select(p => p.Name);
+        return Task.FromResult(string.IsNullOrEmpty(value)
+            ? names
+            : names.Where(n => n.Contains(value, StringComparison.OrdinalIgnoreCase)));
+    }
+
+    private void ViewCommission(CommissionRateModel rate)
+    {
+        _detailRate = rate;
+        _showDetailPopup = true;
+    }
+
+    private void StartEdit(CommissionRateModel rate)
+    {
+        _editId = rate.Id;
+        _editModel = new CommissionRateModel
+        {
+            MinAmount = rate.MinAmount, MaxAmount = rate.MaxAmount,
+            CommissionPercent = rate.CommissionPercent, FlatFee = rate.FlatFee,
+            SourceCountry = rate.SourceCountry, DestinationCountry = rate.DestinationCountry,
+            AgentId = rate.AgentId, AgentName = rate.AgentName,
+            PayoutAgentId = rate.PayoutAgentId, PayoutAgentName = rate.PayoutAgentName,
+            PaymentMethod = rate.PaymentMethod,
+            SourceCurrency = rate.SourceCurrency, DestinationCurrency = rate.DestinationCurrency
+        };
+        _commissionMode = rate.CommissionPercent > 0 ? "Percentage" : "Flat";
+        _sendingAgentName = rate.AgentName ?? string.Empty;
+        _payoutAgentName = rate.PayoutAgentName ?? string.Empty;
+        _formError = string.Empty;
+        _showForm = true;
+    }
+
+    private async Task DeleteRate(CommissionRateModel rate)
+    {
+        try
+        {
+            var result = await Api.DeleteCommissionAsync(rate.Id);
+            if (result?.Success == true)
+            { _message = "Commission rate deleted."; _msgSev = Severity.Success; await LoadRates(); }
+            else { _message = result?.Message ?? "Failed to delete commission."; _msgSev = Severity.Error; }
+        }
+        catch (Exception ex) { _message = $"Error: {ex.Message}"; _msgSev = Severity.Error; }
+    }
+
+    private async Task SaveRate()
+    {
+        _formError = string.Empty;
+
+        if (_editModel.PayoutAgentId == 0) { _formError = "Payout partner is required."; return; }
+        if (_editModel.MinAmount < 0) { _formError = "Min amount cannot be negative."; return; }
+        if (_editModel.MaxAmount <= 0) { _formError = "Max amount must be greater than zero."; return; }
+        if (_editModel.MaxAmount <= _editModel.MinAmount) { _formError = "Max amount must be greater than min amount."; return; }
+
+        if (_commissionMode == "Percentage" && _editModel.CommissionPercent <= 0)
+        { _formError = "Commission percentage must be greater than zero."; return; }
+        if (_commissionMode == "Flat" && (!_editModel.FlatFee.HasValue || _editModel.FlatFee <= 0))
+        { _formError = "Flat fee must be greater than zero."; return; }
+
+        _saving = true;
+        try
+        {
+            var dto = new
+            {
+                minAmount = _editModel.MinAmount,
+                maxAmount = _editModel.MaxAmount,
+                commissionPercent = _commissionMode == "Percentage" ? _editModel.CommissionPercent : 0m,
+                flatFee = _commissionMode == "Flat" ? _editModel.FlatFee : null,
+                sourceCountry = _editModel.SourceCountry,
+                destinationCountry = _editModel.DestinationCountry,
+                agentId = _editModel.AgentId,
+                payoutAgentId = _editModel.PayoutAgentId,
+                paymentMethod = _editModel.PaymentMethod,
+                sourceCurrency = _editModel.SourceCurrency,
+                destinationCurrency = _editModel.DestinationCurrency
+            };
+
+            if (_editId.HasValue)
+            {
+                var result = await Api.UpdateCommissionAsync(_editId.Value, dto);
+                if (result?.Success == true)
+                { _message = "Commission updated!"; _msgSev = Severity.Success; _showForm = false; await LoadRates(); }
+                else { _formError = result?.Message ?? "Failed to update commission."; }
+            }
+            else
+            {
+                var result = await Api.CreateCommissionAsync(dto);
+                if (result?.Success == true)
+                { _message = "Commission created!"; _msgSev = Severity.Success; _showForm = false; await LoadRates(); }
+                else { _formError = result?.Message ?? "Failed to create commission."; }
+            }
+        }
+        catch (Exception ex) { _message = $"Error: {ex.Message}"; _msgSev = Severity.Error; }
+        finally { _saving = false; }
+    }
+}

@@ -1,0 +1,205 @@
+@page "/auth/login"
+@page "/"
+
+@using Remittance.Web.Client.Models
+@using Remittance.Web.Client.Services
+
+<PageTitle>Login - Remittance</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Small">
+    <MudCard Elevation="12" Class="pa-8 rounded-lg" Style="background: white; border-radius: 16px;">
+        <MudCardContent>
+            <div class="text-center mb-6">
+                <MudIcon Icon="@Icons.Material.Filled.AccountBalance" Size="Size.Large" Color="Color.Primary" />
+                <MudText Typo="Typo.h4" Class="mt-2" Style="font-weight: 700; color: #1565C0;">Remittance</MudText>
+                <MudText Typo="Typo.body2" Color="Color.Secondary">Secure Money Transfer System</MudText>
+            </div>
+
+            @if (!string.IsNullOrEmpty(_error))
+            {
+                <MudAlert Severity="Severity.Error" Class="mb-4" Dense="true">@_error</MudAlert>
+            }
+
+            @if (!_showPortalSelection)
+            {
+                @* Step 1: Email & Password *@
+                <MudTextField @bind-Value="_email" Label="Email" Variant="Variant.Outlined"
+                              InputType="InputType.Email" Adornment="Adornment.Start"
+                              AdornmentIcon="@Icons.Material.Filled.Email" Class="mb-4"
+                              Required="true" RequiredError="Email is required."
+                              Validation="@(new Func<string, string?>(ValidateEmail))" />
+
+                <MudTextField @bind-Value="_password" Label="Password" Variant="Variant.Outlined"
+                              InputType="@(_showPassword ? InputType.Text : InputType.Password)"
+                              Adornment="Adornment.End"
+                              AdornmentIcon="@(_showPassword ? Icons.Material.Filled.Visibility : Icons.Material.Filled.VisibilityOff)"
+                              OnAdornmentClick="@(() => _showPassword = !_showPassword)" Class="mb-6"
+                              Required="true" RequiredError="Password is required." />
+
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true"
+                           Size="Size.Large" OnClick="HandleLogin" Disabled="_loading"
+                           Style="text-transform: none; font-weight: 600; letter-spacing: 0.5px; height: 48px;">
+                    @if (_loading)
+                    {
+                        <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                    }
+                    Sign In
+                </MudButton>
+
+                <div class="text-center mt-4">
+                    <MudText Typo="Typo.caption" Color="Color.Secondary">
+                        Demo: admin@remittance.com / Admin@123
+                    </MudText>
+                </div>
+            }
+            else
+            {
+                @* Step 2: Portal Selection *@
+                <MudText Typo="Typo.body1" Class="mb-2 text-center">
+                    Welcome, <strong>@_loginData!.FullName</strong>
+                </MudText>
+                <MudText Typo="Typo.body2" Class="mb-4 text-center" Color="Color.Secondary">
+                    Select a portal to continue
+                </MudText>
+
+                <div class="d-flex flex-column gap-3">
+                    @foreach (var portal in _availablePortals)
+                    {
+                        <MudButton Variant="Variant.Outlined" Color="Color.Primary" FullWidth="true"
+                                   Size="Size.Large" OnClick="@(() => SelectPortal(portal.Key))"
+                                   StartIcon="@portal.Icon"
+                                   Style="text-transform: none; font-weight: 600; height: 56px; justify-content: flex-start; padding-left: 24px;">
+                            @portal.Label
+                        </MudButton>
+                    }
+                </div>
+
+                <div class="text-center mt-4">
+                    <MudButton Variant="Variant.Text" Color="Color.Default" StartIcon="@Icons.Material.Filled.ArrowBack" OnClick="BackToLogin"
+                               Style="text-transform: none;">
+                        Back to Login
+                    </MudButton>
+                </div>
+            }
+        </MudCardContent>
+    </MudCard>
+</MudContainer>
+
+@code {
+    private string _email = string.Empty;
+    private string _password = string.Empty;
+    private bool _showPassword;
+    private bool _loading;
+    private string _error = string.Empty;
+    private bool _showPortalSelection;
+    private LoginResponse? _loginData;
+    private List<PortalOption> _availablePortals = new();
+
+    [Inject] private NavigationManager Navigation { get; set; } = null!;
+    [Inject] private ApiService Api { get; set; } = null!;
+    [Inject] private AuthStateService Auth { get; set; } = null!;
+
+    private record PortalOption(string Key, string Label, string Icon, string Route);
+
+    private static readonly Dictionary<string, PortalOption> AllPortals = new()
+    {
+        ["Admin"] = new("Admin", "Admin Portal", Icons.Material.Filled.AdminPanelSettings, "/admin/dashboard"),
+        ["Agent"] = new("Agent", "Agent Portal", Icons.Material.Filled.Storefront, "/agent/dashboard"),
+        ["Customer"] = new("Customer", "Customer Portal", Icons.Material.Filled.Person, "/customer/dashboard")
+    };
+
+    private string? ValidateEmail(string email)
+    {
+        if (string.IsNullOrWhiteSpace(email)) return "Email is required.";
+        if (!email.Contains('@') || !email.Contains('.')) return "Invalid email format.";
+        return null;
+    }
+
+    private async Task HandleLogin()
+    {
+        _loading = true;
+        _error = string.Empty;
+
+        if (string.IsNullOrWhiteSpace(_email) || string.IsNullOrWhiteSpace(_password))
+        {
+            _error = "Email and password are required.";
+            _loading = false;
+            return;
+        }
+
+        try
+        {
+            var result = await Api.LoginAsync(_email, _password);
+
+            if (result == null)
+            {
+                _error = "Unable to connect to server.";
+                return;
+            }
+
+            if (!result.Success || result.Data == null)
+            {
+                _error = result.Message ?? "Login failed.";
+                return;
+            }
+
+            _loginData = result.Data;
+
+            // Determine available portals from the response
+            var portalKeys = _loginData.AvailablePortals?.Count > 0
+                ? _loginData.AvailablePortals
+                : new List<string> { _loginData.Portal };
+
+            _availablePortals = portalKeys
+                .Where(p => AllPortals.ContainsKey(p))
+                .Select(p => AllPortals[p])
+                .ToList();
+
+            if (_availablePortals.Count == 1)
+            {
+                // Only one portal — go directly
+                await SetAuthAndNavigate(_availablePortals[0].Route);
+            }
+            else if (_availablePortals.Count > 1)
+            {
+                // Multiple portals — show selection
+                _showPortalSelection = true;
+            }
+            else
+            {
+                _error = "No portal access assigned. Contact administrator.";
+            }
+        }
+        catch (Exception ex)
+        {
+            _error = $"Connection error: {ex.Message}";
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private async Task SelectPortal(string portalKey)
+    {
+        if (AllPortals.TryGetValue(portalKey, out var portal))
+        {
+            await SetAuthAndNavigate(portal.Route);
+        }
+    }
+
+    private async Task SetAuthAndNavigate(string route)
+    {
+        await Auth.SetAuthAsync(_loginData!.Token, _loginData.RefreshToken, _loginData.UserId, _loginData.FullName, _loginData.Email, _loginData.Roles);
+        Navigation.NavigateTo(route);
+    }
+
+    private void BackToLogin()
+    {
+        _showPortalSelection = false;
+        _loginData = null;
+        _availablePortals.Clear();
+        _error = string.Empty;
+        _password = string.Empty;
+    }
+}

@@ -1,0 +1,225 @@
+@page "/admin/transactions"
+@using Remittance.Web.Client.Models
+@using Remittance.Web.Client.Services
+
+<PageTitle>Transactions - Remittance</PageTitle>
+
+<MudText Typo="Typo.h5" Class="mb-4" Style="font-weight: 700;">Transaction Management</MudText>
+
+@if (!string.IsNullOrEmpty(_message))
+{
+    <MudAlert Severity="@_msgSev" Class="mb-4" Dense="true" ShowCloseIcon="true"
+              CloseIconClicked="@(() => _message = string.Empty)">@_message</MudAlert>
+}
+
+<MudPaper Elevation="4" Class="rounded-lg">
+    <MudTable Items="_transactions" Hover="true" Striped="true" Dense="true" Loading="_loading"
+              Filter="new Func<TransactionResult, bool>(FilterFunc)">
+        <ToolBarContent>
+            <MudTextField @bind-Value="_search" Placeholder="Search by reference, sender, receiver..."
+                          Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
+                          IconSize="Size.Medium" Class="mt-0" />
+            <MudSpacer />
+            <MudSelect T="string" @bind-Value="_statusFilter" Label="Status" Variant="Variant.Outlined"
+                       Dense="true" Style="max-width: 160px;">
+                <MudSelectItem Value="@("All")">All</MudSelectItem>
+                <MudSelectItem Value="@("Pending")">Pending</MudSelectItem>
+                <MudSelectItem Value="@("Approved")">Approved</MudSelectItem>
+                <MudSelectItem Value="@("Processing")">Processing</MudSelectItem>
+                <MudSelectItem Value="@("Completed")">Completed</MudSelectItem>
+                <MudSelectItem Value="@("OnHold")">On Hold</MudSelectItem>
+                <MudSelectItem Value="@("Cancelled")">Cancelled</MudSelectItem>
+                <MudSelectItem Value="@("Failed")">Failed</MudSelectItem>
+            </MudSelect>
+        </ToolBarContent>
+        <HeaderContent>
+            <MudTh>Reference</MudTh>
+            <MudTh>Sender</MudTh>
+            <MudTh>Amount</MudTh>
+            <MudTh>Status</MudTh>
+            <MudTh>Date</MudTh>
+            <MudTh>Actions</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd><MudText Typo="Typo.body2" Style="font-family: monospace;">@context.ReferenceNumber</MudText></MudTd>
+            <MudTd>@context.SenderName</MudTd>
+            <MudTd>@context.SendAmount.ToString("N2") @context.SendCurrency</MudTd>
+            <MudTd>
+                <MudChip T="string" Size="Size.Small" Color="@GetStatusColor(context.Status)">@context.Status</MudChip>
+            </MudTd>
+            <MudTd>@context.CreatedAt.ToString("MMM dd, HH:mm")</MudTd>
+            <MudTd>
+                <MudTooltip Text="View Details">
+                    <MudIconButton Icon="@Icons.Material.Filled.Visibility" Size="Size.Small" Color="Color.Info"
+                                   OnClick="@(() => ViewTransaction(context))" />
+                </MudTooltip>
+                @if (context.Status == "Pending")
+                {
+                    <MudTooltip Text="Approve">
+                        <MudIconButton Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Success" Size="Size.Small"
+                                       OnClick="@(() => ApproveTxn(context))" />
+                    </MudTooltip>
+                    <MudTooltip Text="Cancel">
+                        <MudIconButton Icon="@Icons.Material.Filled.Cancel" Color="Color.Error" Size="Size.Small"
+                                       OnClick="@(() => CancelTxn(context))" />
+                    </MudTooltip>
+                }
+            </MudTd>
+        </RowTemplate>
+        <PagerContent>
+            <MudTablePager />
+        </PagerContent>
+    </MudTable>
+</MudPaper>
+
+@* Transaction Detail Popup *@
+@if (_showDetail && _detailTxn != null)
+{
+    <div style="position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1300;" @onclick="@(() => _showDetail = false)"></div>
+    <div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1400; width: 550px; max-width: 95vw; max-height: 90vh; overflow-y: auto;">
+        <MudPaper Elevation="8" Class="pa-6" Style="border-radius: 12px;">
+            <div class="d-flex justify-space-between align-center mb-4">
+                <MudText Typo="Typo.h6" Style="font-weight: 600;">Transaction Details</MudText>
+                <MudIconButton Icon="@Icons.Material.Filled.Close" Size="Size.Small" OnClick="@(() => _showDetail = false)" />
+            </div>
+            <MudGrid>
+                <MudItem xs="6"><MudText Typo="Typo.caption" Color="Color.Secondary">Reference</MudText><MudText Style="font-family: monospace;">@_detailTxn.ReferenceNumber</MudText></MudItem>
+                <MudItem xs="6"><MudText Typo="Typo.caption" Color="Color.Secondary">Status</MudText><MudChip T="string" Size="Size.Small" Color="@GetStatusColor(_detailTxn.Status)">@_detailTxn.Status</MudChip></MudItem>
+                <MudItem xs="6"><MudText Typo="Typo.caption" Color="Color.Secondary">Sender</MudText><MudText>@_detailTxn.SenderName</MudText></MudItem>
+                <MudItem xs="6"><MudText Typo="Typo.caption" Color="Color.Secondary">Receiver</MudText><MudText>@_detailTxn.ReceiverName</MudText></MudItem>
+                <MudItem xs="6"><MudText Typo="Typo.caption" Color="Color.Secondary">Receiver Country</MudText><MudText>@_detailTxn.ReceiverCountry</MudText></MudItem>
+                <MudItem xs="6"><MudText Typo="Typo.caption" Color="Color.Secondary">Date</MudText><MudText>@_detailTxn.CreatedAt.ToString("yyyy-MM-dd HH:mm")</MudText></MudItem>
+            </MudGrid>
+            <MudDivider Class="my-3" />
+            <MudGrid>
+                <MudItem xs="6"><MudText Typo="Typo.caption" Color="Color.Secondary">Send Amount</MudText><MudText><strong>@_detailTxn.SendAmount.ToString("N2") @_detailTxn.SendCurrency</strong></MudText></MudItem>
+                <MudItem xs="6"><MudText Typo="Typo.caption" Color="Color.Secondary">Receive Amount</MudText><MudText><strong>@_detailTxn.ReceiveAmount.ToString("N2") @_detailTxn.ReceiveCurrency</strong></MudText></MudItem>
+                <MudItem xs="6"><MudText Typo="Typo.caption" Color="Color.Secondary">Exchange Rate</MudText><MudText>@_detailTxn.ExchangeRateApplied.ToString("N4")</MudText></MudItem>
+                <MudItem xs="6"><MudText Typo="Typo.caption" Color="Color.Secondary">Commission</MudText><MudText>@_detailTxn.TotalCommission.ToString("N2")</MudText></MudItem>
+                <MudItem xs="6"><MudText Typo="Typo.caption" Color="Color.Secondary">Agent Commission</MudText><MudText>@_detailTxn.AgentCommission.ToString("N2")</MudText></MudItem>
+            </MudGrid>
+        </MudPaper>
+    </div>
+}
+
+@code {
+    private List<TransactionResult> _transactions = new();
+    private bool _loading = true;
+    private string _search = string.Empty;
+    private string _statusFilter = "All";
+    private string _message = string.Empty;
+    private Severity _msgSev = Severity.Info;
+    private bool _showDetail;
+    private TransactionResult? _detailTxn;
+
+    [Inject] private ApiService Api { get; set; } = null!;
+    [Inject] private AuthStateService Auth { get; set; } = null!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Auth.LoadFromSessionAsync();
+        await LoadTransactions();
+    }
+
+    private async Task LoadTransactions()
+    {
+        _loading = true;
+        try
+        {
+            var result = await Api.GetTransactionsAsync();
+            if (result?.Success == true && result.Data != null)
+            {
+                _transactions = result.Data;
+            }
+            else
+            {
+                _transactions = new();
+                _message = result?.Message ?? "Failed to load transactions. Please ensure you are logged in.";
+                _msgSev = Severity.Error;
+            }
+        }
+        catch (Exception ex)
+        {
+            _transactions = new();
+            _message = $"Could not connect to server: {ex.Message}";
+            _msgSev = Severity.Error;
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private void ViewTransaction(TransactionResult txn)
+    {
+        _detailTxn = txn;
+        _showDetail = true;
+    }
+
+    private async Task ApproveTxn(TransactionResult txn)
+    {
+        try
+        {
+            var result = await Api.ApproveTransactionAsync(txn.Id);
+            if (result?.Success == true)
+            {
+                txn.Status = "Approved";
+                _message = $"Transaction {txn.ReferenceNumber} approved.";
+                _msgSev = Severity.Success;
+            }
+            else
+            {
+                _message = result?.Message ?? "Failed.";
+                _msgSev = Severity.Error;
+            }
+        }
+        catch (Exception ex)
+        {
+            _message = $"Error: {ex.Message}";
+            _msgSev = Severity.Error;
+        }
+        StateHasChanged();
+    }
+
+    private async Task CancelTxn(TransactionResult txn)
+    {
+        try
+        {
+            var result = await Api.CancelTransactionAsync(txn.Id);
+            if (result?.Success == true)
+            {
+                txn.Status = "Cancelled";
+                _message = $"Transaction {txn.ReferenceNumber} cancelled.";
+                _msgSev = Severity.Warning;
+            }
+            else
+            {
+                _message = result?.Message ?? "Failed.";
+                _msgSev = Severity.Error;
+            }
+        }
+        catch (Exception ex)
+        {
+            _message = $"Error: {ex.Message}";
+            _msgSev = Severity.Error;
+        }
+        StateHasChanged();
+    }
+
+    private bool FilterFunc(TransactionResult txn) =>
+        (_statusFilter == "All" || txn.Status == _statusFilter) &&
+        (string.IsNullOrWhiteSpace(_search) ||
+         txn.ReferenceNumber.Contains(_search, StringComparison.OrdinalIgnoreCase) ||
+         txn.SenderName.Contains(_search, StringComparison.OrdinalIgnoreCase) ||
+         (txn.ReceiverName?.Contains(_search, StringComparison.OrdinalIgnoreCase) ?? false));
+
+    private static Color GetStatusColor(string status) => status switch
+    {
+        "Completed" => Color.Success,
+        "Pending" => Color.Warning,
+        "Approved" or "Processing" => Color.Info,
+        "OnHold" => Color.Dark,
+        "Cancelled" or "Failed" => Color.Error,
+        _ => Color.Default
+    };
+}
