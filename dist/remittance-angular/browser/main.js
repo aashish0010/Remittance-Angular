@@ -7964,7 +7964,7 @@ var routes = [
     loadComponent: () => import("./chunk-AP2RHE67.js").then((m4) => m4.AdminLayoutComponent),
     canActivate: [authGuard],
     children: [
-      { path: "dashboard", loadComponent: () => import("./chunk-CZFM42U5.js").then((m4) => m4.AdminDashboardComponent) },
+      { path: "dashboard", loadComponent: () => import("./chunk-WDZVXPBU.js").then((m4) => m4.AdminDashboardComponent) },
       { path: "agents", loadComponent: () => import("./chunk-7DQ56GXO.js").then((m4) => m4.AgentManagementComponent) },
       { path: "static-values", loadComponent: () => import("./chunk-LTHTNE56.js").then((m4) => m4.SetupFieldsComponent) },
       { path: "transactions", loadComponent: () => import("./chunk-VOLG4KT4.js").then((m4) => m4.AdminTransactionsComponent) },
