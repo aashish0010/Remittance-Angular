@@ -110,6 +110,20 @@ export class ApiService {
     );
   }
 
+  forgotPassword(email: string): Observable<ApiResponse<string>> {
+    return this.post<string>('api/auth/forgot-password', { email });
+  }
+
+  resetPassword(token: string, newPassword: string, confirmPassword: string): Observable<ApiResponse<string>> {
+    return this.post<string>('api/auth/reset-password', { token, newPassword, confirmPassword });
+  }
+
+  validateResetToken(token: string): Observable<ApiResponse<boolean>> {
+    return this.http.get<ApiResponse<boolean>>(this.url(`api/auth/validate-reset-token?token=${encodeURIComponent(token)}`)).pipe(
+      catchError(err => this.handleError<boolean>(err))
+    );
+  }
+
   // ---------------------------------------------------------------------------
   // Transaction PIN
   // ---------------------------------------------------------------------------

@@ -73,5 +73,6 @@ export class AgentLayoutComponent implements OnInit {
 
   private applyBodyClass(): void {
     document.body.classList.toggle('dark-mode', this.isDarkMode);
+    document.documentElement.classList.toggle('dark', this.isDarkMode);
   }
 }

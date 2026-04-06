@@ -25,7 +25,7 @@ $sidebar-section: #9ca3af;
 
 :host {
   display: block;
-  height: 100vh;
+  min-height: 100vh;
   font-family: 'Inter', sans-serif;
 }
 
@@ -61,7 +61,7 @@ $sidebar-section: #9ca3af;
 .layout-wrapper {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  min-height: 100vh;
 }
 
 // ─────────────────────────────────────────────
