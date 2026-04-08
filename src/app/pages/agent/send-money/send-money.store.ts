@@ -44,7 +44,6 @@ const initialState: SendMoneyState = {
 };
 
 export const SendMoneyStore = signalStore(
-  { providedIn: 'scoped' as any },
   withState<SendMoneyState>(initialState),
   withComputed((state) => ({
     canProceedStep1: computed(() => {

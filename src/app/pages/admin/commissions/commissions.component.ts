@@ -69,7 +69,6 @@ export class CommissionsComponent implements OnInit, OnDestroy {
   ];
   searchString = '';
   loading = true;
-  deleteConfirmId: number | null = null;
 
   // Server-side pagination
   pageIndex = 0;

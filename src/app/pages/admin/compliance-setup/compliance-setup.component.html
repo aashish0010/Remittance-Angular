@@ -57,15 +57,7 @@
             <div class="flex items-center gap-1">
               <button aria-label="Edit rule" (click)="openEdit(r)" class="p-1.5 rounded-md text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/20 transition"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg></button>
               <button [attr.aria-label]="r.isActive ? 'Deactivate rule' : 'Activate rule'" (click)="toggleRule(r)" class="p-1.5 rounded-md hover:bg-surface-100 dark:hover:bg-surface-700 transition"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24" [ngClass]="r.isActive ? 'text-green-600 dark:text-green-400' : 'text-surface-400 dark:text-surface-500'"><path *ngIf="r.isActive" d="M17 7H7a5 5 0 000 10h10a5 5 0 000-10zm0 8a3 3 0 110-6 3 3 0 010 6z"/><path *ngIf="!r.isActive" d="M17 7H7a5 5 0 000 10h10a5 5 0 000-10zM7 15a3 3 0 110-6 3 3 0 010 6z"/></svg></button>
-              <!-- Delete with inline confirmation -->
-              <ng-container *ngIf="deleteConfirmId !== r.id">
-                <button aria-label="Delete rule" (click)="deleteConfirmId = r.id" class="p-1.5 rounded-md text-danger-500 hover:bg-danger-50 dark:hover:bg-danger-900/20 transition"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>
-              </ng-container>
-              <span *ngIf="deleteConfirmId === r.id" class="inline-flex items-center gap-1.5 text-xs">
-                <span class="text-danger-700 dark:text-danger-400 font-medium">Delete?</span>
-                <button (click)="deleteRule(r); deleteConfirmId = null" class="px-2 py-0.5 bg-danger-600 hover:bg-danger-700 text-white rounded-lg text-xs font-medium transition-colors">Yes</button>
-                <button (click)="deleteConfirmId = null" class="px-2 py-0.5 border border-surface-300 dark:border-surface-600 text-surface-600 dark:text-surface-300 rounded-lg text-xs font-medium hover:bg-surface-50 dark:hover:bg-surface-700 transition-colors">No</button>
-              </span>
+              <button aria-label="Delete rule" (click)="deleteRule(r)" class="p-1.5 rounded-md text-danger-500 hover:bg-danger-50 dark:hover:bg-danger-900/20 transition"><svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>
             </div>
           </td>
         </tr>

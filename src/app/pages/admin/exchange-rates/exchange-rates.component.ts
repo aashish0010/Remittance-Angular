@@ -44,7 +44,6 @@ export class ExchangeRatesComponent implements OnInit, OnDestroy {
   currencies: string[] = [];
   searchString = '';
   loading = true;
-  deleteConfirmId: number | null = null;
 
   // Server-side pagination
   pageIndex = 0;
