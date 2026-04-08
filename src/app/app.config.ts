@@ -1,15 +1,23 @@
-import { ApplicationConfig, APP_INITIALIZER, isDevMode, provideZoneChangeDetection } from '@angular/core';
+import { ApplicationConfig, APP_INITIALIZER, isDevMode, provideZoneChangeDetection, Injectable, inject } from '@angular/core';
 import { provideRouter } from '@angular/router';
-import { provideHttpClient, withInterceptors } from '@angular/common/http';
+import { HttpClient, provideHttpClient, withInterceptors } from '@angular/common/http';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { MessageService } from 'primeng/api';
 import { providePrimeNG } from 'primeng/config';
 import Aura from '@primeng/themes/aura';
 import { provideEchartsCore } from 'ngx-echarts';
-import { provideTransloco, TranslocoHttpLoader } from '@jsverse/transloco';
+import { provideTransloco, TranslocoLoader } from '@jsverse/transloco';
 import { routes } from './app.routes';
 import { authInterceptor } from './core/interceptors/auth.interceptor';
 import { LanguageService } from './core/services/language.service';
+
+@Injectable({ providedIn: 'root' })
+class HttpLoader implements TranslocoLoader {
+  private http = inject(HttpClient);
+  getTranslation(lang: string) {
+    return this.http.get<Record<string, unknown>>(`/assets/i18n/${lang}.json`);
+  }
+}
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -31,7 +39,7 @@ export const appConfig: ApplicationConfig = {
         reRenderOnLangChange: true,
         prodMode: !isDevMode(),
       },
-      loader: TranslocoHttpLoader,
+      loader: HttpLoader,
     }),
     {
       provide: APP_INITIALIZER,
