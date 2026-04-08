@@ -110,10 +110,10 @@ export class CustomerRegisterComponent implements OnInit, OnDestroy {
     public appSettings: AppSettingsService,
   ) {}
 
-  /** Tabs shown in the create/edit popup — Documents tab hidden when skipDocumentUpload or KYC disabled */
+  /** Tabs shown in the create/edit popup — Documents tab hidden when KYC disabled */
   get availableTabs(): string[] {
     const tabs = ['Personal', 'Contact'];
-    if (this.appSettings.kycEnabled && !this.appSettings.skipDocumentUpload) {
+    if (this.appSettings.kycEnabled) {
       tabs.push('Documents');
     }
     return tabs;

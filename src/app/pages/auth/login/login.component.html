@@ -9,8 +9,8 @@
         </svg>
       </div>
       <h1 class="text-2xl font-bold tracking-tight text-surface-900 dark:text-surface-100">{{ appName }}</h1>
-      <p *ngIf="!showPortalSelection" class="mt-2 text-sm text-surface-500 dark:text-surface-400">Sign in to continue</p>
-      <p *ngIf="showPortalSelection" class="mt-2 text-sm text-surface-500 dark:text-surface-400">Welcome back, {{ welcomeName }}</p>
+      <p *ngIf="!showPortalSelection" class="mt-2 text-sm text-surface-500 dark:text-surface-400">{{ 'auth.login.subtitle' | transloco }}</p>
+      <p *ngIf="showPortalSelection" class="mt-2 text-sm text-surface-500 dark:text-surface-400">{{ 'auth.login.welcomeBack' | transloco: { name: welcomeName } }}</p>
     </div>
 
     <!-- SECTION 1: LOGIN FORM -->
@@ -29,7 +29,7 @@
 
         <!-- Email Field -->
         <div>
-          <label for="email" class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-1.5">Email</label>
+          <label for="email" class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-1.5">{{ 'auth.login.emailLabel' | transloco }}</label>
           <input
             id="email"
             type="email"
@@ -49,7 +49,7 @@
 
         <!-- Password Field -->
         <div>
-          <label for="password" class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-1.5">Password</label>
+          <label for="password" class="block text-sm font-medium text-surface-700 dark:text-surface-300 mb-1.5">{{ 'auth.login.passwordLabel' | transloco }}</label>
           <div class="relative">
             <input
               id="password"
@@ -93,10 +93,10 @@
               (change)="rememberMe = !rememberMe"
               class="h-4 w-4 rounded border-surface-300 dark:border-surface-600 text-brand-600 focus:ring-brand-500/40 dark:bg-surface-700 transition-colors"
             />
-            <span>Remember me</span>
+            <span>{{ 'auth.login.rememberMe' | transloco }}</span>
           </label>
           <a routerLink="/auth/forgot-password" class="font-medium text-brand-600 hover:text-brand-500 dark:text-brand-400 dark:hover:text-brand-300 transition-colors">
-            Forgot password?
+            {{ 'auth.login.forgotPassword' | transloco }}
           </a>
         </div>
 
@@ -108,7 +108,7 @@
                  hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500/40 focus:ring-offset-2 dark:focus:ring-offset-surface-800
                  disabled:opacity-60 disabled:cursor-not-allowed
                  transition-all duration-150 ease-in-out">
-          <ng-container *ngIf="!loading; else loader">{{ isLockedOut ? 'Account Locked' : 'Sign In' }}</ng-container>
+          <ng-container *ngIf="!loading; else loader">{{ (isLockedOut ? 'auth.login.accountLocked' : 'auth.login.signIn') | transloco }}</ng-container>
           <ng-template #loader>
             <svg class="h-5 w-5 animate-spin text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -121,7 +121,7 @@
 
     <!-- SECTION 2: PORTAL SELECTION -->
     <ng-container *ngIf="showPortalSelection">
-      <p class="text-sm text-surface-500 dark:text-surface-400 mb-5">Select your dashboard to continue:</p>
+      <p class="text-sm text-surface-500 dark:text-surface-400 mb-5">{{ 'auth.login.selectPortalSubtitle' | transloco }}</p>
 
       <div class="flex flex-col gap-3 mb-6 animate-slide-up">
         <button
@@ -154,8 +154,8 @@
 
           <!-- Portal Text -->
           <div class="flex-1 min-w-0">
-            <span class="block text-sm font-semibold text-surface-900 dark:text-surface-100">{{ portal.label }}</span>
-            <span class="block text-xs text-surface-500 dark:text-surface-400 mt-0.5 truncate">{{ portal.description }}</span>
+            <span class="block text-sm font-semibold text-surface-900 dark:text-surface-100">{{ portal.label | transloco }}</span>
+            <span class="block text-xs text-surface-500 dark:text-surface-400 mt-0.5 truncate">{{ portal.description | transloco }}</span>
           </div>
 
           <!-- Chevron -->
@@ -173,7 +173,7 @@
                hover:bg-surface-50 dark:hover:bg-surface-700
                focus:outline-none focus:ring-2 focus:ring-brand-500/40
                transition-colors">
-        Switch Account
+        {{ 'auth.login.switchAccount' | transloco }}
       </button>
     </ng-container>
 
@@ -181,9 +181,9 @@
     <div class="mt-8 flex items-center justify-center gap-2 border-t border-surface-200 dark:border-surface-700 pt-6 text-xs text-surface-400 dark:text-surface-500">
       <span>&copy; {{ currentYear }} {{ appName }}</span>
       <span>&middot;</span>
-      <a href="#" class="hover:text-brand-600 dark:hover:text-brand-400 transition-colors">Privacy</a>
+      <a href="#" class="hover:text-brand-600 dark:hover:text-brand-400 transition-colors">{{ 'common.privacy' | transloco }}</a>
       <span>&middot;</span>
-      <a href="#" class="hover:text-brand-600 dark:hover:text-brand-400 transition-colors">Terms</a>
+      <a href="#" class="hover:text-brand-600 dark:hover:text-brand-400 transition-colors">{{ 'common.terms' | transloco }}</a>
     </div>
   </div>
 </div>

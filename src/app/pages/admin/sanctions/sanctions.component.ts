@@ -35,13 +35,21 @@ export class SanctionsComponent implements OnInit, OnDestroy {
   countries: any[] = [];
   loadingCountries = false;
 
-  // Screening Results
-  screenings: any[] = [];
-  screeningsTotalCount = 0;
-  screeningsPage = 1;
-  screeningsPageSize = 20;
-  screeningsSearch = '';
-  loadingScreenings = false;
+  // Flagged Transactions (PotentialMatch)
+  flagged: any[] = [];
+  flaggedTotalCount = 0;
+  flaggedPage = 1;
+  flaggedPageSize = 20;
+  flaggedSearch = '';
+  loadingFlagged = false;
+
+  // Whitelist (FalsePositive)
+  whitelist: any[] = [];
+  whitelistTotalCount = 0;
+  whitelistPage = 1;
+  whitelistPageSize = 20;
+  whitelistSearch = '';
+  loadingWhitelist = false;
 
   // Entry Form
   showEntryForm = false;
@@ -52,7 +60,18 @@ export class SanctionsComponent implements OnInit, OnDestroy {
     listSource: 'Custom',
     aliases: '',
     nationality: '',
-    remarks: ''
+    remarks: '',
+    // Individual-specific
+    dateOfBirth: '',
+    placeOfBirth: '',
+    gender: '',
+    position: '',
+    idDocumentNumber: '',
+    // Organization-specific
+    registrationNumber: '',
+    registrationCountry: '',
+    // All types
+    address: ''
   };
 
   // Country Form
@@ -76,6 +95,7 @@ export class SanctionsComponent implements OnInit, OnDestroy {
   };
 
   entryTypes = ['Individual', 'Organization', 'Vessel', 'Aircraft'];
+  genderOptions = ['Male', 'Female', 'Unknown'];
   listSources = ['OFAC-SDN', 'UN', 'EU', 'Custom'];
   sanctionTypes = ['Full', 'Partial'];
   riskLevels = ['Blocked', 'High', 'Medium', 'Low'];
@@ -98,7 +118,8 @@ export class SanctionsComponent implements OnInit, OnDestroy {
     this.loadDashboard();
     this.loadEntries();
     this.loadCountries();
-    this.loadScreenings();
+    this.loadFlagged();
+    this.loadWhitelist();
     this.loadReferenceCountries();
   }
 
@@ -169,10 +190,23 @@ export class SanctionsComponent implements OnInit, OnDestroy {
         listSource: entry.listSource,
         aliases: entry.aliases || '',
         nationality: entry.nationality || '',
-        remarks: entry.remarks || ''
+        remarks: entry.remarks || '',
+        dateOfBirth: entry.dateOfBirth ? entry.dateOfBirth.substring(0, 10) : '',
+        placeOfBirth: entry.placeOfBirth || '',
+        gender: entry.gender || '',
+        position: entry.position || '',
+        idDocumentNumber: entry.idDocumentNumber || '',
+        registrationNumber: entry.registrationNumber || '',
+        registrationCountry: entry.registrationCountry || '',
+        address: entry.address || ''
       };
     } else {
-      this.entryForm = { name: '', entryType: 'Individual', listSource: 'Custom', aliases: '', nationality: '', remarks: '' };
+      this.entryForm = {
+        name: '', entryType: 'Individual', listSource: 'Custom', aliases: '',
+        nationality: '', remarks: '', dateOfBirth: '', placeOfBirth: '',
+        gender: '', position: '', idDocumentNumber: '', registrationNumber: '',
+        registrationCountry: '', address: ''
+      };
     }
     this.showEntryForm = true;
   }
@@ -320,35 +354,66 @@ export class SanctionsComponent implements OnInit, OnDestroy {
     });
   }
 
-  // ---- Screening Results ----
-  loadScreenings(): void {
-    this.loadingScreenings = true;
-    this.api.getScreeningResultsPaged({ page: this.screeningsPage, pageSize: this.screeningsPageSize, search: this.screeningsSearch })
+  // ---- Flagged Transactions (PotentialMatch) ----
+  loadFlagged(): void {
+    this.loadingFlagged = true;
+    this.api.getScreeningResultsPaged({ page: this.flaggedPage, pageSize: this.flaggedPageSize, search: this.flaggedSearch }, 'PotentialMatch')
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: res => {
           if (res?.success && res.data) {
-            this.screenings = res.data.items || [];
-            this.screeningsTotalCount = res.data.totalCount || 0;
+            this.flagged = res.data.items || [];
+            this.flaggedTotalCount = res.data.totalCount || 0;
           }
-          this.loadingScreenings = false;
+          this.loadingFlagged = false;
         },
-        error: () => this.loadingScreenings = false
+        error: () => this.loadingFlagged = false
       });
   }
 
-  onScreeningsSearch(): void {
+  onFlaggedSearch(): void {
     if (this.searchTimer) clearTimeout(this.searchTimer);
     this.searchTimer = setTimeout(() => {
-      this.screeningsPage = 1;
-      this.loadScreenings();
+      this.flaggedPage = 1;
+      this.loadFlagged();
     }, 400);
   }
 
-  onScreeningsPage(event: { pageIndex: number; pageSize: number }): void {
-    this.screeningsPage = event.pageIndex + 1;
-    this.screeningsPageSize = event.pageSize;
-    this.loadScreenings();
+  onFlaggedPage(event: { pageIndex: number; pageSize: number }): void {
+    this.flaggedPage = event.pageIndex + 1;
+    this.flaggedPageSize = event.pageSize;
+    this.loadFlagged();
+  }
+
+  // ---- Whitelist (FalsePositive) ----
+  loadWhitelist(): void {
+    this.loadingWhitelist = true;
+    this.api.getScreeningResultsPaged({ page: this.whitelistPage, pageSize: this.whitelistPageSize, search: this.whitelistSearch }, 'FalsePositive')
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: res => {
+          if (res?.success && res.data) {
+            this.whitelist = res.data.items || [];
+            this.whitelistTotalCount = res.data.totalCount || 0;
+          }
+          this.loadingWhitelist = false;
+        },
+        error: () => this.loadingWhitelist = false
+      });
+  }
+
+  onWhitelistSearch(): void {
+    if (this.searchTimer) clearTimeout(this.searchTimer);
+    this.searchTimer = setTimeout(() => {
+      this.whitelistPage = 1;
+      this.loadWhitelist();
+    }, 400);
+  }
+
+  onWhitelistPage(event: { pageIndex: number; pageSize: number }): void {
+    this.whitelistPage = event.pageIndex + 1;
+    this.whitelistPageSize = event.pageSize;
+    this.loadWhitelist();
   }
 
   openReviewForm(screening: any): void {
@@ -371,7 +436,8 @@ export class SanctionsComponent implements OnInit, OnDestroy {
           if (res?.success) {
             this.notify.success('Review submitted');
             this.closeReviewForm();
-            this.loadScreenings();
+            this.loadFlagged();
+            this.loadWhitelist();
             this.loadDashboard();
           } else {
             this.notify.error(res?.message || 'Failed');
@@ -425,8 +491,12 @@ export class SanctionsComponent implements OnInit, OnDestroy {
     return Math.ceil(this.entriesTotalCount / this.entriesPageSize) || 1;
   }
 
-  get screeningsTotalPages(): number {
-    return Math.ceil(this.screeningsTotalCount / this.screeningsPageSize) || 1;
+  get flaggedTotalPages(): number {
+    return Math.ceil(this.flaggedTotalCount / this.flaggedPageSize) || 1;
+  }
+
+  get whitelistTotalPages(): number {
+    return Math.ceil(this.whitelistTotalCount / this.whitelistPageSize) || 1;
   }
 }
 

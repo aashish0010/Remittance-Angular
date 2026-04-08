@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormGroup, FormControl } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { z } from 'zod';
+import { TranslocoModule } from '@jsverse/transloco';
 import { ApiService } from '../../../core/services/api.service';
 import { AuthStateService } from '../../../core/services/auth-state.service';
 import { AppSettingsService } from '../../../core/services/app-settings.service';
@@ -21,24 +22,24 @@ interface PortalOption {
 const ALL_PORTALS: Record<string, PortalOption> = {
   Admin: {
     key: 'Admin',
-    label: 'Admin Portal',
-    description: 'Manage agents, rates, compliance & operations',
+    label: 'auth.portals.admin.label',
+    description: 'auth.portals.admin.description',
     icon: 'admin_panel_settings',
     route: '/admin/dashboard',
     color: '#1565C0'
   },
   Agent: {
     key: 'Agent',
-    label: 'Agent Portal',
-    description: 'Send money, view transactions & commissions',
+    label: 'auth.portals.agent.label',
+    description: 'auth.portals.agent.description',
     icon: 'storefront',
     route: '/agent/dashboard',
     color: '#2E7D32'
   },
   Customer: {
     key: 'Customer',
-    label: 'Customer Portal',
-    description: 'Track transfers & manage your account',
+    label: 'auth.portals.customer.label',
+    description: 'auth.portals.customer.description',
     icon: 'person',
     route: '/customer/dashboard',
     color: '#7B1FA2'
@@ -59,6 +60,7 @@ type LoginForm = z.infer<typeof loginSchema>;
     CommonModule,
     ReactiveFormsModule,
     RouterLink,
+    TranslocoModule,
   ],
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss',

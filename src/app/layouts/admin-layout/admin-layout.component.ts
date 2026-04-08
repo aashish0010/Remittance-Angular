@@ -104,7 +104,8 @@ export class AdminLayoutComponent implements OnInit, OnDestroy {
   ) { }
 
   ngOnInit(): void {
-    // Load app settings once; makes them available to all child components/services
+    // Always reload settings fresh on each login (clears stale cached values from prior session)
+    this.appSettings.reload();
     this.appSettings.load();
 
     // Start session idle timeout tracking

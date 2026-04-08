@@ -32,7 +32,7 @@ export class AppSettingsService {
     }
   }
 
-  /** Force a reload from server (call after saving settings). */
+  /** Force a reload from server (call after saving settings or on re-login). */
   reload(): void {
     this.loaded = false;
   }

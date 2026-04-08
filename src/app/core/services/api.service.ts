@@ -986,8 +986,8 @@ export class ApiService {
   }
 
   // Screening Results
-  getScreeningResultsPaged(request: PagedRequest): Observable<ApiResponse<PagedResult<any>>> {
-    return this.get<PagedResult<any>>(this.buildPagedQuery('api/admin/sanctions/screenings/paged', request));
+  getScreeningResultsPaged(request: PagedRequest, statusFilter?: string): Observable<ApiResponse<PagedResult<any>>> {
+    return this.get<PagedResult<any>>(this.buildPagedQuery('api/admin/sanctions/screenings/paged', request, statusFilter ? { statusFilter } : undefined));
   }
 
   reviewScreeningResult(id: number, data: any): Observable<ApiResponse<any>> {

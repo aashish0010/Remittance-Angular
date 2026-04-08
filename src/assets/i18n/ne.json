@@ -1,0 +1,365 @@
+{
+  "common": {
+    "save": "बचत गर्नुहोस्",
+    "cancel": "रद्द गर्नुहोस्",
+    "search": "खोज्नुहोस्",
+    "loading": "लोड हुँदैछ...",
+    "submit": "पेश गर्नुहोस्",
+    "edit": "सम्पादन गर्नुहोस्",
+    "delete": "मेटाउनुहोस्",
+    "view": "हेर्नुहोस्",
+    "back": "पछाडि",
+    "next": "अर्को",
+    "previous": "अघिल्लो",
+    "close": "बन्द गर्नुहोस्",
+    "confirm": "पुष्टि गर्नुहोस्",
+    "approve": "स्वीकृत गर्नुहोस्",
+    "reject": "अस्वीकार गर्नुहोस्",
+    "block": "ब्लक गर्नुहोस्",
+    "unblock": "अनब्लक गर्नुहोस्",
+    "export": "निर्यात गर्नुहोस्",
+    "filter": "फिल्टर",
+    "all": "सबै",
+    "status": "स्थिति",
+    "actions": "कार्यहरू",
+    "date": "मिति",
+    "amount": "रकम",
+    "currency": "मुद्रा",
+    "name": "नाम",
+    "email": "इमेल",
+    "phone": "फोन",
+    "address": "ठेगाना",
+    "country": "देश",
+    "reference": "सन्दर्भ",
+    "noData": "डेटा उपलब्ध छैन",
+    "noResults": "कुनै नतिजा भेटिएन",
+    "required": "यो फिल्ड आवश्यक छ",
+    "yes": "हो",
+    "no": "होइन",
+    "privacy": "गोपनीयता",
+    "terms": "नियम तथा सर्तहरू"
+  },
+  "auth": {
+    "login": {
+      "subtitle": "जारी राख्न साइन इन गर्नुहोस्",
+      "welcomeBack": "फिर्ता स्वागत छ, {{ name }}",
+      "emailLabel": "इमेल",
+      "emailPlaceholder": "you@example.com",
+      "passwordLabel": "पासवर्ड",
+      "passwordPlaceholder": "आफ्नो पासवर्ड लेख्नुहोस्",
+      "rememberMe": "मलाई सम्झनुहोस्",
+      "forgotPassword": "पासवर्ड बिर्सनुभयो?",
+      "signIn": "साइन इन गर्नुहोस्",
+      "accountLocked": "खाता लक गरिएको छ",
+      "selectPortalSubtitle": "जारी राख्न आफ्नो ड्यासबोर्ड छान्नुहोस्:",
+      "switchAccount": "खाता स्विच गर्नुहोस्"
+    },
+    "forgotPassword": {
+      "title": "पासवर्ड बिर्सनुभयो",
+      "subtitle": "रिसेट लिङ्क पाउन आफ्नो इमेल लेख्नुहोस्",
+      "emailLabel": "इमेल ठेगाना",
+      "emailPlaceholder": "दर्ता गरिएको इमेल लेख्नुहोस्",
+      "sendReset": "रिसेट लिङ्क पठाउनुहोस्",
+      "sending": "पठाउँदैछ...",
+      "successTitle": "आफ्नो इमेल जाँच गर्नुहोस्",
+      "successMessage": "हामीले {{ email }} मा पासवर्ड रिसेट लिङ्क पठाएका छौं",
+      "resend": "इमेल पुनः पठाउनुहोस्",
+      "backToLogin": "लगइनमा फर्कनुहोस्",
+      "emailNotFound": "यस इमेलको कुनै खाता फेला परेन"
+    },
+    "resetPassword": {
+      "title": "पासवर्ड रिसेट गर्नुहोस्",
+      "subtitle": "नयाँ पासवर्ड लेख्नुहोस्",
+      "newPassword": "नयाँ पासवर्ड",
+      "confirmPassword": "पासवर्ड पुष्टि गर्नुहोस्",
+      "resetButton": "पासवर्ड रिसेट गर्नुहोस्",
+      "resetting": "रिसेट हुँदैछ...",
+      "success": "पासवर्ड सफलतापूर्वक रिसेट भयो",
+      "passwordMismatch": "पासवर्डहरू मेल खाँदैनन्",
+      "invalidToken": "अमान्य वा म्याद सकिएको रिसेट लिङ्क"
+    },
+    "portals": {
+      "admin": {
+        "label": "एडमिन पोर्टल",
+        "description": "एजेन्ट, दरहरू, अनुपालन र सञ्चालन प्रबन्ध गर्नुहोस्"
+      },
+      "agent": {
+        "label": "एजेन्ट पोर्टल",
+        "description": "पैसा पठाउनुहोस्, लेनदेन र कमिशन हेर्नुहोस्"
+      },
+      "customer": {
+        "label": "ग्राहक पोर्टल",
+        "description": "स्थानान्तरण ट्र्याक गर्नुहोस् र आफ्नो खाता प्रबन्ध गर्नुहोस्"
+      }
+    }
+  },
+  "nav": {
+    "searchPlaceholder": "नेभिगेसन खोज्नुहोस्...",
+    "logout": "लगआउट",
+    "profile": "प्रोफाइल",
+    "settings": "सेटिङ",
+    "admin": {
+      "dashboard": "ड्यासबोर्ड",
+      "agentManagement": "एजेन्ट व्यवस्थापन",
+      "customers": "ग्राहकहरू",
+      "customerRegister": "ग्राहक दर्ता",
+      "customerReport": "ग्राहक रिपोर्ट",
+      "operations": "सञ्चालन",
+      "transactions": "लेनदेनहरू",
+      "receivers": "प्राप्तकर्ताहरू",
+      "exchangeRates": "विनिमय दरहरू",
+      "commissions": "कमिशनहरू",
+      "routing": "राउटिङ",
+      "compliance": "अनुपालन",
+      "sanctionsList": "प्रतिबन्ध सूची",
+      "complianceSetup": "अनुपालन सेटअप",
+      "accounting": "लेखा",
+      "system": "प्रणाली",
+      "staticValues": "स्थिर मानहरू",
+      "reports": "रिपोर्टहरू",
+      "agentStatement": "एजेन्ट विवरण",
+      "transactionReport": "लेनदेन रिपोर्ट",
+      "commissionReport": "कमिशन रिपोर्ट",
+      "revenueReport": "राजस्व रिपोर्ट",
+      "settlementReport": "सेटलमेन्ट रिपोर्ट",
+      "userManagement": "प्रयोगकर्ता व्यवस्थापन",
+      "roles": "भूमिकाहरू",
+      "users": "प्रयोगकर्ताहरू"
+    },
+    "agent": {
+      "dashboard": "ड्यासबोर्ड",
+      "sendMoney": "पैसा पठाउनुहोस्",
+      "myTransactions": "मेरा लेनदेनहरू",
+      "operations": "सञ्चालन"
+    },
+    "customer": {
+      "dashboard": "ड्यासबोर्ड",
+      "sendMoney": "पैसा पठाउनुहोस्",
+      "myTransactions": "मेरा लेनदेनहरू"
+    }
+  },
+  "dashboard": {
+    "admin": {
+      "title": "एडमिन ड्यासबोर्ड",
+      "totalVolume": "कुल भोल्युम",
+      "totalTransactions": "कुल लेनदेनहरू",
+      "totalAgents": "कुल एजेन्टहरू",
+      "commissionRevenue": "कमिशन आय",
+      "recentTransactions": "हालका लेनदेनहरू",
+      "volumeChart": "भोल्युम र लेनदेनहरू",
+      "revenueChart": "राजस्व विवरण",
+      "vsLastMonth": "गत महिनाको तुलनामा",
+      "thisMonth": "यो महिना"
+    },
+    "agent": {
+      "title": "एजेन्ट ड्यासबोर्ड",
+      "balance": "मौज्दात",
+      "creditLimit": "क्रेडिट सीमा",
+      "currentBalance": "हालको मौज्दात",
+      "availableBalance": "उपलब्ध मौज्दात",
+      "totalCommissions": "कुल कमिशनहरू",
+      "recentTransactions": "हालका लेनदेनहरू"
+    },
+    "customer": {
+      "title": "मेरो ड्यासबोर्ड",
+      "recentTransactions": "हालका लेनदेनहरू",
+      "sendMoney": "पैसा पठाउनुहोस्"
+    }
+  },
+  "transactions": {
+    "title": "लेनदेनहरू",
+    "reference": "सन्दर्भ",
+    "sender": "पठाउने",
+    "receiver": "प्राप्तकर्ता",
+    "sendAmount": "पठाउने रकम",
+    "receiveAmount": "प्राप्त रकम",
+    "exchangeRate": "विनिमय दर",
+    "commission": "कमिशन",
+    "status": "स्थिति",
+    "date": "मिति",
+    "actions": "कार्यहरू",
+    "searchPlaceholder": "सन्दर्भ, नाम द्वारा खोज्नुहोस्...",
+    "filterByStatus": "स्थिति अनुसार फिल्टर",
+    "exportExcel": "Excel निर्यात",
+    "exportCsv": "CSV निर्यात",
+    "completeAction": "पूरा गर्नुहोस्",
+    "cancelAction": "रद्द गर्नुहोस्",
+    "viewDetail": "विवरण हेर्नुहोस्",
+    "noTransactions": "कुनै लेनदेन भेटिएन",
+    "statuses": {
+      "OnHold": "रोकिएको",
+      "PendingApproval": "स्वीकृति पर्खिरहेको",
+      "Processing": "प्रक्रियामा",
+      "Completed": "सम्पन्न",
+      "Cancelled": "रद्द भएको",
+      "Failed": "असफल",
+      "Refunded": "फिर्ता भएको",
+      "Reversed": "उल्टाइएको"
+    }
+  },
+  "sendMoney": {
+    "title": "पैसा पठाउनुहोस्",
+    "steps": {
+      "customer": "ग्राहक",
+      "amount": "रकम",
+      "receiver": "प्राप्तकर्ता",
+      "review": "समीक्षा",
+      "confirm": "पुष्टि"
+    },
+    "customer": {
+      "title": "ग्राहक जानकारी",
+      "searchPlaceholder": "नाम, फोन वा कागजात नम्बर द्वारा खोज्नुहोस्...",
+      "newCustomer": "नयाँ ग्राहक",
+      "firstName": "पहिलो नाम",
+      "lastName": "थर",
+      "middleName": "बीचको नाम",
+      "dateOfBirth": "जन्म मिति",
+      "email": "इमेल",
+      "phone": "फोन नम्बर",
+      "idType": "परिचयपत्र प्रकार",
+      "idNumber": "परिचयपत्र नम्बर",
+      "address": "ठेगाना",
+      "country": "देश",
+      "nationality": "राष्ट्रियता",
+      "occupation": "पेशा",
+      "sourceFunds": "कोषको स्रोत"
+    },
+    "amount": {
+      "title": "हस्तान्तरण रकम",
+      "sendAmount": "पठाउने रकम",
+      "receiveAmount": "प्राप्त हुने रकम",
+      "sendCurrency": "पठाउने मुद्रा",
+      "receiveCurrency": "प्राप्त हुने मुद्रा",
+      "exchangeRate": "विनिमय दर",
+      "serviceCharge": "सेवा शुल्क",
+      "totalPay": "कुल भुक्तानी",
+      "selectRoute": "मार्ग छान्नुहोस्",
+      "payoutMethod": "भुक्तानी विधि"
+    },
+    "receiver": {
+      "title": "प्राप्तकर्ता जानकारी",
+      "searchPlaceholder": "अवस्थित प्राप्तकर्ता खोज्नुहोस्...",
+      "newReceiver": "नयाँ प्राप्तकर्ता",
+      "firstName": "पहिलो नाम",
+      "lastName": "थर",
+      "phone": "फोन नम्बर",
+      "relationship": "सम्बन्ध",
+      "payoutBank": "बैंक",
+      "payoutBranch": "शाखा",
+      "accountNumber": "खाता नम्बर",
+      "accountName": "खाताधारकको नाम"
+    },
+    "review": {
+      "title": "हस्तान्तरण समीक्षा",
+      "senderDetails": "पठाउनेको विवरण",
+      "receiverDetails": "प्राप्तकर्ताको विवरण",
+      "transferDetails": "हस्तान्तरण विवरण",
+      "confirmTransfer": "हस्तान्तरण पुष्टि गर्नुहोस्"
+    },
+    "pin": {
+      "title": "कारोबार PIN लेख्नुहोस्",
+      "setPin": "कारोबार PIN सेट गर्नुहोस्",
+      "confirmPin": "PIN पुष्टि गर्नुहोस्",
+      "enterPin": "४-अंकको PIN लेख्नुहोस्",
+      "createPin": "४-अंकको PIN बनाउनुहोस्",
+      "verify": "प्रमाणित गरी पठाउनुहोस्",
+      "setAndSend": "PIN सेट गरी पठाउनुहोस्"
+    },
+    "success": {
+      "title": "हस्तान्तरण सफल भयो!",
+      "message": "तपाईंको हस्तान्तरण सफलतापूर्वक पेश भयो",
+      "reference": "सन्दर्भ नम्बर",
+      "printReceipt": "रसिद प्रिन्ट गर्नुहोस्",
+      "newTransfer": "नयाँ हस्तान्तरण"
+    }
+  },
+  "agents": {
+    "title": "एजेन्ट व्यवस्थापन",
+    "addAgent": "एजेन्ट थप्नुहोस्",
+    "searchPlaceholder": "एजेन्ट खोज्नुहोस्...",
+    "code": "एजेन्ट कोड",
+    "name": "एजेन्टको नाम",
+    "type": "प्रकार",
+    "country": "देश",
+    "currency": "मुद्रा",
+    "contact": "सम्पर्क",
+    "tabs": {
+      "details": "विवरण",
+      "locations": "स्थानहरू",
+      "users": "प्रयोगकर्ताहरू",
+      "banks": "बैंकहरू"
+    },
+    "statuses": {
+      "Active": "सक्रिय",
+      "Inactive": "निष्क्रिय",
+      "Suspended": "निलम्बित",
+      "PendingApproval": "स्वीकृति पर्खिरहेको"
+    },
+    "types": {
+      "SendingAgent": "पठाउने एजेन्ट",
+      "ReceivingAgent": "प्राप्त गर्ने एजेन्ट"
+    },
+    "noAgents": "कुनै एजेन्ट भेटिएन"
+  },
+  "customers": {
+    "title": "ग्राहकहरू",
+    "registerTitle": "ग्राहक दर्ता",
+    "searchPlaceholder": "ग्राहक खोज्नुहोस्...",
+    "fullName": "पूरा नाम",
+    "kycStatus": "KYC स्थिति",
+    "registeredDate": "दर्ता मिति",
+    "kycLevels": {
+      "None": "प्रमाणित छैन",
+      "Basic": "आधारभूत",
+      "Enhanced": "उन्नत",
+      "Full": "पूर्ण"
+    }
+  },
+  "compliance": {
+    "title": "अनुपालन",
+    "setupTitle": "अनुपालन सेटअप",
+    "sanctionsTitle": "प्रतिबन्ध सूची",
+    "addSanction": "प्रतिबन्ध थप्नुहोस्",
+    "checkName": "नाम जाँच गर्नुहोस्",
+    "searchPlaceholder": "प्रतिबन्ध खोज्नुहोस्...",
+    "riskLevel": "जोखिम स्तर",
+    "riskLevels": {
+      "Low": "न्यून",
+      "Medium": "मध्यम",
+      "High": "उच्च",
+      "Blocked": "अवरुद्ध"
+    }
+  },
+  "exchangeRates": {
+    "title": "विनिमय दरहरू",
+    "addRate": "दर थप्नुहोस्",
+    "fromCurrency": "मुद्राबाट",
+    "toCurrency": "मुद्रामा",
+    "rate": "दर",
+    "margin": "मार्जिन (%)",
+    "agentRate": "एजेन्ट दर",
+    "effectiveDate": "प्रभावकारी मिति"
+  },
+  "commissions": {
+    "title": "कमिशनहरू",
+    "addCommission": "कमिशन थप्नुहोस्",
+    "agentName": "एजेन्टको नाम",
+    "type": "कमिशन प्रकार",
+    "rate": "दर",
+    "fixedAmount": "निश्चित रकम",
+    "effectiveDate": "प्रभावकारी मिति"
+  },
+  "settings": {
+    "title": "सेटिङ",
+    "appearance": "देखावट",
+    "darkMode": "डार्क मोड",
+    "lightMode": "लाइट मोड",
+    "language": "भाषा",
+    "save": "सेटिङ बचत गर्नुहोस्"
+  },
+  "language": {
+    "select": "भाषा छान्नुहोस्",
+    "en": "English",
+    "ne": "नेपाली (Nepali)"
+  }
+}

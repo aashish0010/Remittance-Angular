@@ -55,8 +55,11 @@ function handle401Error(
     const currentRefreshToken = authState.refreshToken;
     if (!currentRefreshToken) {
       isRefreshing = false;
-      authState.logout();
-      router.navigate(['/auth/login']);
+      // Guard: only logout if the user hasn't already re-authenticated
+      if (!authState.isAuthenticated) {
+        authState.logout();
+        router.navigate(['/auth/login']);
+      }
       return throwError(() => new HttpErrorResponse({ status: 401 }));
     }
 
@@ -71,14 +74,27 @@ function handle401Error(
           refreshTokenSubject.next(response.data.token);
           return next(addToken(request, response.data.token));
         }
-        authState.logout();
-        router.navigate(['/auth/login']);
+        // Guard: only logout if the user hasn't already re-authenticated
+        if (!authState.isAuthenticated) {
+          authState.logout();
+          router.navigate(['/auth/login']);
+        } else {
+          refreshTokenSubject.next(authState.token);
+        }
         return throwError(() => new HttpErrorResponse({ status: 401 }));
       }),
       catchError((err) => {
         isRefreshing = false;
-        authState.logout();
-        router.navigate(['/auth/login']);
+        // Guard: only logout if the user hasn't already re-authenticated.
+        // Without this guard, a stale refresh attempt that fails after the user
+        // re-logs in (e.g. after session timeout) would incorrectly log them out again.
+        if (!authState.isAuthenticated) {
+          authState.logout();
+          router.navigate(['/auth/login']);
+        } else {
+          // Unblock any requests that were queued waiting for the refresh
+          refreshTokenSubject.next(authState.token);
+        }
         return throwError(() => err);
       })
     );

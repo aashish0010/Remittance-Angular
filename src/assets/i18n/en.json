@@ -1,0 +1,365 @@
+{
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "search": "Search",
+    "loading": "Loading...",
+    "submit": "Submit",
+    "edit": "Edit",
+    "delete": "Delete",
+    "view": "View",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "close": "Close",
+    "confirm": "Confirm",
+    "approve": "Approve",
+    "reject": "Reject",
+    "block": "Block",
+    "unblock": "Unblock",
+    "export": "Export",
+    "filter": "Filter",
+    "all": "All",
+    "status": "Status",
+    "actions": "Actions",
+    "date": "Date",
+    "amount": "Amount",
+    "currency": "Currency",
+    "name": "Name",
+    "email": "Email",
+    "phone": "Phone",
+    "address": "Address",
+    "country": "Country",
+    "reference": "Reference",
+    "noData": "No data available",
+    "noResults": "No results found",
+    "required": "This field is required",
+    "yes": "Yes",
+    "no": "No",
+    "privacy": "Privacy",
+    "terms": "Terms"
+  },
+  "auth": {
+    "login": {
+      "subtitle": "Sign in to continue",
+      "welcomeBack": "Welcome back, {{ name }}",
+      "emailLabel": "Email",
+      "emailPlaceholder": "you@example.com",
+      "passwordLabel": "Password",
+      "passwordPlaceholder": "Enter your password",
+      "rememberMe": "Remember me",
+      "forgotPassword": "Forgot password?",
+      "signIn": "Sign In",
+      "accountLocked": "Account Locked",
+      "selectPortalSubtitle": "Select your dashboard to continue:",
+      "switchAccount": "Switch Account"
+    },
+    "forgotPassword": {
+      "title": "Forgot Password",
+      "subtitle": "Enter your email to receive a reset link",
+      "emailLabel": "Email Address",
+      "emailPlaceholder": "Enter your registered email",
+      "sendReset": "Send Reset Link",
+      "sending": "Sending...",
+      "successTitle": "Check Your Email",
+      "successMessage": "We sent a password reset link to {{ email }}",
+      "resend": "Resend Email",
+      "backToLogin": "Back to Login",
+      "emailNotFound": "No account found with this email"
+    },
+    "resetPassword": {
+      "title": "Reset Password",
+      "subtitle": "Enter your new password",
+      "newPassword": "New Password",
+      "confirmPassword": "Confirm Password",
+      "resetButton": "Reset Password",
+      "resetting": "Resetting...",
+      "success": "Password reset successfully",
+      "passwordMismatch": "Passwords do not match",
+      "invalidToken": "Invalid or expired reset link"
+    },
+    "portals": {
+      "admin": {
+        "label": "Admin Portal",
+        "description": "Manage agents, rates, compliance & operations"
+      },
+      "agent": {
+        "label": "Agent Portal",
+        "description": "Send money, view transactions & commissions"
+      },
+      "customer": {
+        "label": "Customer Portal",
+        "description": "Track transfers & manage your account"
+      }
+    }
+  },
+  "nav": {
+    "searchPlaceholder": "Search navigation...",
+    "logout": "Logout",
+    "profile": "Profile",
+    "settings": "Settings",
+    "admin": {
+      "dashboard": "Dashboard",
+      "agentManagement": "Agent Management",
+      "customers": "Customers",
+      "customerRegister": "Register Customer",
+      "customerReport": "Customer Report",
+      "operations": "Operations",
+      "transactions": "Transactions",
+      "receivers": "Receivers",
+      "exchangeRates": "Exchange Rates",
+      "commissions": "Commissions",
+      "routing": "Routing",
+      "compliance": "Compliance",
+      "sanctionsList": "Sanctions List",
+      "complianceSetup": "Compliance Setup",
+      "accounting": "Accounting",
+      "system": "System",
+      "staticValues": "Static Values",
+      "reports": "Reports",
+      "agentStatement": "Agent Statement",
+      "transactionReport": "Transaction Report",
+      "commissionReport": "Commission Report",
+      "revenueReport": "Revenue Report",
+      "settlementReport": "Settlement Report",
+      "userManagement": "User Management",
+      "roles": "Roles",
+      "users": "Users"
+    },
+    "agent": {
+      "dashboard": "Dashboard",
+      "sendMoney": "Send Money",
+      "myTransactions": "My Transactions",
+      "operations": "Operations"
+    },
+    "customer": {
+      "dashboard": "Dashboard",
+      "sendMoney": "Send Money",
+      "myTransactions": "My Transactions"
+    }
+  },
+  "dashboard": {
+    "admin": {
+      "title": "Admin Dashboard",
+      "totalVolume": "Total Volume",
+      "totalTransactions": "Total Transactions",
+      "totalAgents": "Total Agents",
+      "commissionRevenue": "Commission Revenue",
+      "recentTransactions": "Recent Transactions",
+      "volumeChart": "Volume & Transactions",
+      "revenueChart": "Revenue Breakdown",
+      "vsLastMonth": "vs last month",
+      "thisMonth": "This Month"
+    },
+    "agent": {
+      "title": "Agent Dashboard",
+      "balance": "Balance",
+      "creditLimit": "Credit Limit",
+      "currentBalance": "Current Balance",
+      "availableBalance": "Available Balance",
+      "totalCommissions": "Total Commissions",
+      "recentTransactions": "Recent Transactions"
+    },
+    "customer": {
+      "title": "My Dashboard",
+      "recentTransactions": "Recent Transactions",
+      "sendMoney": "Send Money"
+    }
+  },
+  "transactions": {
+    "title": "Transactions",
+    "reference": "Reference",
+    "sender": "Sender",
+    "receiver": "Receiver",
+    "sendAmount": "Send Amount",
+    "receiveAmount": "Receive Amount",
+    "exchangeRate": "Exchange Rate",
+    "commission": "Commission",
+    "status": "Status",
+    "date": "Date",
+    "actions": "Actions",
+    "searchPlaceholder": "Search by reference, name...",
+    "filterByStatus": "Filter by status",
+    "exportExcel": "Export Excel",
+    "exportCsv": "Export CSV",
+    "completeAction": "Complete",
+    "cancelAction": "Cancel",
+    "viewDetail": "View Detail",
+    "noTransactions": "No transactions found",
+    "statuses": {
+      "OnHold": "On Hold",
+      "PendingApproval": "Pending Approval",
+      "Processing": "Processing",
+      "Completed": "Completed",
+      "Cancelled": "Cancelled",
+      "Failed": "Failed",
+      "Refunded": "Refunded",
+      "Reversed": "Reversed"
+    }
+  },
+  "sendMoney": {
+    "title": "Send Money",
+    "steps": {
+      "customer": "Customer",
+      "amount": "Amount",
+      "receiver": "Receiver",
+      "review": "Review",
+      "confirm": "Confirm"
+    },
+    "customer": {
+      "title": "Customer Information",
+      "searchPlaceholder": "Search by name, phone or document number...",
+      "newCustomer": "New Customer",
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "middleName": "Middle Name",
+      "dateOfBirth": "Date of Birth",
+      "email": "Email",
+      "phone": "Phone Number",
+      "idType": "ID Type",
+      "idNumber": "ID Number",
+      "address": "Address",
+      "country": "Country",
+      "nationality": "Nationality",
+      "occupation": "Occupation",
+      "sourceFunds": "Source of Funds"
+    },
+    "amount": {
+      "title": "Transfer Amount",
+      "sendAmount": "Send Amount",
+      "receiveAmount": "Receive Amount",
+      "sendCurrency": "Send Currency",
+      "receiveCurrency": "Receive Currency",
+      "exchangeRate": "Exchange Rate",
+      "serviceCharge": "Service Charge",
+      "totalPay": "Total to Pay",
+      "selectRoute": "Select Route",
+      "payoutMethod": "Payout Method"
+    },
+    "receiver": {
+      "title": "Receiver Information",
+      "searchPlaceholder": "Search existing receivers...",
+      "newReceiver": "New Receiver",
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "phone": "Phone Number",
+      "relationship": "Relationship",
+      "payoutBank": "Bank",
+      "payoutBranch": "Branch",
+      "accountNumber": "Account Number",
+      "accountName": "Account Name"
+    },
+    "review": {
+      "title": "Review Transfer",
+      "senderDetails": "Sender Details",
+      "receiverDetails": "Receiver Details",
+      "transferDetails": "Transfer Details",
+      "confirmTransfer": "Confirm Transfer"
+    },
+    "pin": {
+      "title": "Enter Transaction PIN",
+      "setPin": "Set Transaction PIN",
+      "confirmPin": "Confirm PIN",
+      "enterPin": "Enter your 4-digit PIN",
+      "createPin": "Create a 4-digit PIN",
+      "verify": "Verify & Send",
+      "setAndSend": "Set PIN & Send"
+    },
+    "success": {
+      "title": "Transfer Successful!",
+      "message": "Your transfer has been submitted successfully",
+      "reference": "Reference Number",
+      "printReceipt": "Print Receipt",
+      "newTransfer": "New Transfer"
+    }
+  },
+  "agents": {
+    "title": "Agent Management",
+    "addAgent": "Add Agent",
+    "searchPlaceholder": "Search agents...",
+    "code": "Agent Code",
+    "name": "Agent Name",
+    "type": "Type",
+    "country": "Country",
+    "currency": "Currency",
+    "contact": "Contact",
+    "tabs": {
+      "details": "Details",
+      "locations": "Locations",
+      "users": "Users",
+      "banks": "Banks"
+    },
+    "statuses": {
+      "Active": "Active",
+      "Inactive": "Inactive",
+      "Suspended": "Suspended",
+      "PendingApproval": "Pending Approval"
+    },
+    "types": {
+      "SendingAgent": "Sending Agent",
+      "ReceivingAgent": "Receiving Agent"
+    },
+    "noAgents": "No agents found"
+  },
+  "customers": {
+    "title": "Customers",
+    "registerTitle": "Register Customer",
+    "searchPlaceholder": "Search customers...",
+    "fullName": "Full Name",
+    "kycStatus": "KYC Status",
+    "registeredDate": "Registered Date",
+    "kycLevels": {
+      "None": "Not Verified",
+      "Basic": "Basic",
+      "Enhanced": "Enhanced",
+      "Full": "Full"
+    }
+  },
+  "compliance": {
+    "title": "Compliance",
+    "setupTitle": "Compliance Setup",
+    "sanctionsTitle": "Sanctions List",
+    "addSanction": "Add Sanction",
+    "checkName": "Check Name",
+    "searchPlaceholder": "Search sanctions...",
+    "riskLevel": "Risk Level",
+    "riskLevels": {
+      "Low": "Low",
+      "Medium": "Medium",
+      "High": "High",
+      "Blocked": "Blocked"
+    }
+  },
+  "exchangeRates": {
+    "title": "Exchange Rates",
+    "addRate": "Add Rate",
+    "fromCurrency": "From Currency",
+    "toCurrency": "To Currency",
+    "rate": "Rate",
+    "margin": "Margin (%)",
+    "agentRate": "Agent Rate",
+    "effectiveDate": "Effective Date"
+  },
+  "commissions": {
+    "title": "Commissions",
+    "addCommission": "Add Commission",
+    "agentName": "Agent Name",
+    "type": "Commission Type",
+    "rate": "Rate",
+    "fixedAmount": "Fixed Amount",
+    "effectiveDate": "Effective Date"
+  },
+  "settings": {
+    "title": "Settings",
+    "appearance": "Appearance",
+    "darkMode": "Dark Mode",
+    "lightMode": "Light Mode",
+    "language": "Language",
+    "save": "Save Settings"
+  },
+  "language": {
+    "select": "Select Language",
+    "en": "English",
+    "ne": "नेपाली (Nepali)"
+  }
+}
