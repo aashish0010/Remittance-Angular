@@ -1,24 +1,31 @@
 import { Injectable } from '@angular/core';
-import { ConfirmationService } from 'primeng/api';
+import Swal from 'sweetalert2';
 
 @Injectable({ providedIn: 'root' })
 export class ConfirmDeleteService {
-  constructor(private confirmationService: ConfirmationService) {}
 
   confirm(itemLabel: string): Promise<void> {
-    return new Promise((resolve, reject) => {
-      this.confirmationService.confirm({
-        message: `Are you sure you want to delete <strong>${itemLabel}</strong>?<br>This action cannot be undone.`,
-        header: 'Delete Confirmation',
-        icon: 'pi pi-exclamation-triangle',
-        acceptLabel: 'Yes, Delete',
-        rejectLabel: 'Cancel',
-        acceptButtonStyleClass: 'p-button-danger confirm-delete-accept',
-        rejectButtonStyleClass: 'p-button-text p-button-secondary confirm-delete-reject',
-        defaultFocus: 'reject',
-        accept: () => resolve(),
-        reject: () => reject(),
-      });
+    const isDark = document.documentElement.classList.contains('dark');
+
+    return Swal.fire({
+      title: 'Delete Confirmation',
+      html: `Are you sure you want to delete<br><strong style="color:${isDark ? '#fca5a5' : '#ef4444'}">${itemLabel}</strong>?<br><span style="font-size:0.85rem;color:${isDark ? '#94a3b8' : '#64748b'}">This action cannot be undone.</span>`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, Delete',
+      cancelButtonText: 'Cancel',
+      confirmButtonColor: '#ef4444',
+      cancelButtonColor: isDark ? '#334155' : '#e2e8f0',
+      reverseButtons: true,
+      focusCancel: true,
+      customClass: {
+        popup: isDark ? 'swal-dark' : '',
+        confirmButton: 'swal-confirm-btn',
+        cancelButton: 'swal-cancel-btn',
+      },
+    }).then(result => {
+      if (result.isConfirmed) return Promise.resolve();
+      return Promise.reject();
     });
   }
 }
