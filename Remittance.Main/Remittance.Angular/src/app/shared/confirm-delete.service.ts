@@ -9,7 +9,7 @@ export class ConfirmDeleteService {
 
     return Swal.fire({
       title: 'Delete Confirmation',
-      html: `Are you sure you want to delete<br><strong style="color:${isDark ? '#fca5a5' : '#ef4444'}">${itemLabel}</strong>?<br><span style="font-size:0.85rem;color:${isDark ? '#94a3b8' : '#64748b'}">This action cannot be undone.</span>`,
+      html: `Are you sure you want to delete<br><strong style= "color:${isDark ? '#fca5a5' : '#ef4444'}">${itemLabel}</strong>?<br><span style="font-size:0.85rem;color:${isDark ? '#94a3b8' : '#64748b'}">This action cannot be undone.</span>`,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonText: 'Yes, Delete',
