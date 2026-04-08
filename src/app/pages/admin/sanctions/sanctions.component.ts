@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Subject, takeUntil } from 'rxjs';
 import { ApiService } from '../../../core/services/api.service';
 import { NotificationService } from '../../../core/services/notification.service';
+import { ConfirmDeleteService } from '../../../shared/confirm-delete.service';
 
 @Component({
   selector: 'app-sanctions',
@@ -112,6 +113,7 @@ export class SanctionsComponent implements OnInit, OnDestroy {
   constructor(
     private api: ApiService,
     private notify: NotificationService,
+    private confirmDelete: ConfirmDeleteService,
   ) {}
 
   ngOnInit(): void {
@@ -255,17 +257,18 @@ export class SanctionsComponent implements OnInit, OnDestroy {
   }
 
   deleteEntry(entry: any): void {
-    if (!confirm(`Delete sanction entry "${entry.name}"?`)) return;
-    this.api.deleteSanctionEntry(entry.id).pipe(takeUntil(this.destroy$)).subscribe({
-      next: res => {
-        if (res?.success) {
-          this.notify.success('Entry deleted');
-          this.loadEntries();
-          this.loadDashboard();
-        }
-      },
-      error: (err) => this.notify.error(err?.error?.message || 'Failed')
-    });
+    this.confirmDelete.confirm(entry.name).then(() => {
+      this.api.deleteSanctionEntry(entry.id).pipe(takeUntil(this.destroy$)).subscribe({
+        next: res => {
+          if (res?.success) {
+            this.notify.success('Entry deleted');
+            this.loadEntries();
+            this.loadDashboard();
+          }
+        },
+        error: (err) => this.notify.error(err?.error?.message || 'Failed')
+      });
+    }).catch(() => {});
   }
 
   // ---- Countries ----
@@ -341,17 +344,18 @@ export class SanctionsComponent implements OnInit, OnDestroy {
   }
 
   deleteCountry(country: any): void {
-    if (!confirm(`Remove "${country.countryName}" from sanctioned countries?`)) return;
-    this.api.deleteSanctionedCountry(country.id).pipe(takeUntil(this.destroy$)).subscribe({
-      next: res => {
-        if (res?.success) {
-          this.notify.success('Country removed');
-          this.loadCountries();
-          this.loadDashboard();
-        }
-      },
-      error: (err) => this.notify.error(err?.error?.message || 'Failed')
-    });
+    this.confirmDelete.confirm(country.countryName).then(() => {
+      this.api.deleteSanctionedCountry(country.id).pipe(takeUntil(this.destroy$)).subscribe({
+        next: res => {
+          if (res?.success) {
+            this.notify.success('Country removed');
+            this.loadCountries();
+            this.loadDashboard();
+          }
+        },
+        error: (err) => this.notify.error(err?.error?.message || 'Failed')
+      });
+    }).catch(() => {});
   }
 
   // ---- Flagged Transactions (PotentialMatch) ----

@@ -1018,3 +1018,116 @@ body.dark {
   background: #0f172a;
   color: #e2e8f0;
 }
+
+// ─── PrimeNG Confirm Delete Dialog ───
+.p-confirmdialog {
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 20px 60px -12px rgba(0, 0, 0, 0.25);
+
+  .p-dialog-header {
+    padding: 1.25rem 1.5rem 0.75rem;
+    border-bottom: 1px solid #e2e8f0;
+
+    .p-dialog-title {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #1e293b;
+    }
+  }
+
+  .p-dialog-content {
+    padding: 1rem 1.5rem 0.5rem;
+
+    .p-confirm-dialog-icon {
+      font-size: 1.5rem;
+      color: #ef4444;
+      margin-right: 0.75rem;
+      flex-shrink: 0;
+    }
+
+    .p-confirm-dialog-message {
+      font-size: 0.9rem;
+      color: #475569;
+      line-height: 1.5;
+    }
+  }
+
+  .p-dialog-footer {
+    padding: 0.75rem 1.5rem 1.25rem;
+    display: flex;
+    gap: 0.5rem;
+    justify-content: flex-end;
+    border-top: 1px solid #e2e8f0;
+
+    .confirm-delete-accept {
+      background: #ef4444 !important;
+      border-color: #ef4444 !important;
+      color: #fff !important;
+      border-radius: 8px !important;
+      font-weight: 500 !important;
+      padding: 0.5rem 1.1rem !important;
+      transition: background 0.15s ease !important;
+
+      &:hover {
+        background: #dc2626 !important;
+        border-color: #dc2626 !important;
+      }
+
+      &:focus {
+        box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.3) !important;
+      }
+    }
+
+    .confirm-delete-reject {
+      color: #64748b !important;
+      border-radius: 8px !important;
+      padding: 0.5rem 1.1rem !important;
+      font-weight: 500 !important;
+
+      &:hover {
+        background: #f1f5f9 !important;
+        color: #1e293b !important;
+      }
+    }
+  }
+}
+
+// Dark mode overrides for confirm dialog
+.dark .p-confirmdialog {
+  background: #1e293b !important;
+
+  .p-dialog-header {
+    background: #1e293b !important;
+    border-bottom-color: #334155 !important;
+
+    .p-dialog-title { color: #f1f5f9 !important; }
+
+    .p-dialog-close-button {
+      color: #94a3b8 !important;
+      &:hover { color: #e2e8f0 !important; background: #334155 !important; }
+    }
+  }
+
+  .p-dialog-content {
+    background: #1e293b !important;
+
+    .p-confirm-dialog-message { color: #94a3b8 !important; }
+  }
+
+  .p-dialog-footer {
+    background: #1e293b !important;
+    border-top-color: #334155 !important;
+
+    .confirm-delete-reject {
+      color: #94a3b8 !important;
+      &:hover { background: #334155 !important; color: #e2e8f0 !important; }
+    }
+  }
+}
+
+// Confirm dialog backdrop
+.p-overlay-mask {
+  background: rgba(15, 23, 42, 0.5) !important;
+  backdrop-filter: blur(2px);
+}

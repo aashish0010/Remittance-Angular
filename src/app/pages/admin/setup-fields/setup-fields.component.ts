@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { ApiService } from '../../../core/services/api.service';
 import { NotificationService } from '../../../core/services/notification.service';
+import { ConfirmDeleteService } from '../../../shared/confirm-delete.service';
 
 // ---------------------------------------------------------------------------
 // Interfaces
@@ -105,14 +106,11 @@ export class SetupFieldsComponent implements OnInit {
   docTypeForm: DocumentTypeModel = emptyDocumentType();
   savingDocType = false;
 
-  // Delete confirmation
-  confirmDeleteId: number | null = null;
-  confirmDeleteType: 'setupField' | 'docType' | null = null;
-
   constructor(
     private api: ApiService,
     private notify: NotificationService,
     private route: ActivatedRoute,
+    private confirmDelete: ConfirmDeleteService,
   ) {}
 
   ngOnInit(): void {
@@ -153,8 +151,6 @@ export class SetupFieldsComponent implements OnInit {
     this.addingSetupField = false;
     this.editingDocTypeId = null;
     this.addingDocType = false;
-    this.confirmDeleteId = null;
-    this.confirmDeleteType = null;
   }
 
   // ---------------------------------------------------------------------------
@@ -237,28 +233,19 @@ export class SetupFieldsComponent implements OnInit {
   }
 
   confirmDeleteSetupField(item: SetupFieldModel): void {
-    this.confirmDeleteId = item.id;
-    this.confirmDeleteType = 'setupField';
-  }
-
-  deleteSetupField(id: number): void {
-    this.api.deleteSetupField(id).subscribe({
-      next: res => {
-        if (res?.success) {
-          this.notify.success('Field deleted.');
-          this.loadSetupFields(this.currentCategory);
-        } else {
-          this.notify.error(res?.message || 'Failed to delete.');
-        }
-        this.confirmDeleteId = null;
-        this.confirmDeleteType = null;
-      },
-      error: () => {
-        this.notify.error('Server error.');
-        this.confirmDeleteId = null;
-        this.confirmDeleteType = null;
-      },
-    });
+    this.confirmDelete.confirm(item.name).then(() => {
+      this.api.deleteSetupField(item.id).subscribe({
+        next: res => {
+          if (res?.success) {
+            this.notify.success('Field deleted.');
+            this.loadSetupFields(this.currentCategory);
+          } else {
+            this.notify.error(res?.message || 'Failed to delete.');
+          }
+        },
+        error: () => this.notify.error('Server error.'),
+      });
+    }).catch(() => {});
   }
 
   // ---------------------------------------------------------------------------
@@ -336,50 +323,19 @@ export class SetupFieldsComponent implements OnInit {
   }
 
   confirmDeleteDocType(item: DocumentTypeModel): void {
-    this.confirmDeleteId = item.id;
-    this.confirmDeleteType = 'docType';
-  }
-
-  deleteDocType(id: number): void {
-    this.api.deleteDocumentType(id).subscribe({
-      next: res => {
-        if (res?.success) {
-          this.notify.success('Document type deleted.');
-          this.loadDocumentTypes();
-        } else {
-          this.notify.error(res?.message || 'Failed to delete.');
-        }
-        this.confirmDeleteId = null;
-        this.confirmDeleteType = null;
-      },
-      error: () => {
-        this.notify.error('Server error.');
-        this.confirmDeleteId = null;
-        this.confirmDeleteType = null;
-      },
-    });
-  }
-
-  // ---------------------------------------------------------------------------
-  // Delete confirmation helpers
-  // ---------------------------------------------------------------------------
-
-  isConfirmingDelete(type: string, id: number): boolean {
-    return this.confirmDeleteType === type && this.confirmDeleteId === id;
-  }
-
-  cancelDelete(): void {
-    this.confirmDeleteId = null;
-    this.confirmDeleteType = null;
-  }
-
-  executeDelete(): void {
-    if (!this.confirmDeleteId || !this.confirmDeleteType) return;
-    const id = this.confirmDeleteId;
-    switch (this.confirmDeleteType) {
-      case 'setupField': this.deleteSetupField(id); break;
-      case 'docType': this.deleteDocType(id); break;
-    }
+    this.confirmDelete.confirm(item.name).then(() => {
+      this.api.deleteDocumentType(item.id).subscribe({
+        next: res => {
+          if (res?.success) {
+            this.notify.success('Document type deleted.');
+            this.loadDocumentTypes();
+          } else {
+            this.notify.error(res?.message || 'Failed to delete.');
+          }
+        },
+        error: () => this.notify.error('Server error.'),
+      });
+    }).catch(() => {});
   }
 
 }

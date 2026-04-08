@@ -7,6 +7,7 @@ import { ApiService } from '../../../core/services/api.service';
 import { ExportService } from '../../../core/services/export.service';
 import { AuthStateService } from '../../../core/services/auth-state.service';
 import { NotificationService } from '../../../core/services/notification.service';
+import { ConfirmDeleteService } from '../../../shared/confirm-delete.service';
 import {
   AgentModel,
   AgentLocationModel,
@@ -175,6 +176,7 @@ export class AgentManagementComponent implements OnInit, OnDestroy {
     private auth: AuthStateService,
     private notify: NotificationService,
     private exportService: ExportService,
+    private confirmDelete: ConfirmDeleteService,
   ) {}
 
   ngOnInit(): void {
@@ -427,14 +429,16 @@ export class AgentManagementComponent implements OnInit, OnDestroy {
   // Delete Agent
   // ---------------------------------------------------------------------------
   deleteAgent(agent: AgentModel): void {
-    this.api.deleteAgent(agent.id).subscribe(r => {
-      if (r?.success) {
-        this.notify.success(`Agent '${agent.businessName}' deleted.`);
-        this.loadAgents();
-      } else {
-        this.notify.error(r?.message || 'Failed to delete agent.');
-      }
-    });
+    this.confirmDelete.confirm(agent.businessName).then(() => {
+      this.api.deleteAgent(agent.id).subscribe(r => {
+        if (r?.success) {
+          this.notify.success(`Agent '${agent.businessName}' deleted.`);
+          this.loadAgents();
+        } else {
+          this.notify.error(r?.message || 'Failed to delete agent.');
+        }
+      });
+    }).catch(() => {});
   }
 
   // ===========================================================================
@@ -541,15 +545,17 @@ export class AgentManagementComponent implements OnInit, OnDestroy {
     });
   }
 
-  deleteLocation(id: number): void {
-    this.api.deleteAgentLocation(id).subscribe(r => {
-      if (r?.success) {
-        this.notify.success('Location deleted.');
-        if (this.locationAgent) this.loadAgentLocations(this.locationAgent.id);
-      } else {
-        this.notify.error(r?.message || 'Failed.');
-      }
-    });
+  deleteLocation(id: number, name: string): void {
+    this.confirmDelete.confirm(name).then(() => {
+      this.api.deleteAgentLocation(id).subscribe(r => {
+        if (r?.success) {
+          this.notify.success('Location deleted.');
+          if (this.locationAgent) this.loadAgentLocations(this.locationAgent.id);
+        } else {
+          this.notify.error(r?.message || 'Failed.');
+        }
+      });
+    }).catch(() => {});
   }
 
   // ===========================================================================
@@ -636,15 +642,17 @@ export class AgentManagementComponent implements OnInit, OnDestroy {
     }
   }
 
-  deleteUser(id: number): void {
-    this.api.deleteLocationUser(id).subscribe(r => {
-      if (r?.success) {
-        this.notify.success('User deleted.');
-        this.refreshUserLocation();
-      } else {
-        this.notify.error(r?.message || 'Failed.');
-      }
-    });
+  deleteUser(id: number, name: string): void {
+    this.confirmDelete.confirm(name).then(() => {
+      this.api.deleteLocationUser(id).subscribe(r => {
+        if (r?.success) {
+          this.notify.success('User deleted.');
+          this.refreshUserLocation();
+        } else {
+          this.notify.error(r?.message || 'Failed.');
+        }
+      });
+    }).catch(() => {});
   }
 
   private refreshUserLocation(): void {
@@ -756,11 +764,13 @@ export class AgentManagementComponent implements OnInit, OnDestroy {
     });
   }
 
-  deleteBank(id: number): void {
-    this.api.deleteAgentBank(id).subscribe(r => {
-      if (r?.success) { this.notify.success('Bank deleted.'); this.refreshBanks(); }
-      else { this.notify.error(r?.message || 'Failed.'); }
-    });
+  deleteBank(id: number, name: string): void {
+    this.confirmDelete.confirm(name).then(() => {
+      this.api.deleteAgentBank(id).subscribe(r => {
+        if (r?.success) { this.notify.success('Bank deleted.'); this.refreshBanks(); }
+        else { this.notify.error(r?.message || 'Failed.'); }
+      });
+    }).catch(() => {});
   }
 
   private refreshBanks(): void {
@@ -836,11 +846,13 @@ export class AgentManagementComponent implements OnInit, OnDestroy {
     }
   }
 
-  deleteBankBranch(id: number): void {
-    this.api.deleteBankBranch(id).subscribe(r => {
-      if (r?.success) { this.notify.success('Branch deleted.'); this.refreshBankBranches(); }
-      else { this.notify.error(r?.message || 'Failed.'); }
-    });
+  deleteBankBranch(id: number, name: string): void {
+    this.confirmDelete.confirm(name).then(() => {
+      this.api.deleteBankBranch(id).subscribe(r => {
+        if (r?.success) { this.notify.success('Branch deleted.'); this.refreshBankBranches(); }
+        else { this.notify.error(r?.message || 'Failed.'); }
+      });
+    }).catch(() => {});
   }
 
   private refreshBankBranches(): void {

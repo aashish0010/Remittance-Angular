@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../../../core/services/api.service';
+import { ConfirmDeleteService } from '../../../../shared/confirm-delete.service';
 
 interface RoleItem {
   id: number;
@@ -50,7 +51,7 @@ export class RolesComponent implements OnInit {
   permPortalFilter = 'Admin';
   selectedPermIds = new Set<number>();
 
-  constructor(private api: ApiService) {}
+  constructor(private api: ApiService, private confirmDelete: ConfirmDeleteService) {}
 
   ngOnInit(): void {
     this.loadRoles();
@@ -113,10 +114,11 @@ export class RolesComponent implements OnInit {
 
   deleteRole(role: RoleItem): void {
     if (role.roleType === 'SystemAdmin') return;
-    if (!confirm(`Delete role "${role.name}"? This cannot be undone.`)) return;
-    this.api.deleteRole(role.id).subscribe(res => {
-      if (res?.success) this.loadRoles();
-    });
+    this.confirmDelete.confirm(role.name).then(() => {
+      this.api.deleteRole(role.id).subscribe(res => {
+        if (res?.success) this.loadRoles();
+      });
+    }).catch(() => {});
   }
 
   // ── Permission Management ──

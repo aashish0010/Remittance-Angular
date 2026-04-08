@@ -7,6 +7,7 @@ import { ApiService } from '../../../core/services/api.service';
 import { ExportService } from '../../../core/services/export.service';
 import { AuthStateService } from '../../../core/services/auth-state.service';
 import { NotificationService } from '../../../core/services/notification.service';
+import { ConfirmDeleteService } from '../../../shared/confirm-delete.service';
 import { AgentAccountingSummary, AgentLimitAdjustmentModel, AgentCommissionModel } from '../../../core/models/agent.models';
 
 interface AdjustmentForm {
@@ -82,6 +83,7 @@ export class AccountingComponent implements OnInit, OnDestroy {
     private auth: AuthStateService,
     private notify: NotificationService,
     private exportService: ExportService,
+    private confirmDelete: ConfirmDeleteService,
   ) {}
 
   ngOnInit(): void {
@@ -286,15 +288,17 @@ export class AccountingComponent implements OnInit, OnDestroy {
 
   deleteAgentCommission(): void {
     if (!this.commissionAgent) return;
-    this.api.deleteAgentCommission(this.commissionAgent.agentId).subscribe(r => {
-      if (r?.success) {
-        this.notify.success('Commission configuration deleted.');
-        this.agentCommission = null;
-        this.commissionForm = emptyCommissionSetupForm();
-        this.loadAccountingSummaries();
-      } else {
-        this.notify.error(r?.message || 'Failed.');
-      }
-    });
+    this.confirmDelete.confirm(`${this.commissionAgent.businessName} commission`).then(() => {
+      this.api.deleteAgentCommission(this.commissionAgent!.agentId).subscribe(r => {
+        if (r?.success) {
+          this.notify.success('Commission configuration deleted.');
+          this.agentCommission = null;
+          this.commissionForm = emptyCommissionSetupForm();
+          this.loadAccountingSummaries();
+        } else {
+          this.notify.error(r?.message || 'Failed.');
+        }
+      });
+    }).catch(() => {});
   }
 }

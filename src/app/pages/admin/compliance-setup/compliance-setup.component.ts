@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../../core/services/api.service';
 import { AuthStateService } from '../../../core/services/auth-state.service';
 import { NotificationService } from '../../../core/services/notification.service';
+import { ConfirmDeleteService } from '../../../shared/confirm-delete.service';
 import { ComplianceRuleModel } from '../../../core/models/compliance.models';
 import { CountryInfo } from '../../../core/models/common.models';
 
@@ -68,6 +69,7 @@ export class ComplianceSetupComponent implements OnInit {
     private api: ApiService,
     private auth: AuthStateService,
     private notify: NotificationService,
+    private confirmDelete: ConfirmDeleteService,
   ) {}
 
   ngOnInit(): void {
@@ -233,13 +235,15 @@ export class ComplianceSetupComponent implements OnInit {
   }
 
   deleteRule(rule: ComplianceRuleModel): void {
-    this.api.deleteComplianceRule(rule.id).subscribe(r => {
-      if (r?.success) {
-        this.notify.success('Rule deleted.');
-        this.loadRules();
-      } else {
-        this.notify.error(r?.message || 'Failed.');
-      }
-    });
+    this.confirmDelete.confirm(rule.ruleName).then(() => {
+      this.api.deleteComplianceRule(rule.id).subscribe(r => {
+        if (r?.success) {
+          this.notify.success('Rule deleted.');
+          this.loadRules();
+        } else {
+          this.notify.error(r?.message || 'Failed.');
+        }
+      });
+    }).catch(() => {});
   }
 }

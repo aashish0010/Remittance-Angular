@@ -7,6 +7,7 @@ import { ApiService } from '../../../core/services/api.service';
 import { ExportService } from '../../../core/services/export.service';
 import { AuthStateService } from '../../../core/services/auth-state.service';
 import { NotificationService } from '../../../core/services/notification.service';
+import { ConfirmDeleteService } from '../../../shared/confirm-delete.service';
 import { ReceiverModel, CustomerModel } from '../../../core/models/customer.models';
 import { SearchableSelectDirective } from '../../../shared/searchable-select.directive';
 
@@ -77,6 +78,7 @@ export class ReceiversComponent implements OnInit, OnDestroy {
     private auth: AuthStateService,
     private notify: NotificationService,
     private exportService: ExportService,
+    private confirmDelete: ConfirmDeleteService,
   ) {}
 
   ngOnInit(): void {
@@ -296,14 +298,16 @@ export class ReceiversComponent implements OnInit, OnDestroy {
   // Delete
   // ---------------------------------------------------------------------------
   deleteReceiver(receiver: ReceiverModel): void {
-    this.api.deleteReceiver(receiver.id).subscribe(r => {
-      if (r?.success) {
-        this.notify.success(`Receiver '${receiver.fullName}' deleted.`);
-        this.loadReceivers();
-      } else {
-        this.notify.error(r?.message || 'Failed.');
-      }
-    });
+    this.confirmDelete.confirm(receiver.fullName).then(() => {
+      this.api.deleteReceiver(receiver.id).subscribe(r => {
+        if (r?.success) {
+          this.notify.success(`Receiver '${receiver.fullName}' deleted.`);
+          this.loadReceivers();
+        } else {
+          this.notify.error(r?.message || 'Failed.');
+        }
+      });
+    }).catch(() => {});
   }
 
   get totalPages(): number {

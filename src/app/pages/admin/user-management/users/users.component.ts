@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../../../core/services/api.service';
+import { ConfirmDeleteService } from '../../../../shared/confirm-delete.service';
 
 interface UserItem {
   id: string;
@@ -34,7 +35,6 @@ export class UsersComponent implements OnInit {
   users: UserItem[] = [];
   allRoles: RoleOption[] = [];
   loading = false;
-  deleteConfirmId: string | null = null;
   showPassword = false;
 
   // Filters
@@ -52,7 +52,7 @@ export class UsersComponent implements OnInit {
   formIsActive = true;
   formRoleIds: number[] = [];
 
-  constructor(private api: ApiService) {}
+  constructor(private api: ApiService, private confirmDelete: ConfirmDeleteService) {}
 
   ngOnInit(): void {
     this.loadUsers();
@@ -159,10 +159,11 @@ export class UsersComponent implements OnInit {
 
   deleteUser(user: UserItem): void {
     if (user.roles.some(r => r.name === 'SystemAdmin')) return;
-    if (!confirm(`Delete user "${user.fullName}"? This cannot be undone.`)) return;
-    this.api.deleteAdminUser(user.id).subscribe(res => {
-      if (res?.success) this.loadUsers();
-    });
+    this.confirmDelete.confirm(user.fullName).then(() => {
+      this.api.deleteAdminUser(user.id).subscribe(res => {
+        if (res?.success) this.loadUsers();
+      });
+    }).catch(() => {});
   }
 
   isSystemAdmin(user: UserItem): boolean {

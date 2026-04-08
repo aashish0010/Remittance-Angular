@@ -7,6 +7,7 @@ import { ApiService } from '../../../core/services/api.service';
 import { ExportService } from '../../../core/services/export.service';
 import { AuthStateService } from '../../../core/services/auth-state.service';
 import { NotificationService } from '../../../core/services/notification.service';
+import { ConfirmDeleteService } from '../../../shared/confirm-delete.service';
 import { CommissionRateModel } from '../../../core/models/commission.models';
 import { AgentModel, PaymentMethodModel } from '../../../core/models/agent.models';
 import { CountryInfo } from '../../../core/models/common.models';
@@ -99,6 +100,7 @@ export class CommissionsComponent implements OnInit, OnDestroy {
     private exportService: ExportService,
     private auth: AuthStateService,
     private notify: NotificationService,
+    private confirmDelete: ConfirmDeleteService,
   ) {}
 
   ngOnInit(): void {
@@ -293,13 +295,16 @@ export class CommissionsComponent implements OnInit, OnDestroy {
   // Delete
   // ---------------------------------------------------------------------------
   deleteCommission(c: CommissionRateModel): void {
-    this.api.deleteCommission(c.id).subscribe(r => {
-      if (r?.success) {
-        this.notify.success('Commission deleted.');
-        this.loadCommissions();
-      } else {
-        this.notify.error(r?.message || 'Failed to delete commission.');
-      }
-    });
+    const label = c.agentName || `${c.sourceCurrency} → ${c.destinationCurrency}`;
+    this.confirmDelete.confirm(label).then(() => {
+      this.api.deleteCommission(c.id).subscribe(r => {
+        if (r?.success) {
+          this.notify.success('Commission deleted.');
+          this.loadCommissions();
+        } else {
+          this.notify.error(r?.message || 'Failed to delete commission.');
+        }
+      });
+    }).catch(() => {});
   }
 }

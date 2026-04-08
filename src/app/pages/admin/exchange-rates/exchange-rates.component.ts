@@ -7,6 +7,7 @@ import { ApiService } from '../../../core/services/api.service';
 import { ExportService } from '../../../core/services/export.service';
 import { AuthStateService } from '../../../core/services/auth-state.service';
 import { NotificationService } from '../../../core/services/notification.service';
+import { ConfirmDeleteService } from '../../../shared/confirm-delete.service';
 import { ExchangeRateModel } from '../../../core/models/exchange-rate.models';
 import { AgentModel } from '../../../core/models/agent.models';
 import { CountryInfo } from '../../../core/models/common.models';
@@ -75,6 +76,7 @@ export class ExchangeRatesComponent implements OnInit, OnDestroy {
     private exportService: ExportService,
     private auth: AuthStateService,
     private notify: NotificationService,
+    private confirmDelete: ConfirmDeleteService,
   ) {}
 
   ngOnInit(): void {
@@ -258,13 +260,16 @@ export class ExchangeRatesComponent implements OnInit, OnDestroy {
   // Delete
   // ---------------------------------------------------------------------------
   deleteRate(rate: ExchangeRateModel): void {
-    this.api.deleteRate(rate.id).subscribe(r => {
-      if (r?.success) {
-        this.notify.success('Exchange rate deleted.');
-        this.loadRates();
-      } else {
-        this.notify.error(r?.message || 'Failed.');
-      }
-    });
+    const label = `${rate.sourceCurrency} → ${rate.destinationCurrency}`;
+    this.confirmDelete.confirm(label).then(() => {
+      this.api.deleteRate(rate.id).subscribe(r => {
+        if (r?.success) {
+          this.notify.success('Exchange rate deleted.');
+          this.loadRates();
+        } else {
+          this.notify.error(r?.message || 'Failed.');
+        }
+      });
+    }).catch(() => {});
   }
 }

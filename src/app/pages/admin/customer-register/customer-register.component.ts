@@ -12,6 +12,7 @@ import { AppSettingsService } from '../../../core/services/app-settings.service'
 import { CustomerModel } from '../../../core/models/customer.models';
 import { CountryInfo } from '../../../core/models/common.models';
 import { SearchableSelectDirective } from '../../../shared/searchable-select.directive';
+import { ConfirmDeleteService } from '../../../shared/confirm-delete.service';
 
 interface DocumentUpload {
   documentType: string;
@@ -90,9 +91,8 @@ export class CustomerRegisterComponent implements OnInit, OnDestroy {
   existingDocs: any[] = [];
   loadingExistingDocs = false;
 
-  // Action menu / delete confirm
+  // Action menu
   actionMenuId: number | null = null;
-  deleteConfirmId: number | null = null;
 
   // Document viewer
   showDocViewer = false;
@@ -108,6 +108,7 @@ export class CustomerRegisterComponent implements OnInit, OnDestroy {
     private notify: NotificationService,
     private exportService: ExportService,
     public appSettings: AppSettingsService,
+    private confirmDelete: ConfirmDeleteService,
   ) {}
 
   /** Tabs shown in the create/edit popup — Documents tab hidden when KYC disabled */
@@ -595,13 +596,16 @@ export class CustomerRegisterComponent implements OnInit, OnDestroy {
   // Delete
   // ---------------------------------------------------------------------------
   deleteCustomer(customer: CustomerModel): void {
-    this.api.deleteCustomer(customer.id).subscribe(r => {
-      if (r?.success) {
-        this.notify.success(`Customer '${customer.fullName}' deleted.`);
-        this.loadCustomers();
-      } else {
-        this.notify.error(r?.message || 'Failed.');
-      }
-    });
+    this.confirmDelete.confirm(customer.fullName).then(() => {
+      this.api.deleteCustomer(customer.id).subscribe(r => {
+        if (r?.success) {
+          this.notify.success(`Customer '${customer.fullName}' deleted.`);
+          this.actionMenuId = null;
+          this.loadCustomers();
+        } else {
+          this.notify.error(r?.message || 'Failed.');
+        }
+      });
+    }).catch(() => {});
   }
 }

@@ -7,6 +7,7 @@ import { ApiService } from '../../../core/services/api.service';
 import { ExportService } from '../../../core/services/export.service';
 import { AuthStateService } from '../../../core/services/auth-state.service';
 import { NotificationService } from '../../../core/services/notification.service';
+import { ConfirmDeleteService } from '../../../shared/confirm-delete.service';
 import { PaymentCorridorModel, CorridorPayoutPartnerModel } from '../../../core/models/routing.models';
 import { AgentModel, PaymentMethodModel } from '../../../core/models/agent.models';
 import { CountryInfo } from '../../../core/models/common.models';
@@ -93,6 +94,7 @@ export class RoutingComponent implements OnInit, OnDestroy {
     private auth: AuthStateService,
     private notify: NotificationService,
     private exportService: ExportService,
+    private confirmDelete: ConfirmDeleteService,
   ) {}
 
   ngOnInit(): void {
@@ -276,14 +278,17 @@ export class RoutingComponent implements OnInit, OnDestroy {
   }
 
   deleteCorridor(c: PaymentCorridorModel): void {
-    this.api.deleteCorridor(c.id).subscribe(r => {
-      if (r?.success) {
-        this.notify.success('Corridor deleted.');
-        this.loadCorridors();
-      } else {
-        this.notify.error(r?.message || 'Failed.');
-      }
-    });
+    const label = `${c.sourceCountry} → ${c.destinationCountry}`;
+    this.confirmDelete.confirm(label).then(() => {
+      this.api.deleteCorridor(c.id).subscribe(r => {
+        if (r?.success) {
+          this.notify.success('Corridor deleted.');
+          this.loadCorridors();
+        } else {
+          this.notify.error(r?.message || 'Failed.');
+        }
+      });
+    }).catch(() => {});
   }
 
   // ---------------------------------------------------------------------------
@@ -367,16 +372,18 @@ export class RoutingComponent implements OnInit, OnDestroy {
   }
 
   deletePartner(p: CorridorPayoutPartnerModel): void {
-    this.api.deleteCorridorPartner(p.id).subscribe(r => {
-      if (r?.success) {
-        this.partnerMessage = 'Partner deleted.';
-        this.partnerSeverity = 'success';
-        this.refreshPartnerCorridor();
-      } else {
-        this.partnerMessage = r?.message || 'Failed.';
-        this.partnerSeverity = 'error';
-      }
-    });
+    this.confirmDelete.confirm(p.payoutAgentName).then(() => {
+      this.api.deleteCorridorPartner(p.id).subscribe(r => {
+        if (r?.success) {
+          this.partnerMessage = 'Partner deleted.';
+          this.partnerSeverity = 'success';
+          this.refreshPartnerCorridor();
+        } else {
+          this.partnerMessage = r?.message || 'Failed.';
+          this.partnerSeverity = 'error';
+        }
+      });
+    }).catch(() => {});
   }
 
   isPaymentModeSelected(modeId: number): boolean {
