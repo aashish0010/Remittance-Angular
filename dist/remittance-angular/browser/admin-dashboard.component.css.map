@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["src/app/pages/admin/dashboard/admin-dashboard.component.scss"],
-  "sourcesContent": ["// ---------------------------------------------------------------------------\r\n// Admin Dashboard Styles — Tailwind-first, minimal SCSS overrides\r\n// ---------------------------------------------------------------------------\r\n\r\n// Ensure anchor tags used as cards don't inherit link styles\r\n:host {\r\n  display: block;\r\n\r\n  a {\r\n    text-decoration: none;\r\n  }\r\n}\r\n\r\n// No-underline helper (backup for template class)\r\n.no-underline {\r\n  text-decoration: none;\r\n}\r\n"],
-  "mappings": ";AAKA;AACE,WAAA;;AAEA,MAAA;AACE,mBAAA;;AAKJ,CAAA;AACE,mBAAA;;",
-  "names": []
-}

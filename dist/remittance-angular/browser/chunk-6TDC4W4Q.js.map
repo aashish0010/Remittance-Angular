@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["src/app/core/services/seo.service.ts"],
-  "sourcesContent": ["import { Injectable } from '@angular/core';\nimport { Title, Meta } from '@angular/platform-browser';\n\n@Injectable({ providedIn: 'root' })\nexport class SeoService {\n  private readonly appName = 'RemitAdmin';\n\n  constructor(private title: Title, private meta: Meta) {}\n\n  setPage(pageTitle: string, description?: string): void {\n    this.title.setTitle(`${pageTitle} | ${this.appName}`);\n    if (description) {\n      this.meta.updateTag({ name: 'description', content: description });\n    }\n  }\n}\n"],
-  "mappings": ";;;;;;;;;;;;AAIM,IAAO,aAAP,MAAO,YAAU;EAGrB,YAAoB,OAAsB,MAAU;AAAhC,SAAA,QAAA;AAAsB,SAAA,OAAA;AAFzB,SAAA,UAAU;EAE4B;EAEvD,QAAQ,WAAmB,aAAoB;AAC7C,SAAK,MAAM,SAAS,GAAG,SAAS,MAAM,KAAK,OAAO,EAAE;AACpD,QAAI,aAAa;AACf,WAAK,KAAK,UAAU,EAAE,MAAM,eAAe,SAAS,YAAW,CAAE;IACnE;EACF;;;uCAVW,aAAU,mBAAA,KAAA,GAAA,mBAAA,IAAA,CAAA;IAAA;EAAA;;4EAAV,aAAU,SAAV,YAAU,WAAA,YADG,OAAM,CAAA;EAAA;;;sEACnB,YAAU,CAAA;UADtB;WAAW,EAAE,YAAY,OAAM,CAAE;;;",
-  "names": []
-}
