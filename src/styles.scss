@@ -1019,115 +1019,80 @@ body.dark {
   color: #e2e8f0;
 }
 
-// ─── PrimeNG Confirm Delete Dialog ───
-.p-confirmdialog {
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 20px 60px -12px rgba(0, 0, 0, 0.25);
+// ─── SweetAlert2 Delete Confirmation ───
+.swal2-popup {
+  border-radius: 16px !important;
+  padding: 2rem 2rem 1.75rem !important;
+  font-family: 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif !important;
+  box-shadow: 0 25px 60px -12px rgba(0, 0, 0, 0.3) !important;
+}
 
-  .p-dialog-header {
-    padding: 1.25rem 1.5rem 0.75rem;
-    border-bottom: 1px solid #e2e8f0;
+.swal2-title {
+  font-size: 1.1rem !important;
+  font-weight: 600 !important;
+  color: #1e293b !important;
+  padding: 0 0 0.25rem !important;
+}
 
-    .p-dialog-title {
-      font-size: 1rem;
-      font-weight: 600;
-      color: #1e293b;
-    }
-  }
+.swal2-html-container {
+  font-size: 0.9rem !important;
+  color: #475569 !important;
+  line-height: 1.6 !important;
+  margin: 0.5rem 0 1rem !important;
+}
 
-  .p-dialog-content {
-    padding: 1rem 1.5rem 0.5rem;
+.swal2-icon.swal2-warning {
+  border-color: #fbbf24 !important;
+  color: #f59e0b !important;
+  width: 3.5rem !important;
+  height: 3.5rem !important;
+  margin: 0 auto 1rem !important;
+}
 
-    .p-confirm-dialog-icon {
-      font-size: 1.5rem;
-      color: #ef4444;
-      margin-right: 0.75rem;
-      flex-shrink: 0;
-    }
+.swal2-actions {
+  gap: 0.625rem !important;
+  margin-top: 0.25rem !important;
+}
 
-    .p-confirm-dialog-message {
-      font-size: 0.9rem;
-      color: #475569;
-      line-height: 1.5;
-    }
-  }
+.swal-confirm-btn.swal2-confirm {
+  border-radius: 8px !important;
+  font-size: 0.875rem !important;
+  font-weight: 500 !important;
+  padding: 0.55rem 1.25rem !important;
+  letter-spacing: 0.01em !important;
+  box-shadow: none !important;
 
-  .p-dialog-footer {
-    padding: 0.75rem 1.5rem 1.25rem;
-    display: flex;
-    gap: 0.5rem;
-    justify-content: flex-end;
-    border-top: 1px solid #e2e8f0;
-
-    .confirm-delete-accept {
-      background: #ef4444 !important;
-      border-color: #ef4444 !important;
-      color: #fff !important;
-      border-radius: 8px !important;
-      font-weight: 500 !important;
-      padding: 0.5rem 1.1rem !important;
-      transition: background 0.15s ease !important;
-
-      &:hover {
-        background: #dc2626 !important;
-        border-color: #dc2626 !important;
-      }
-
-      &:focus {
-        box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.3) !important;
-      }
-    }
-
-    .confirm-delete-reject {
-      color: #64748b !important;
-      border-radius: 8px !important;
-      padding: 0.5rem 1.1rem !important;
-      font-weight: 500 !important;
-
-      &:hover {
-        background: #f1f5f9 !important;
-        color: #1e293b !important;
-      }
-    }
+  &:focus {
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.3) !important;
   }
 }
 
-// Dark mode overrides for confirm dialog
-.dark .p-confirmdialog {
+.swal-cancel-btn.swal2-cancel {
+  border-radius: 8px !important;
+  font-size: 0.875rem !important;
+  font-weight: 500 !important;
+  padding: 0.55rem 1.25rem !important;
+  color: #475569 !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: none !important;
+
+  &:hover { background: #f1f5f9 !important; }
+  &:focus { box-shadow: 0 0 0 3px rgba(100, 116, 139, 0.2) !important; }
+}
+
+// ─── SweetAlert2 Dark Mode ───
+.swal-dark.swal2-popup {
   background: #1e293b !important;
 
-  .p-dialog-header {
-    background: #1e293b !important;
-    border-bottom-color: #334155 !important;
-
-    .p-dialog-title { color: #f1f5f9 !important; }
-
-    .p-dialog-close-button {
-      color: #94a3b8 !important;
-      &:hover { color: #e2e8f0 !important; background: #334155 !important; }
-    }
-  }
-
-  .p-dialog-content {
-    background: #1e293b !important;
-
-    .p-confirm-dialog-message { color: #94a3b8 !important; }
-  }
-
-  .p-dialog-footer {
-    background: #1e293b !important;
-    border-top-color: #334155 !important;
-
-    .confirm-delete-reject {
-      color: #94a3b8 !important;
-      &:hover { background: #334155 !important; color: #e2e8f0 !important; }
-    }
-  }
+  .swal2-title { color: #f1f5f9 !important; }
+  .swal2-html-container { color: #94a3b8 !important; }
+  .swal2-icon.swal2-warning { border-color: #d97706 !important; color: #f59e0b !important; }
 }
 
-// Confirm dialog backdrop
-.p-overlay-mask {
-  background: rgba(15, 23, 42, 0.5) !important;
-  backdrop-filter: blur(2px);
+.swal-dark.swal2-popup .swal-cancel-btn.swal2-cancel {
+  background: #334155 !important;
+  border-color: #475569 !important;
+  color: #cbd5e1 !important;
+  &:hover { background: #475569 !important; }
 }
+

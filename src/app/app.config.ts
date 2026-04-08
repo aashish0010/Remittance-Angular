@@ -2,7 +2,7 @@ import { ApplicationConfig, APP_INITIALIZER, isDevMode, provideZoneChangeDetecti
 import { provideRouter } from '@angular/router';
 import { HttpClient, provideHttpClient, withInterceptors } from '@angular/common/http';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
-import { ConfirmationService, MessageService } from 'primeng/api';
+import { MessageService } from 'primeng/api';
 import { providePrimeNG } from 'primeng/config';
 import Aura from '@primeng/themes/aura';
 import { provideEchartsCore } from 'ngx-echarts';
@@ -48,6 +48,5 @@ export const appConfig: ApplicationConfig = {
       multi: true,
     },
     MessageService,
-    ConfirmationService,
   ]
 };
