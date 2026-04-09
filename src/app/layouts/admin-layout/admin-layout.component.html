@@ -1,19 +1,18 @@
 <div class="layout-wrapper" [class.dark]="isDarkMode">
 
-  <!-- ── Maintenance Mode Banner (system.maintenanceMode = true) ── -->
+  <!-- ── Maintenance Mode Banner ── -->
   <div *ngIf="appSettings.maintenanceMode"
     class="fixed top-0 left-0 right-0 z-[60] bg-warning-600 text-white text-sm font-medium flex items-center justify-center gap-2 px-4 py-2">
     <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
       <path stroke-linecap="round" stroke-linejoin="round"
         d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
     </svg>
-
     <span>{{ appSettings.maintenanceMessage }}</span>
   </div>
 
   <!-- ── Top Bar ── -->
   <header
-    class="fixed top-0 left-0 right-0 z-50 h-16 bg-white/95 dark:bg-surface-950/95 border-b border-surface-100 dark:border-surface-800/40/60 backdrop-blur-md flex items-center px-4 gap-2">
+    class="fixed top-0 left-0 right-0 z-50 h-16 bg-white/95 dark:bg-surface-950/95 border-b border-surface-100 dark:border-surface-800/60 backdrop-blur-md flex items-center px-4 gap-2">
 
     <!-- Hamburger -->
     <button (click)="toggleDrawer()"
@@ -34,11 +33,12 @@
         </svg>
       </div>
       <div class="flex flex-col leading-none overflow-hidden">
-        <span class="text-[13px] font-bold text-surface-900 dark:text-surface-100 tracking-tight truncate">{{
-          appSettings.companyName || 'RemitAdmin' }}</span>
-        <span
-          class="text-[10px] font-semibold uppercase tracking-widest text-brand-500 dark:text-brand-400 mt-0.5">Management
-          Portal</span>
+        <span class="text-[13px] font-bold text-surface-900 dark:text-surface-100 tracking-tight truncate">
+          {{ appSettings.companyName || 'RemitAdmin' }}
+        </span>
+        <span class="text-[10px] font-semibold uppercase tracking-widest text-brand-500 dark:text-brand-400 mt-0.5">
+          Management Portal
+        </span>
       </div>
     </div>
 
@@ -47,19 +47,16 @@
 
     <!-- Right actions -->
     <div class="flex items-center gap-1">
+
       <!-- Dark mode toggle -->
       <button (click)="toggleDarkMode()"
         class="flex h-9 w-9 items-center justify-center rounded-xl text-surface-500 dark:text-surface-400 hover:bg-surface-100 dark:hover:bg-surface-800 hover:text-surface-900 dark:hover:text-surface-100 transition-all duration-150 active:scale-95"
         [attr.aria-label]="isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'">
-        <!-- Sun icon -->
-        <svg *ngIf="isDarkMode" class="w-[18px] h-[18px]" fill="none" stroke="currentColor" stroke-width="1.75"
-          viewBox="0 0 24 24">
+        <svg *ngIf="isDarkMode" class="w-[18px] h-[18px]" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round"
             d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z" />
         </svg>
-        <!-- Moon icon -->
-        <svg *ngIf="!isDarkMode" class="w-[18px] h-[18px]" fill="none" stroke="currentColor" stroke-width="1.75"
-          viewBox="0 0 24 24">
+        <svg *ngIf="!isDarkMode" class="w-[18px] h-[18px]" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round"
             d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z" />
         </svg>
@@ -74,9 +71,7 @@
             <path stroke-linecap="round" stroke-linejoin="round"
               d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" />
           </svg>
-          <!-- Badge -->
-          <span
-            class="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-brand-500 ring-2 ring-white dark:ring-surface-950"></span>
+          <span class="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-brand-500 ring-2 ring-white dark:ring-surface-950"></span>
         </button>
       </div>
 
@@ -85,15 +80,15 @@
 
       <!-- User menu -->
       <div class="relative user-menu-container">
-        <button (click)="showUserMenu = !showUserMenu" [attr.aria-label]="'Open account menu for ' + userName"
+        <button (click)="showUserMenu = !showUserMenu"
+          [attr.aria-label]="'Open account menu for ' + userName"
           class="flex items-center gap-2.5 rounded-xl px-2.5 py-1.5 transition-all duration-150 hover:bg-surface-100 dark:hover:bg-surface-800 active:scale-95">
           <div
             class="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-brand-400 to-brand-600 text-xs font-bold text-white shadow-sm shrink-0">
             {{ userInitial }}
           </div>
           <div class="hidden sm:flex flex-col items-start">
-            <span class="text-[13px] font-semibold text-surface-800 dark:text-surface-200 leading-tight">{{ userName
-              }}</span>
+            <span class="text-[13px] font-semibold text-surface-800 dark:text-surface-200 leading-tight">{{ userName }}</span>
             <span class="text-[10px] text-surface-400 dark:text-surface-500 leading-tight">{{ userRoleName }}</span>
           </div>
           <svg class="hidden sm:block h-3.5 w-3.5 text-surface-400 ml-0.5 transition-transform"
@@ -104,7 +99,8 @@
 
         <!-- Dropdown -->
         <div *ngIf="showUserMenu"
-          class="absolute right-0 top-full mt-2 w-56 rounded-2xl border border-surface-200 dark:border-surface-700/50/50 bg-white dark:bg-surface-900 py-1.5 shadow-xl shadow-surface-900/10 dark:shadow-black/40 animate-fade-in z-50">
+          class="absolute right-0 top-full mt-2 w-60 rounded-2xl border border-surface-200 dark:border-surface-700/50 bg-white dark:bg-surface-900 py-1.5 shadow-xl shadow-surface-900/10 dark:shadow-black/40 animate-fade-in z-50">
+
           <!-- User info -->
           <div class="flex items-center gap-3 px-4 py-3">
             <div
@@ -112,25 +108,27 @@
               {{ userInitial }}
             </div>
             <div class="overflow-hidden">
-              <div class="text-[13px] font-semibold text-surface-900 dark:text-surface-100 truncate">{{ userName }}
-              </div>
+              <div class="text-[13px] font-semibold text-surface-900 dark:text-surface-100 truncate">{{ userName }}</div>
               <div class="text-xs text-surface-500 dark:text-surface-400 truncate">{{ userRoleName }}</div>
             </div>
           </div>
           <div class="mx-3 my-1 border-t border-surface-100 dark:border-surface-700/50"></div>
-          <!-- Menu items -->
-          <a
-            class="flex w-full items-center gap-3 px-4 py-2 text-[13px] text-surface-700 dark:text-surface-300 transition-colors hover:bg-surface-50 dark:hover:bg-surface-800/60 cursor-pointer">
-            <svg class="h-4 w-4 text-surface-400" fill="none" stroke="currentColor" stroke-width="1.75"
-              viewBox="0 0 24 24">
+
+          <!-- My Profile -->
+          <a [routerLink]="'/admin/profile'" (click)="showUserMenu = false"
+            class="flex w-full items-center gap-3 px-4 py-2.5 text-[13px] text-surface-700 dark:text-surface-300 transition-colors hover:bg-surface-50 dark:hover:bg-surface-800/60 cursor-pointer">
+            <svg class="h-4 w-4 text-surface-400" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round"
                 d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
             </svg>
             My Profile
           </a>
+
           <div class="mx-3 my-1 border-t border-surface-100 dark:border-surface-700/50"></div>
+
+          <!-- Sign Out -->
           <a (click)="logout(); showUserMenu = false"
-            class="flex w-full items-center gap-3 px-4 py-2 text-[13px] text-danger-600 dark:text-danger-400 transition-colors hover:bg-danger-50 dark:hover:bg-danger-900/20 cursor-pointer">
+            class="flex w-full items-center gap-3 px-4 py-2.5 text-[13px] text-danger-600 dark:text-danger-400 transition-colors hover:bg-danger-50 dark:hover:bg-danger-900/20 cursor-pointer">
             <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="1.75" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round"
                 d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9" />
@@ -144,13 +142,12 @@
 
   <!-- ── Mobile Backdrop ── -->
   <div *ngIf="sidenavOpened" (click)="toggleDrawer()"
-    class="fixed inset-0 z-30 bg-black/50 backdrop-blur-xs lg:hidden transition-opacity"
-    [class.hidden]="!sidenavOpened">
+    class="fixed inset-0 z-30 bg-black/50 backdrop-blur-xs lg:hidden transition-opacity">
   </div>
 
   <!-- ── Sidebar ── -->
   <aside
-    class="fixed top-16 bottom-0 left-0 z-40 bg-white dark:bg-surface-950 border-r border-surface-100 dark:border-surface-800/40/40 flex flex-col transition-all duration-300 ease-in-out overflow-hidden shadow-sm dark:shadow-none"
+    class="fixed top-16 bottom-0 left-0 z-40 bg-white dark:bg-surface-950 border-r border-surface-100 dark:border-surface-800/40 flex flex-col transition-all duration-300 ease-in-out overflow-hidden shadow-sm dark:shadow-none"
     [ngClass]="{
       'w-64': sidenavOpened,
       'w-0 lg:w-16': !sidenavOpened
@@ -159,14 +156,14 @@
     <!-- Search Box (only when expanded) -->
     <div *ngIf="sidenavOpened" class="px-3 pt-3 pb-1 flex-shrink-0">
       <div class="relative">
-        <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-surface-400" fill="none" stroke="currentColor"
-          stroke-width="1.5" viewBox="0 0 24 24">
+        <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-surface-400" fill="none"
+          stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round"
             d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
         </svg>
         <input type="text" [(ngModel)]="searchQuery" (ngModelChange)="onSearchChange()"
           placeholder="Search pages...  Ctrl+K" autocomplete="off"
-          class="w-full bg-surface-50 dark:bg-surface-900 border border-surface-100 dark:border-surface-800/40/60 rounded-xl pl-9 pr-8 py-2 text-sm text-surface-900 dark:text-surface-100 placeholder-surface-400 dark:placeholder-surface-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-400/50 transition" />
+          class="w-full bg-surface-50 dark:bg-surface-900 border border-surface-100 dark:border-surface-800/60 rounded-xl pl-9 pr-8 py-2 text-sm text-surface-900 dark:text-surface-100 placeholder-surface-400 dark:placeholder-surface-500 focus:outline-none focus:ring-2 focus:ring-brand-500/30 focus:border-brand-400/50 transition" />
         <button *ngIf="searchQuery" (click)="clearSearch()" aria-label="Clear search"
           class="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 rounded text-surface-400 hover:text-surface-600 dark:hover:text-surface-300">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
@@ -188,8 +185,7 @@
           viewBox="0 0 24 24" [innerHTML]="getIconSvg(item.icon)"></svg>
         <span class="truncate">{{ item.label }}</span>
         <span *ngIf="item.section"
-          class="ml-auto text-[10px] uppercase tracking-wider text-surface-400 dark:text-surface-500">{{ item.section
-          }}</span>
+          class="ml-auto text-[10px] uppercase tracking-wider text-surface-400 dark:text-surface-500">{{ item.section }}</span>
       </a>
     </div>
     <div *ngIf="sidenavOpened && searchQuery && filteredNavItems.length === 0"
@@ -213,24 +209,45 @@
         <span *ngIf="sidenavOpened" class="truncate">Dashboard</span>
       </a>
 
-      <!-- Dynamic sections based on user privileges -->
+      <!-- Dynamic sections — collapsible -->
       <ng-container *ngFor="let section of sections">
-        <p *ngIf="sidenavOpened"
-          class="text-[10px] font-bold uppercase tracking-widest text-surface-400 dark:text-surface-600 px-3 pt-5 pb-1">
-          {{ section }}
-        </p>
-        <div *ngIf="!sidenavOpened" class="border-t border-surface-100 dark:border-surface-800/40 mx-3 my-2"></div>
-        <a *ngFor="let item of getItemsForSection(section)"
-          class="nav-link flex items-center gap-2.5 px-3 py-2.5 mx-1 my-0.5 rounded-xl text-[13px] font-medium text-surface-600 dark:text-surface-500 hover:bg-surface-50 dark:hover:bg-surface-900 hover:text-surface-900 dark:hover:text-surface-100 transition-all duration-150 relative"
-          [routerLink]="item.route" routerLinkActive="active-link" [title]="!sidenavOpened ? item.label : ''">
-          <svg class="w-[18px] h-[18px] flex-shrink-0" fill="none" stroke="currentColor" stroke-width="1.5"
-            viewBox="0 0 24 24" [innerHTML]="getIconSvg(item.icon)"></svg>
-          <span *ngIf="sidenavOpened" class="truncate">{{ item.label }}</span>
-        </a>
+
+        <!-- Section header: clickable to collapse/expand (only when sidebar is open) -->
+        <ng-container *ngIf="sidenavOpened; else collapsedDivider">
+          <button (click)="toggleSection(section)"
+            class="flex w-full items-center justify-between px-3 pt-5 pb-1 group focus:outline-none">
+            <span
+              class="text-[10px] font-bold uppercase tracking-widest text-surface-400 dark:text-surface-600 group-hover:text-surface-500 dark:group-hover:text-surface-400 transition-colors select-none">
+              {{ section }}
+            </span>
+            <svg
+              class="w-3 h-3 text-surface-300 dark:text-surface-600 group-hover:text-surface-400 transition-transform duration-200 mr-1"
+              [class.rotate-180]="!isSectionExpanded(section)"
+              fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+            </svg>
+          </button>
+        </ng-container>
+
+        <ng-template #collapsedDivider>
+          <div class="border-t border-surface-100 dark:border-surface-800/40 mx-3 my-2"></div>
+        </ng-template>
+
+        <!-- Section items — shown only when expanded (or sidebar collapsed showing icons) -->
+        <ng-container *ngIf="isSectionExpanded(section) || !sidenavOpened">
+          <a *ngFor="let item of getItemsForSection(section)"
+            class="nav-link flex items-center gap-2.5 px-3 py-2.5 mx-1 my-0.5 rounded-xl text-[13px] font-medium text-surface-600 dark:text-surface-500 hover:bg-surface-50 dark:hover:bg-surface-900 hover:text-surface-900 dark:hover:text-surface-100 transition-all duration-150 relative"
+            [routerLink]="item.route" routerLinkActive="active-link" [title]="!sidenavOpened ? item.label : ''">
+            <svg class="w-[18px] h-[18px] flex-shrink-0" fill="none" stroke="currentColor" stroke-width="1.5"
+              viewBox="0 0 24 24" [innerHTML]="getIconSvg(item.icon)"></svg>
+            <span *ngIf="sidenavOpened" class="truncate">{{ item.label }}</span>
+          </a>
+        </ng-container>
+
       </ng-container>
 
       <!-- Spacer -->
-      <div class="flex-1"></div>
+      <div class="flex-1 min-h-4"></div>
 
       <!-- Sign Out -->
       <div class="border-t border-surface-100 dark:border-surface-800/40 mt-2 pt-2 pb-2">
@@ -249,7 +266,8 @@
   </aside>
 
   <!-- ── Main Content ── -->
-  <main class="pt-16 transition-all duration-300 ease-in-out min-h-screen bg-surface-50 dark:bg-surface-900" [ngClass]="{
+  <main class="pt-16 transition-all duration-300 ease-in-out min-h-screen bg-surface-50 dark:bg-surface-900"
+    [ngClass]="{
       'lg:ml-64': sidenavOpened,
       'lg:ml-16': !sidenavOpened
     }">
@@ -263,7 +281,6 @@
     class="fixed inset-0 z-[99999] bg-black/60 backdrop-blur-sm flex items-center justify-center">
     <div
       class="bg-white dark:bg-surface-800 rounded-2xl px-10 py-8 max-w-[420px] w-[90%] text-center shadow-dialog animate-slide-up">
-      <!-- Timer icon -->
       <div class="mb-4">
         <svg class="w-12 h-12 mx-auto text-warning-500" fill="none" stroke="currentColor" stroke-width="1.5"
           viewBox="0 0 24 24">

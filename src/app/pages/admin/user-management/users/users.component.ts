@@ -70,7 +70,8 @@ export class UsersComponent implements OnInit {
     this.api.getAdminUsers(params).subscribe(res => {
       this.loading = false;
       if (res?.success && res.data) {
-        this.users = res.data as UserItem[];
+        // Never show SystemAdmin user(s) in this list
+        this.users = (res.data as UserItem[]).filter(u => !this.isSystemAdmin(u));
       }
     });
   }

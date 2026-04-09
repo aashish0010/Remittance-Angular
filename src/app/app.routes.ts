@@ -42,6 +42,7 @@ export const routes: Routes = [
       { path: 'user-management/roles', loadComponent: () => import('./pages/admin/user-management/roles/roles.component').then(m => m.RolesComponent) },
       { path: 'user-management/users', loadComponent: () => import('./pages/admin/user-management/users/users.component').then(m => m.UsersComponent) },
       { path: 'settings', loadComponent: () => import('./pages/admin/settings/settings.component').then(m => m.SettingsComponent) },
+      { path: 'profile', loadComponent: () => import('./pages/admin/profile/admin-profile.component').then(m => m.AdminProfileComponent) },
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
     ]
   },
@@ -54,6 +55,8 @@ export const routes: Routes = [
       { path: 'dashboard', loadComponent: () => import('./pages/agent/dashboard/agent-dashboard.component').then(m => m.AgentDashboardComponent) },
       { path: 'send', loadComponent: () => import('./pages/agent/send-money/send-money.component').then(m => m.SendMoneyComponent) },
       { path: 'transactions', loadComponent: () => import('./pages/agent/transactions/agent-transactions.component').then(m => m.AgentTransactionsComponent) },
+      { path: 'reports/statement', loadComponent: () => import('./pages/agent/reports/my-statement/my-statement.component').then(m => m.MyStatementComponent) },
+      { path: 'profile', loadComponent: () => import('./pages/agent/profile/agent-profile.component').then(m => m.AgentProfileComponent) },
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' }
     ]
   },

@@ -985,6 +985,33 @@ export class ApiService {
     return this.put<any>(`api/admin/sanctions/countries/${id}/toggle`);
   }
 
+  // ---------------------------------------------------------------------------
+  // User Profile (shared across Admin & Agent portals)
+  // ---------------------------------------------------------------------------
+
+  getMyProfile(): Observable<ApiResponse<any>> {
+    return this.get<any>('api/auth/profile');
+  }
+
+  updateMyProfile(dto: { fullName: string; phoneNumber?: string }): Observable<ApiResponse<any>> {
+    return this.put<any>('api/auth/profile', dto);
+  }
+
+  changePassword(dto: { currentPassword: string; newPassword: string }): Observable<ApiResponse<any>> {
+    return this.post<any>('api/auth/change-password', dto);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Agent — My Statement (uses JWT to identify agent, no agentId param)
+  // ---------------------------------------------------------------------------
+
+  getMyStatement(params: { startDate?: string; endDate?: string }): Observable<ApiResponse<any>> {
+    const q = new URLSearchParams();
+    if (params.startDate) q.set('startDate', params.startDate);
+    if (params.endDate) q.set('endDate', params.endDate);
+    return this.get<any>(`api/agent/reports/statement?${q.toString()}`);
+  }
+
   // Screening Results
   getScreeningResultsPaged(request: PagedRequest, statusFilter?: string): Observable<ApiResponse<PagedResult<any>>> {
     return this.get<PagedResult<any>>(this.buildPagedQuery('api/admin/sanctions/screenings/paged', request, statusFilter ? { statusFilter } : undefined));
