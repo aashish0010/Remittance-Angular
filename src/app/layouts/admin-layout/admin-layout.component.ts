@@ -27,7 +27,7 @@ const ALL_NAV_ITEMS: NavItem[] = [
 
   // Agent Management
   { label: 'Agents',      icon: 'people_outline', route: '/admin/agents',     section: 'Agent Management' },
-  { label: 'Agent Setup', icon: 'tune',           route: '/admin/accounting', section: 'Agent Management' },
+  { label: 'Agent Accounting', icon: 'tune',       route: '/admin/setup',      section: 'Agent Management' },
 
   // Customers
   { label: 'Register Customer', icon: 'person_add_alt', route: '/admin/customer-register', section: 'Customers' },

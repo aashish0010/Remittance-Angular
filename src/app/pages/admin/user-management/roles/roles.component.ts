@@ -29,31 +29,57 @@ interface MenuSection {
   menus: MenuWithPerms[];
 }
 
-// Maps menu URL → section label (mirrors admin nav structure)
+// Maps menu URL → section label (mirrors sidebar nav structure exactly)
 const MENU_SECTION_MAP: Record<string, string> = {
+  // Admin portal — Dashboard (top-level, own section)
+  '/admin/dashboard':              'Dashboard',
+
+  // Admin portal — Transactions
   '/admin/transactions':           'Transactions',
+
+  // Admin portal — Agent Management
   '/admin/agents':                 'Agent Management',
-  '/admin/accounting':             'Agent Management',
+  '/admin/setup':                  'Agent Management',   // DB url is /admin/setup
+
+  // Admin portal — Customers
   '/admin/customer-register':      'Customers',
   '/admin/customer-report':        'Customers',
+
+  // Admin portal — Compliance & AML
   '/admin/compliance-setup':       'Compliance & AML',
   '/admin/compliance':             'Compliance & AML',
   '/admin/sanctions':              'Compliance & AML',
+
+  // Admin portal — Operations
   '/admin/rates':                  'Operations',
   '/admin/commissions':            'Operations',
   '/admin/routing':                'Operations',
   '/admin/receivers':              'Operations',
+
+  // Admin portal — Reports
   '/admin/reports/transactions':   'Reports',
   '/admin/reports/agent-statement':'Reports',
   '/admin/reports/commissions':    'Reports',
   '/admin/reports/revenue':        'Reports',
   '/admin/reports/settlement':     'Reports',
+
+  // Admin portal — User Management
   '/admin/user-management/roles':  'User Management',
   '/admin/user-management/users':  'User Management',
+
+  // Admin portal — System
   '/admin/static-values':          'System',
   '/admin/settings':               'System',
+
+  // Agent portal — Dashboard
+  '/agent/dashboard':              'Dashboard',
+
+  // Agent portal — Operations
   '/agent/send':                   'Operations',
   '/agent/transactions':           'Operations',
+  '/agent/commissions':            'Operations',   // My Service Charges
+
+  // Agent portal — Reports
   '/agent/reports/statement':      'Reports',
 };
 

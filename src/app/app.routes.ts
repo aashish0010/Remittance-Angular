@@ -30,6 +30,7 @@ export const routes: Routes = [
       { path: 'rates', loadComponent: () => import('./pages/admin/exchange-rates/exchange-rates.component').then(m => m.ExchangeRatesComponent) },
       { path: 'commissions', loadComponent: () => import('./pages/admin/commissions/commissions.component').then(m => m.CommissionsComponent) },
       { path: 'routing', loadComponent: () => import('./pages/admin/routing/routing.component').then(m => m.RoutingComponent) },
+      { path: 'setup',      loadComponent: () => import('./pages/admin/accounting/accounting.component').then(m => m.AccountingComponent) },
       { path: 'accounting', loadComponent: () => import('./pages/admin/accounting/accounting.component').then(m => m.AccountingComponent) },
       { path: 'compliance', loadComponent: () => import('./pages/admin/compliance/compliance.component').then(m => m.ComplianceComponent) },
       { path: 'compliance-setup', loadComponent: () => import('./pages/admin/compliance-setup/compliance-setup.component').then(m => m.ComplianceSetupComponent) },
