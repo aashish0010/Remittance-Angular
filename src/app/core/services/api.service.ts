@@ -1012,6 +1012,16 @@ export class ApiService {
     return this.get<any>(`api/agent/reports/statement?${q.toString()}`);
   }
 
+  // Ingested Entries (OFAC / UN / EU / UK auto-ingested)
+  getIngestedEntriesPaged(params: { page: number; pageSize: number; search?: string; source?: string }): Observable<ApiResponse<PagedResult<any>>> {
+    const q = new URLSearchParams();
+    q.set('page', String(params.page));
+    q.set('pageSize', String(params.pageSize));
+    if (params.search) q.set('search', params.search);
+    if (params.source) q.set('source', params.source);
+    return this.get<PagedResult<any>>(`api/admin/sanctions/ingested/paged?${q.toString()}`);
+  }
+
   // Screening Results
   getScreeningResultsPaged(request: PagedRequest, statusFilter?: string): Observable<ApiResponse<PagedResult<any>>> {
     return this.get<PagedResult<any>>(this.buildPagedQuery('api/admin/sanctions/screenings/paged', request, statusFilter ? { statusFilter } : undefined));

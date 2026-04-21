@@ -100,7 +100,12 @@ function handle401Error(
     );
   }
 
-  // Another request is already refreshing the token; wait for it
+  // Another request is already refreshing the token; wait for it.
+  // If the user has already been logged out (e.g. idle timeout fired while refresh was in
+  // progress), fail fast instead of hanging forever on refreshTokenSubject.
+  if (!authState.isAuthenticated) {
+    return throwError(() => new HttpErrorResponse({ status: 401 }));
+  }
   return refreshTokenSubject.pipe(
     filter(token => token !== null),
     take(1),

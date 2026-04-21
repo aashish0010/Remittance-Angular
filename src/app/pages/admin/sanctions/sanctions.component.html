@@ -1,159 +1,402 @@
 <div class="flex flex-col gap-6">
+  <!-- Header -->
   <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-    <h2 class="text-2xl font-semibold text-surface-900 dark:text-surface-100">Sanctions Management</h2>
+    <div>
+      <h2 class="text-2xl font-bold text-surface-900 dark:text-surface-100">Sanctions Management</h2>
+      <p class="text-sm text-surface-500 dark:text-surface-400 mt-0.5">OFAC · UN · EU · UK · Custom lists — screening and review</p>
+    </div>
   </div>
 
   <!-- Dashboard Cards -->
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
     <div class="bg-white dark:bg-surface-800 rounded-2xl shadow-soft p-5 border border-surface-200 dark:border-surface-700 flex items-center gap-4">
-      <div class="w-12 h-12 rounded-xl bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 21h7a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v11m0 5l3-3m-3 3l-3-3m3 3V15"/></svg>
+      <div class="w-11 h-11 rounded-xl bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
       </div>
       <div>
-        <p class="text-2xl font-bold text-surface-900 dark:text-surface-100">{{ dashboard.activeSanctionEntries || 0 }}</p>
-        <p class="text-xs font-medium text-surface-500 uppercase tracking-wider">Sanctioned Persons</p>
+        <p class="text-xl font-bold text-surface-900 dark:text-surface-100">{{ dashboard.activeSanctionEntries || 0 }}</p>
+        <p class="text-xs font-medium text-surface-500 uppercase tracking-wider">Manual Entries</p>
       </div>
     </div>
     <div class="bg-white dark:bg-surface-800 rounded-2xl shadow-soft p-5 border border-surface-200 dark:border-surface-700 flex items-center gap-4">
-      <div class="w-12 h-12 rounded-xl bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 flex items-center justify-center shrink-0">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      <div class="w-11 h-11 rounded-xl bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
       </div>
       <div>
-        <p class="text-2xl font-bold text-surface-900 dark:text-surface-100">{{ dashboard.activeSanctionedCountries || 0 }}</p>
+        <p class="text-xl font-bold text-surface-900 dark:text-surface-100">{{ dashboard.activeSanctionedCountries || 0 }}</p>
         <p class="text-xs font-medium text-surface-500 uppercase tracking-wider">Sanctioned Countries</p>
       </div>
     </div>
     <div class="bg-white dark:bg-surface-800 rounded-2xl shadow-soft p-5 border border-surface-200 dark:border-surface-700 flex items-center gap-4">
-      <div class="w-12 h-12 rounded-xl bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 flex items-center justify-center shrink-0">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+      <div class="w-11 h-11 rounded-xl bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 flex items-center justify-center shrink-0">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
       </div>
       <div>
-        <p class="text-2xl font-bold text-surface-900 dark:text-surface-100">{{ dashboard.totalScreenings || 0 }}</p>
+        <p class="text-xl font-bold text-surface-900 dark:text-surface-100">{{ dashboard.totalScreenings || 0 }}</p>
         <p class="text-xs font-medium text-surface-500 uppercase tracking-wider">Total Screenings</p>
       </div>
     </div>
-    <div class="bg-white dark:bg-surface-800 rounded-2xl shadow-soft p-5 border border-amber-200 dark:border-amber-900/30 flex items-center gap-4 relative overflow-hidden">
+    <div class="bg-white dark:bg-surface-800 rounded-2xl shadow-soft p-5 border border-amber-200 dark:border-amber-800/50 flex items-center gap-4 relative overflow-hidden">
       <div class="absolute right-0 top-0 bottom-0 w-1 bg-amber-500"></div>
-      <div class="w-12 h-12 rounded-xl bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+      <div class="w-11 h-11 rounded-xl bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
       </div>
       <div>
-        <p class="text-2xl font-bold text-surface-900 dark:text-surface-100">{{ dashboard.pendingReview || 0 }}</p>
+        <p class="text-xl font-bold text-surface-900 dark:text-surface-100">{{ dashboard.pendingReview || 0 }}</p>
         <p class="text-xs font-medium text-surface-500 uppercase tracking-wider">Pending Review</p>
       </div>
     </div>
   </div>
 
-  <!-- Custom Tabs Header -->
+  <!-- Tab Navigation -->
   <div role="tablist" aria-label="Sanctions tabs" class="bg-white dark:bg-surface-800 rounded-xl border border-surface-200 dark:border-surface-700 shadow-soft p-1.5 flex flex-wrap gap-1">
-    <button role="tab" [attr.aria-selected]="activeTab === 0" (click)="onTabChange(0)" class="px-5 py-2.5 rounded-lg text-sm font-medium transition-colors flex-1 text-center"
-      [ngClass]="activeTab === 0 ? 'bg-brand-50 text-brand-700 dark:bg-brand-900/30 dark:text-brand-400' : 'text-surface-600 dark:text-surface-400 hover:bg-surface-50 dark:hover:bg-surface-750'">
-      Sanctioned Persons
-    </button>
-    <button role="tab" [attr.aria-selected]="activeTab === 1" (click)="onTabChange(1)" class="px-5 py-2.5 rounded-lg text-sm font-medium transition-colors flex-1 text-center"
-      [ngClass]="activeTab === 1 ? 'bg-brand-50 text-brand-700 dark:bg-brand-900/30 dark:text-brand-400' : 'text-surface-600 dark:text-surface-400 hover:bg-surface-50 dark:hover:bg-surface-750'">
-      Sanctioned Countries
-    </button>
-    <button role="tab" [attr.aria-selected]="activeTab === 2" (click)="onTabChange(2)" class="px-5 py-2.5 rounded-lg text-sm font-medium transition-colors flex-1 text-center relative"
-      [ngClass]="activeTab === 2 ? 'bg-brand-50 text-brand-700 dark:bg-brand-900/30 dark:text-brand-400' : 'text-surface-600 dark:text-surface-400 hover:bg-surface-50 dark:hover:bg-surface-750'">
-      Flagged Transactions
-      <span *ngIf="dashboard.pendingReview > 0" class="absolute top-1 right-2 flex w-2 h-2">
+
+    <!-- Tab 0: Flagged Transactions — shown first, highest urgency -->
+    <button role="tab" [attr.aria-selected]="activeTab === 0" (click)="onTabChange(0)"
+      class="relative px-5 py-2.5 rounded-lg text-sm font-medium transition-all flex-1 text-center flex items-center justify-center gap-2"
+      [ngClass]="activeTab === 0
+        ? 'bg-amber-500 text-white shadow-sm'
+        : 'text-surface-600 dark:text-surface-400 hover:bg-amber-50 dark:hover:bg-amber-900/10 hover:text-amber-700 dark:hover:text-amber-400'">
+      <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+      <span>Flagged</span>
+      <span *ngIf="dashboard.pendingReview > 0"
+        class="inline-flex items-center justify-center w-5 h-5 rounded-full text-xs font-bold"
+        [ngClass]="activeTab === 0 ? 'bg-white/30 text-white' : 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400'">
+        {{ dashboard.pendingReview > 99 ? '99+' : dashboard.pendingReview }}
+      </span>
+      <span *ngIf="dashboard.pendingReview > 0 && activeTab !== 0" class="absolute top-1.5 right-2 flex w-2 h-2">
         <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
         <span class="relative inline-flex rounded-full w-2 h-2 bg-amber-500"></span>
       </span>
     </button>
-    <button role="tab" [attr.aria-selected]="activeTab === 3" (click)="onTabChange(3)" class="px-5 py-2.5 rounded-lg text-sm font-medium transition-colors flex-1 text-center"
-      [ngClass]="activeTab === 3 ? 'bg-brand-50 text-brand-700 dark:bg-brand-900/30 dark:text-brand-400' : 'text-surface-600 dark:text-surface-400 hover:bg-surface-50 dark:hover:bg-surface-750'">
-      Whitelist
+
+    <!-- Tab 1: Manual Sanction List -->
+    <button role="tab" [attr.aria-selected]="activeTab === 1" (click)="onTabChange(1)"
+      class="px-5 py-2.5 rounded-lg text-sm font-medium transition-all flex-1 text-center flex items-center justify-center gap-2"
+      [ngClass]="activeTab === 1
+        ? 'bg-brand-50 text-brand-700 dark:bg-brand-900/30 dark:text-brand-400'
+        : 'text-surface-600 dark:text-surface-400 hover:bg-surface-50 dark:hover:bg-surface-750'">
+      <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+      <span>Manual List</span>
+    </button>
+
+    <!-- Tab 2: Auto-Ingested Lists -->
+    <button role="tab" [attr.aria-selected]="activeTab === 2" (click)="onTabChange(2)"
+      class="px-5 py-2.5 rounded-lg text-sm font-medium transition-all flex-1 text-center flex items-center justify-center gap-2"
+      [ngClass]="activeTab === 2
+        ? 'bg-brand-50 text-brand-700 dark:bg-brand-900/30 dark:text-brand-400'
+        : 'text-surface-600 dark:text-surface-400 hover:bg-surface-50 dark:hover:bg-surface-750'">
+      <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+      <span>Auto Lists</span>
+      <span class="hidden sm:inline-flex items-center gap-0.5 text-xs font-medium opacity-60">OFAC · UN · EU · UK</span>
+    </button>
+
+    <!-- Tab 3: Sanctioned Countries -->
+    <button role="tab" [attr.aria-selected]="activeTab === 3" (click)="onTabChange(3)"
+      class="px-5 py-2.5 rounded-lg text-sm font-medium transition-all flex-1 text-center flex items-center justify-center gap-2"
+      [ngClass]="activeTab === 3
+        ? 'bg-brand-50 text-brand-700 dark:bg-brand-900/30 dark:text-brand-400'
+        : 'text-surface-600 dark:text-surface-400 hover:bg-surface-50 dark:hover:bg-surface-750'">
+      <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      <span>Countries</span>
+    </button>
+
+    <!-- Tab 4: Whitelist -->
+    <button role="tab" [attr.aria-selected]="activeTab === 4" (click)="onTabChange(4)"
+      class="px-5 py-2.5 rounded-lg text-sm font-medium transition-all flex-1 text-center flex items-center justify-center gap-2"
+      [ngClass]="activeTab === 4
+        ? 'bg-brand-50 text-brand-700 dark:bg-brand-900/30 dark:text-brand-400'
+        : 'text-surface-600 dark:text-surface-400 hover:bg-surface-50 dark:hover:bg-surface-750'">
+      <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+      <span>Whitelist</span>
     </button>
   </div>
 
-  <!-- Content Containers -->
+  <!-- Tab Content Container -->
   <div class="bg-white dark:bg-surface-800 rounded-2xl border border-surface-200 dark:border-surface-700 shadow-soft overflow-hidden">
-    
-    <!-- Tab 0: Sanctioned Persons -->
+
+    <!-- ─── Tab 0: Flagged Transactions ─── -->
     <div *ngIf="activeTab === 0" class="p-6">
       <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-        <div class="relative w-full max-w-sm">
-          <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-surface-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-          <input type="text" placeholder="Search entries..." [(ngModel)]="entriesSearch" (ngModelChange)="onEntriesSearch()"
-            class="w-full pl-10 pr-3 py-2 text-sm rounded-lg border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-800 text-surface-900 dark:text-surface-100 focus:ring-2 focus:ring-brand-500 outline-none transition" />
+        <div>
+          <h3 class="text-base font-semibold text-surface-900 dark:text-surface-100">Flagged Transactions</h3>
+          <p class="text-xs text-surface-500 dark:text-surface-400 mt-0.5">Transactions matched against any sanction list (manual or automatic). Review each match and mark as confirmed or false positive.</p>
         </div>
+        <div class="flex items-center gap-3 shrink-0">
+          <span *ngIf="flaggedTotalCount > 0" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/50 text-amber-700 dark:text-amber-400 text-sm font-semibold">
+            <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+            {{ flaggedTotalCount }} pending
+          </span>
+        </div>
+      </div>
+
+      <!-- Search -->
+      <div class="relative w-full max-w-sm mb-5">
+        <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-surface-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        <input type="text" placeholder="Search flagged transactions..." [(ngModel)]="flaggedSearch" (ngModelChange)="onFlaggedSearch()"
+          class="w-full pl-10 pr-3 py-2 text-sm rounded-lg border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-800 text-surface-900 dark:text-surface-100 focus:ring-2 focus:ring-brand-500 outline-none transition" />
+      </div>
+
+      <div *ngIf="loadingFlagged" class="flex justify-center p-12">
+        <svg class="animate-spin h-8 w-8 text-brand-600" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+      </div>
+
+      <div *ngIf="!loadingFlagged" class="overflow-x-auto">
+        <table class="w-full text-sm text-left whitespace-nowrap">
+          <thead>
+            <tr class="border-y border-surface-200 dark:border-surface-700 bg-amber-50/60 dark:bg-amber-900/10 text-surface-600 dark:text-surface-300">
+              <th class="px-4 py-3 font-semibold">Screened Name</th>
+              <th class="px-4 py-3 font-semibold">Type</th>
+              <th class="px-4 py-3 font-semibold">Matched Against</th>
+              <th class="px-4 py-3 font-semibold">List Source</th>
+              <th class="px-4 py-3 font-semibold">Score</th>
+              <th class="px-4 py-3 font-semibold">Transaction #</th>
+              <th class="px-4 py-3 font-semibold">Flagged</th>
+              <th class="px-4 py-3 font-semibold text-right">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let row of flagged" class="border-b border-surface-100 dark:border-surface-700 hover:bg-amber-50/30 dark:hover:bg-amber-900/5 transition-colors">
+              <td class="px-4 py-3 font-semibold text-surface-900 dark:text-surface-100">{{ row.screenedName }}</td>
+              <td class="px-4 py-3"><span class="inline-flex px-2 py-0.5 rounded text-xs font-medium bg-surface-100 dark:bg-surface-700 border border-surface-200 dark:border-surface-600">{{ row.screenedType }}</span></td>
+              <td class="px-4 py-3 font-medium text-red-700 dark:text-red-400">{{ row.matchedName || '—' }}</td>
+              <td class="px-4 py-3">
+                <span *ngIf="row.matchedListSource" class="inline-flex px-2 py-0.5 rounded text-xs font-bold border" [ngClass]="getSourceBadgeClass(row.matchedListSource)">{{ row.matchedListSource }}</span>
+                <span *ngIf="!row.matchedListSource" class="text-surface-400">—</span>
+              </td>
+              <td class="px-4 py-3">
+                <span *ngIf="row.matchScore" class="font-bold text-red-600 dark:text-red-400">{{ getScorePercent(row.matchScore) }}</span>
+                <span *ngIf="!row.matchScore" class="text-surface-400">—</span>
+              </td>
+              <td class="px-4 py-3 text-surface-600 dark:text-surface-300 font-mono text-xs">{{ row.transactionId || '—' }}</td>
+              <td class="px-4 py-3 text-surface-500 text-xs">{{ row.createdAt | date:'short' }}</td>
+              <td class="px-4 py-3 text-right">
+                <button (click)="openReviewForm(row)" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-100 text-amber-800 hover:bg-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:hover:bg-amber-900/50 text-xs font-semibold transition-colors">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+                  Review
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <div *ngIf="flagged.length === 0" class="flex flex-col items-center justify-center py-14 text-surface-400 dark:text-surface-500">
+          <svg class="w-12 h-12 mb-3 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <p class="font-medium">No flagged transactions pending review</p>
+          <p class="text-xs mt-1 opacity-75">All screenings are clear or have been reviewed</p>
+        </div>
+      </div>
+      <!-- Flagged Pagination -->
+      <div *ngIf="!loadingFlagged && flagged.length > 0" class="flex flex-col sm:flex-row items-center justify-between gap-3 mt-4 pt-4 border-t border-surface-200 dark:border-surface-700">
+        <span class="text-sm text-surface-500">Showing {{ (flaggedPage - 1) * flaggedPageSize + 1 }}&ndash;{{ (flaggedPage - 1) * flaggedPageSize + flagged.length }} of {{ flaggedTotalCount }}</span>
         <div class="flex items-center gap-2">
-          <button (click)="exportEntries('excel')" class="inline-flex items-center gap-1.5 px-4 py-2 border border-surface-300 dark:border-surface-600 rounded-lg text-sm font-medium hover:bg-surface-50 dark:hover:bg-surface-700 transition">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg> Export
+          <button (click)="onFlaggedPage({pageIndex: 0, pageSize: flaggedPageSize})" [disabled]="flaggedPage === 1" class="p-1.5 rounded-md border border-surface-300 dark:border-surface-600 disabled:opacity-40 hover:bg-surface-100 dark:hover:bg-surface-700 transition"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/></svg></button>
+          <button (click)="onFlaggedPage({pageIndex: flaggedPage - 2, pageSize: flaggedPageSize})" [disabled]="flaggedPage === 1" class="p-1.5 rounded-md border border-surface-300 dark:border-surface-600 disabled:opacity-40 hover:bg-surface-100 dark:hover:bg-surface-700 transition"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"/></svg></button>
+          <span class="text-sm px-2">{{ flaggedPage }} / {{ flaggedTotalPages }}</span>
+          <button (click)="onFlaggedPage({pageIndex: flaggedPage, pageSize: flaggedPageSize})" [disabled]="flaggedPage >= flaggedTotalPages" class="p-1.5 rounded-md border border-surface-300 dark:border-surface-600 disabled:opacity-40 hover:bg-surface-100 dark:hover:bg-surface-700 transition"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button>
+          <button (click)="onFlaggedPage({pageIndex: flaggedTotalPages - 1, pageSize: flaggedPageSize})" [disabled]="flaggedPage >= flaggedTotalPages" class="p-1.5 rounded-md border border-surface-300 dark:border-surface-600 disabled:opacity-40 hover:bg-surface-100 dark:hover:bg-surface-700 transition"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M13 5l7 7-7 7M5 5l7 7-7 7"/></svg></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── Tab 1: Manual Sanction List ─── -->
+    <div *ngIf="activeTab === 1" class="p-6">
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+        <div>
+          <h3 class="text-base font-semibold text-surface-900 dark:text-surface-100">Manual Sanction List</h3>
+          <p class="text-xs text-surface-500 dark:text-surface-400 mt-0.5">Custom entries added by your compliance team. These are screened alongside automatic lists.</p>
+        </div>
+        <div class="flex items-center gap-2 shrink-0">
+          <button (click)="exportEntries('excel')" class="inline-flex items-center gap-1.5 px-3 py-2 border border-surface-300 dark:border-surface-600 rounded-lg text-sm font-medium hover:bg-surface-50 dark:hover:bg-surface-700 transition text-surface-700 dark:text-surface-300">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+            Export
           </button>
-          <button (click)="openEntryForm()" class="inline-flex items-center gap-1.5 px-4 py-2 bg-brand-600 text-white rounded-lg text-sm font-medium hover:bg-brand-700 transition">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg> Add Entry
+          <button (click)="openEntryForm()" class="inline-flex items-center gap-1.5 px-4 py-2 bg-brand-600 text-white rounded-lg text-sm font-semibold hover:bg-brand-700 transition shadow-sm">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+            Add Entry
           </button>
         </div>
       </div>
 
-      <div *ngIf="loadingEntries" class="flex justify-center p-12"><svg class="animate-spin h-8 w-8 text-brand-600" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg></div>
-      
+      <!-- Search -->
+      <div class="relative w-full max-w-sm mb-5">
+        <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-surface-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        <input type="text" placeholder="Search manual entries..." [(ngModel)]="entriesSearch" (ngModelChange)="onEntriesSearch()"
+          class="w-full pl-10 pr-3 py-2 text-sm rounded-lg border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-800 text-surface-900 dark:text-surface-100 focus:ring-2 focus:ring-brand-500 outline-none transition" />
+      </div>
+
+      <div *ngIf="loadingEntries" class="flex justify-center p-12">
+        <svg class="animate-spin h-8 w-8 text-brand-600" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+      </div>
+
       <div *ngIf="!loadingEntries" class="overflow-x-auto">
         <table class="w-full text-sm text-left whitespace-nowrap">
-          <thead class="bg-surface-50 dark:bg-surface-900/50">
-            <tr class="border-y border-surface-200 dark:border-surface-700 text-surface-600 dark:text-surface-300">
-              <th scope="col" class="px-4 py-3 font-semibold">Name</th>
-              <th scope="col" class="px-4 py-3 font-semibold">Type</th>
-              <th scope="col" class="px-4 py-3 font-semibold">Source</th>
-              <th scope="col" class="px-4 py-3 font-semibold">Aliases</th>
-              <th scope="col" class="px-4 py-3 font-semibold">Nationality</th>
-              <th scope="col" class="px-4 py-3 font-semibold">Status</th>
-              <th scope="col" class="px-4 py-3 font-semibold">Added</th>
+          <thead>
+            <tr class="border-y border-surface-200 dark:border-surface-700 bg-surface-50 dark:bg-surface-900/50 text-surface-600 dark:text-surface-300">
+              <th class="px-4 py-3 font-semibold">Name</th>
+              <th class="px-4 py-3 font-semibold">Type</th>
+              <th class="px-4 py-3 font-semibold">Source</th>
+              <th class="px-4 py-3 font-semibold">Aliases</th>
+              <th class="px-4 py-3 font-semibold">Nationality</th>
+              <th class="px-4 py-3 font-semibold">Status</th>
+              <th class="px-4 py-3 font-semibold">Added</th>
               <th class="px-4 py-3 font-semibold text-right">Actions</th>
             </tr>
           </thead>
           <tbody>
             <tr *ngFor="let row of entries" class="border-b border-surface-100 dark:border-surface-700 hover:bg-surface-50 dark:hover:bg-surface-750 transition-colors">
-              <td class="px-4 py-3 font-medium text-surface-900 dark:text-surface-100">{{ row.name }}</td>
+              <td class="px-4 py-3 font-semibold text-surface-900 dark:text-surface-100">{{ row.name }}</td>
               <td class="px-4 py-3"><span class="inline-flex px-2 py-0.5 rounded text-xs font-medium bg-purple-50 text-purple-700 border border-purple-200 dark:bg-purple-900/20 dark:text-purple-300 dark:border-purple-800/50">{{ row.entryType }}</span></td>
-              <td class="px-4 py-3 text-surface-600 dark:text-surface-300">{{ row.listSource }}</td>
-              <td class="px-4 py-3 text-surface-500 text-xs truncate max-w-xs">{{ row.aliases || '-' }}</td>
-              <td class="px-4 py-3 text-surface-600 dark:text-surface-300">{{ row.nationality || '-' }}</td>
-              <td class="px-4 py-3"><span class="inline-flex px-2 py-0.5 rounded-full text-xs font-medium" [ngClass]="row.isActive ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-surface-100 text-surface-500 dark:bg-surface-700 dark:text-surface-400'">{{ row.isActive ? 'Active' : 'Inactive' }}</span></td>
-              <td class="px-4 py-3 text-surface-500">{{ row.createdAt | date:'mediumDate' }}</td>
+              <td class="px-4 py-3 text-surface-600 dark:text-surface-300 text-xs">{{ row.listSource }}</td>
+              <td class="px-4 py-3 text-surface-500 text-xs truncate max-w-xs">{{ row.aliases || '—' }}</td>
+              <td class="px-4 py-3 text-surface-600 dark:text-surface-300 text-xs">{{ row.nationality || '—' }}</td>
+              <td class="px-4 py-3">
+                <span class="inline-flex px-2 py-0.5 rounded-full text-xs font-semibold"
+                  [ngClass]="row.isActive ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-surface-100 text-surface-500 dark:bg-surface-700 dark:text-surface-400'">
+                  {{ row.isActive ? 'Active' : 'Inactive' }}
+                </span>
+              </td>
+              <td class="px-4 py-3 text-surface-500 text-xs">{{ row.createdAt | date:'mediumDate' }}</td>
               <td class="px-4 py-3 text-right">
                 <div class="flex items-center justify-end gap-1">
-                  <button title="Edit" (click)="openEntryForm(row)" class="p-1 rounded text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/20"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg></button>
-                  <button [title]="row.isActive ? 'Deactivate' : 'Activate'" (click)="toggleEntry(row)" class="p-1 rounded hover:bg-surface-100 dark:hover:bg-surface-700" [ngClass]="row.isActive ? 'text-green-600 dark:text-green-400' : 'text-surface-400'"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path *ngIf="row.isActive" d="M17 7H7a5 5 0 000 10h10a5 5 0 000-10zm0 8a3 3 0 110-6 3 3 0 010 6z"/><path *ngIf="!row.isActive" d="M17 7H7a5 5 0 000 10h10a5 5 0 000-10zM7 15a3 3 0 110-6 3 3 0 010 6z"/></svg></button>
-                  <button title="Delete" (click)="deleteEntry(row)" class="p-1 rounded text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
+                  <button title="Edit" (click)="openEntryForm(row)" class="p-1.5 rounded-lg text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/20 transition"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg></button>
+                  <button [title]="row.isActive ? 'Deactivate' : 'Activate'" (click)="toggleEntry(row)" class="p-1.5 rounded-lg hover:bg-surface-100 dark:hover:bg-surface-700 transition" [ngClass]="row.isActive ? 'text-green-600 dark:text-green-400' : 'text-surface-400'"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path *ngIf="row.isActive" d="M17 7H7a5 5 0 000 10h10a5 5 0 000-10zm0 8a3 3 0 110-6 3 3 0 010 6z"/><path *ngIf="!row.isActive" d="M17 7H7a5 5 0 000 10h10a5 5 0 000-10zM7 15a3 3 0 110-6 3 3 0 010 6z"/></svg></button>
+                  <button title="Delete" (click)="deleteEntry(row)" class="p-1.5 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
                 </div>
               </td>
             </tr>
           </tbody>
         </table>
-        <div *ngIf="entries.length === 0" class="text-center py-12 text-surface-500">No sanction entries found</div>
+        <div *ngIf="entries.length === 0" class="flex flex-col items-center justify-center py-14 text-surface-400 dark:text-surface-500">
+          <svg class="w-12 h-12 mb-3 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+          <p class="font-medium">No manual entries yet</p>
+          <p class="text-xs mt-1 opacity-75">Click "Add Entry" to create your first custom sanction entry</p>
+        </div>
       </div>
       <!-- Entries Pagination -->
       <div *ngIf="!loadingEntries && entries.length > 0" class="flex flex-col sm:flex-row items-center justify-between gap-3 mt-4 pt-4 border-t border-surface-200 dark:border-surface-700">
-        <span class="text-sm text-surface-500 dark:text-surface-400">Showing {{ (entriesPage - 1) * entriesPageSize + 1 }}&ndash;{{ (entriesPage - 1) * entriesPageSize + entries.length }} of {{ entriesTotalCount }}</span>
+        <span class="text-sm text-surface-500">Showing {{ (entriesPage - 1) * entriesPageSize + 1 }}&ndash;{{ (entriesPage - 1) * entriesPageSize + entries.length }} of {{ entriesTotalCount }}</span>
         <div class="flex items-center gap-2">
-          <button (click)="onEntriesPage({pageIndex: 0, pageSize: entriesPageSize})" [disabled]="entriesPage === 1" class="p-1.5 rounded-md border border-surface-300 dark:border-surface-600 disabled:opacity-40 hover:bg-surface-100 transition"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/></svg></button>
-          <button (click)="onEntriesPage({pageIndex: entriesPage - 2, pageSize: entriesPageSize})" [disabled]="entriesPage === 1" class="p-1.5 rounded-md border border-surface-300 dark:border-surface-600 disabled:opacity-40 hover:bg-surface-100 transition"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"/></svg></button>
-          <span class="text-sm px-2">Page {{ entriesPage }} of {{ entriesTotalPages }}</span>
-          <button (click)="onEntriesPage({pageIndex: entriesPage, pageSize: entriesPageSize})" [disabled]="entriesPage >= entriesTotalPages" class="p-1.5 rounded-md border border-surface-300 dark:border-surface-600 disabled:opacity-40 hover:bg-surface-100 transition"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button>
-          <button (click)="onEntriesPage({pageIndex: entriesTotalPages - 1, pageSize: entriesPageSize})" [disabled]="entriesPage >= entriesTotalPages" class="p-1.5 rounded-md border border-surface-300 dark:border-surface-600 disabled:opacity-40 hover:bg-surface-100 transition"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M13 5l7 7-7 7M5 5l7 7-7 7"/></svg></button>
+          <button (click)="onEntriesPage({pageIndex: 0, pageSize: entriesPageSize})" [disabled]="entriesPage === 1" class="p-1.5 rounded-md border border-surface-300 dark:border-surface-600 disabled:opacity-40 hover:bg-surface-100 dark:hover:bg-surface-700 transition"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/></svg></button>
+          <button (click)="onEntriesPage({pageIndex: entriesPage - 2, pageSize: entriesPageSize})" [disabled]="entriesPage === 1" class="p-1.5 rounded-md border border-surface-300 dark:border-surface-600 disabled:opacity-40 hover:bg-surface-100 dark:hover:bg-surface-700 transition"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"/></svg></button>
+          <span class="text-sm px-2">{{ entriesPage }} / {{ entriesTotalPages }}</span>
+          <button (click)="onEntriesPage({pageIndex: entriesPage, pageSize: entriesPageSize})" [disabled]="entriesPage >= entriesTotalPages" class="p-1.5 rounded-md border border-surface-300 dark:border-surface-600 disabled:opacity-40 hover:bg-surface-100 dark:hover:bg-surface-700 transition"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button>
+          <button (click)="onEntriesPage({pageIndex: entriesTotalPages - 1, pageSize: entriesPageSize})" [disabled]="entriesPage >= entriesTotalPages" class="p-1.5 rounded-md border border-surface-300 dark:border-surface-600 disabled:opacity-40 hover:bg-surface-100 dark:hover:bg-surface-700 transition"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M13 5l7 7-7 7M5 5l7 7-7 7"/></svg></button>
         </div>
       </div>
     </div>
-    
-    <!-- Tab 1: Sanctioned Countries -->
-    <div *ngIf="activeTab === 1" class="p-6">
+
+    <!-- ─── Tab 2: Auto-Ingested Lists (OFAC / UN / EU / UK) ─── -->
+    <div *ngIf="activeTab === 2" class="p-6">
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-5">
+        <div>
+          <h3 class="text-base font-semibold text-surface-900 dark:text-surface-100">Automatic Sanction Lists</h3>
+          <p class="text-xs text-surface-500 dark:text-surface-400 mt-0.5">Auto-ingested from official sources. Updated nightly. Read-only — used in all transaction screenings.</p>
+        </div>
+        <div class="flex items-center gap-2 shrink-0">
+          <!-- Source legend badges -->
+          <span class="hidden lg:inline-flex px-2 py-0.5 rounded text-xs font-bold border bg-red-100 text-red-800 border-red-200 dark:bg-red-900/30 dark:text-red-400 dark:border-red-800/50">OFAC SDN</span>
+          <span class="hidden lg:inline-flex px-2 py-0.5 rounded text-xs font-bold border bg-orange-100 text-orange-800 border-orange-200 dark:bg-orange-900/30 dark:text-orange-400 dark:border-orange-800/50">OFAC CONS</span>
+          <span class="hidden lg:inline-flex px-2 py-0.5 rounded text-xs font-bold border bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800/50">UN</span>
+          <span class="hidden lg:inline-flex px-2 py-0.5 rounded text-xs font-bold border bg-indigo-100 text-indigo-800 border-indigo-200 dark:bg-indigo-900/30 dark:text-indigo-400 dark:border-indigo-800/50">EU</span>
+          <span class="hidden lg:inline-flex px-2 py-0.5 rounded text-xs font-bold border bg-purple-100 text-purple-800 border-purple-200 dark:bg-purple-900/30 dark:text-purple-400 dark:border-purple-800/50">UK</span>
+        </div>
+      </div>
+
+      <!-- Search + Filter row -->
+      <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3 mb-5">
+        <div class="relative flex-1 max-w-sm">
+          <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-surface-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+          <input type="text" placeholder="Search by name, nationality, programme..." [(ngModel)]="ingestedSearch" (ngModelChange)="onIngestedSearch()"
+            class="w-full pl-10 pr-3 py-2 text-sm rounded-lg border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-800 text-surface-900 dark:text-surface-100 focus:ring-2 focus:ring-brand-500 outline-none transition" />
+        </div>
+        <select [(ngModel)]="ingestedSourceFilter" (ngModelChange)="onIngestedSourceChange()"
+          class="px-3 py-2 text-sm rounded-lg border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-800 text-surface-900 dark:text-surface-100 focus:ring-2 focus:ring-brand-500 outline-none transition">
+          <option value="">All Sources</option>
+          <option value="OFAC_SDN">OFAC SDN</option>
+          <option value="OFAC_CONS">OFAC Consolidated</option>
+          <option value="UN">UN</option>
+          <option value="EU">EU</option>
+          <option value="UK">UK FCDO</option>
+        </select>
+        <span class="text-sm text-surface-500 dark:text-surface-400 whitespace-nowrap font-medium">{{ ingestedTotalCount | number }} records</span>
+      </div>
+
+      <div *ngIf="loadingIngested" class="flex justify-center p-12">
+        <svg class="animate-spin h-8 w-8 text-brand-600" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+      </div>
+
+      <div *ngIf="!loadingIngested" class="overflow-x-auto">
+        <table class="w-full text-sm text-left whitespace-nowrap">
+          <thead>
+            <tr class="border-y border-surface-200 dark:border-surface-700 bg-surface-50 dark:bg-surface-900/50 text-surface-600 dark:text-surface-300">
+              <th class="px-4 py-3 font-semibold">Source</th>
+              <th class="px-4 py-3 font-semibold">Full Name</th>
+              <th class="px-4 py-3 font-semibold">Type</th>
+              <th class="px-4 py-3 font-semibold">Aliases</th>
+              <th class="px-4 py-3 font-semibold">Nationality</th>
+              <th class="px-4 py-3 font-semibold">DOB</th>
+              <th class="px-4 py-3 font-semibold">Programme</th>
+              <th class="px-4 py-3 font-semibold">Listed On</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let row of ingested" class="border-b border-surface-100 dark:border-surface-700 hover:bg-surface-50 dark:hover:bg-surface-750 transition-colors">
+              <td class="px-4 py-3">
+                <span class="inline-flex px-2 py-0.5 rounded text-xs font-bold border" [ngClass]="getSourceBadgeClass(row.source)">{{ row.source }}</span>
+              </td>
+              <td class="px-4 py-3 font-semibold text-surface-900 dark:text-surface-100 max-w-xs">{{ row.fullName }}</td>
+              <td class="px-4 py-3">
+                <span *ngIf="row.recordType" class="inline-flex px-2 py-0.5 rounded text-xs font-medium bg-surface-100 dark:bg-surface-700 text-surface-600 dark:text-surface-300">{{ row.recordType }}</span>
+                <span *ngIf="!row.recordType" class="text-surface-400">—</span>
+              </td>
+              <td class="px-4 py-3 text-surface-500 text-xs max-w-xs truncate" [title]="parseAliasNames(row.aliases)">{{ parseAliasNames(row.aliases) }}</td>
+              <td class="px-4 py-3 text-surface-600 dark:text-surface-300 text-xs">{{ row.nationality || '—' }}</td>
+              <td class="px-4 py-3 text-surface-500 text-xs">{{ row.dob || '—' }}</td>
+              <td class="px-4 py-3 text-surface-500 text-xs max-w-xs truncate">{{ row.programme || '—' }}</td>
+              <td class="px-4 py-3 text-surface-500 text-xs">{{ row.listedOn || '—' }}</td>
+            </tr>
+          </tbody>
+        </table>
+        <div *ngIf="ingested.length === 0" class="flex flex-col items-center justify-center py-14 text-surface-400 dark:text-surface-500">
+          <svg class="w-12 h-12 mb-3 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+          <p class="font-medium">No ingested entries found</p>
+          <p class="text-xs mt-1 opacity-75">Run the ingestion worker to populate OFAC, UN, EU and UK lists</p>
+        </div>
+      </div>
+      <!-- Ingested Pagination -->
+      <div *ngIf="!loadingIngested && ingested.length > 0" class="flex flex-col sm:flex-row items-center justify-between gap-3 mt-4 pt-4 border-t border-surface-200 dark:border-surface-700">
+        <span class="text-sm text-surface-500">Showing {{ (ingestedPage - 1) * ingestedPageSize + 1 }}&ndash;{{ (ingestedPage - 1) * ingestedPageSize + ingested.length }} of {{ ingestedTotalCount | number }}</span>
+        <div class="flex items-center gap-2">
+          <button (click)="onIngestedPage({pageIndex: 0, pageSize: ingestedPageSize})" [disabled]="ingestedPage === 1" class="p-1.5 rounded-md border border-surface-300 dark:border-surface-600 disabled:opacity-40 hover:bg-surface-100 dark:hover:bg-surface-700 transition"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/></svg></button>
+          <button (click)="onIngestedPage({pageIndex: ingestedPage - 2, pageSize: ingestedPageSize})" [disabled]="ingestedPage === 1" class="p-1.5 rounded-md border border-surface-300 dark:border-surface-600 disabled:opacity-40 hover:bg-surface-100 dark:hover:bg-surface-700 transition"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"/></svg></button>
+          <span class="text-sm px-2">{{ ingestedPage }} / {{ ingestedTotalPages }}</span>
+          <button (click)="onIngestedPage({pageIndex: ingestedPage, pageSize: ingestedPageSize})" [disabled]="ingestedPage >= ingestedTotalPages" class="p-1.5 rounded-md border border-surface-300 dark:border-surface-600 disabled:opacity-40 hover:bg-surface-100 dark:hover:bg-surface-700 transition"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button>
+          <button (click)="onIngestedPage({pageIndex: ingestedTotalPages - 1, pageSize: ingestedPageSize})" [disabled]="ingestedPage >= ingestedTotalPages" class="p-1.5 rounded-md border border-surface-300 dark:border-surface-600 disabled:opacity-40 hover:bg-surface-100 dark:hover:bg-surface-700 transition"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M13 5l7 7-7 7M5 5l7 7-7 7"/></svg></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── Tab 3: Sanctioned Countries ─── -->
+    <div *ngIf="activeTab === 3" class="p-6">
       <div class="flex items-center justify-between gap-4 mb-6">
-        <div></div>
-        <button (click)="openCountryForm()" class="inline-flex items-center gap-1.5 px-4 py-2 bg-brand-600 text-white rounded-lg text-sm font-medium hover:bg-brand-700 transition shadow-sm">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg> Add Country
+        <div>
+          <h3 class="text-base font-semibold text-surface-900 dark:text-surface-100">Sanctioned Countries</h3>
+          <p class="text-xs text-surface-500 dark:text-surface-400 mt-0.5">Countries where transactions are blocked or flagged by risk level.</p>
+        </div>
+        <button (click)="openCountryForm()" class="inline-flex items-center gap-1.5 px-4 py-2 bg-brand-600 text-white rounded-lg text-sm font-semibold hover:bg-brand-700 transition shadow-sm shrink-0">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+          Add Country
         </button>
       </div>
 
-      <div *ngIf="loadingCountries" class="flex justify-center p-12"><svg class="animate-spin h-8 w-8 text-brand-600" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg></div>
-      
+      <div *ngIf="loadingCountries" class="flex justify-center p-12">
+        <svg class="animate-spin h-8 w-8 text-brand-600" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+      </div>
+
       <div *ngIf="!loadingCountries" class="overflow-x-auto">
         <table class="w-full text-sm text-left whitespace-nowrap">
-          <thead class="bg-surface-50 dark:bg-surface-900/50">
-            <tr class="border-y border-surface-200 dark:border-surface-700 text-surface-600 dark:text-surface-300">
+          <thead>
+            <tr class="border-y border-surface-200 dark:border-surface-700 bg-surface-50 dark:bg-surface-900/50 text-surface-600 dark:text-surface-300">
               <th class="px-4 py-3 font-semibold w-24">Code</th>
               <th class="px-4 py-3 font-semibold">Country</th>
               <th class="px-4 py-3 font-semibold">Sanction Type</th>
@@ -167,9 +410,9 @@
           <tbody>
             <tr *ngFor="let row of countries" class="border-b border-surface-100 dark:border-surface-700 hover:bg-surface-50 dark:hover:bg-surface-750 transition-colors">
               <td class="px-4 py-3 font-bold text-surface-900 dark:text-surface-100">{{ row.countryCode }}</td>
-              <td class="px-4 py-3 text-surface-900 dark:text-surface-100">{{ row.countryName }}</td>
+              <td class="px-4 py-3 font-medium text-surface-900 dark:text-surface-100">{{ row.countryName }}</td>
               <td class="px-4 py-3">
-                <span class="inline-flex px-2 py-0.5 rounded text-xs font-medium border"
+                <span class="inline-flex px-2 py-0.5 rounded text-xs font-semibold border"
                   [ngClass]="row.sanctionType === 'Full' ? 'bg-red-50 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800/50' : 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-800/50'">
                   {{ row.sanctionType }}
                 </span>
@@ -185,109 +428,67 @@
                   {{ row.riskLevel }}
                 </span>
               </td>
-              <td class="px-4 py-3 text-surface-600 dark:text-surface-300">{{ row.listSource }}</td>
+              <td class="px-4 py-3 text-surface-600 dark:text-surface-300 text-xs">{{ row.listSource }}</td>
               <td class="px-4 py-3">
-                <span class="inline-flex px-2 py-0.5 rounded-full text-xs font-medium" [ngClass]="row.isActive ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-surface-100 text-surface-500 dark:bg-surface-700 dark:text-surface-400'">
+                <span class="inline-flex px-2 py-0.5 rounded-full text-xs font-semibold"
+                  [ngClass]="row.isActive ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-surface-100 text-surface-500 dark:bg-surface-700 dark:text-surface-400'">
                   {{ row.isActive ? 'Active' : 'Inactive' }}
                 </span>
               </td>
-              <td class="px-4 py-3 text-surface-500">{{ row.createdAt | date:'mediumDate' }}</td>
+              <td class="px-4 py-3 text-surface-500 text-xs">{{ row.createdAt | date:'mediumDate' }}</td>
               <td class="px-4 py-3 text-right">
                 <div class="flex items-center justify-end gap-1">
-                  <button title="Edit" (click)="openCountryForm(row)" class="p-1 rounded text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/20"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg></button>
-                  <button [title]="row.isActive ? 'Deactivate' : 'Activate'" (click)="toggleCountry(row)" class="p-1 rounded hover:bg-surface-100 dark:hover:bg-surface-700" [ngClass]="row.isActive ? 'text-green-600 dark:text-green-400' : 'text-surface-400'"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path *ngIf="row.isActive" d="M17 7H7a5 5 0 000 10h10a5 5 0 000-10zm0 8a3 3 0 110-6 3 3 0 010 6z"/><path *ngIf="!row.isActive" d="M17 7H7a5 5 0 000 10h10a5 5 0 000-10zM7 15a3 3 0 110-6 3 3 0 010 6z"/></svg></button>
-                  <button title="Delete" (click)="deleteCountry(row)" class="p-1 rounded text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
+                  <button title="Edit" (click)="openCountryForm(row)" class="p-1.5 rounded-lg text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/20 transition"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg></button>
+                  <button [title]="row.isActive ? 'Deactivate' : 'Activate'" (click)="toggleCountry(row)" class="p-1.5 rounded-lg hover:bg-surface-100 dark:hover:bg-surface-700 transition" [ngClass]="row.isActive ? 'text-green-600 dark:text-green-400' : 'text-surface-400'"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path *ngIf="row.isActive" d="M17 7H7a5 5 0 000 10h10a5 5 0 000-10zm0 8a3 3 0 110-6 3 3 0 010 6z"/><path *ngIf="!row.isActive" d="M17 7H7a5 5 0 000 10h10a5 5 0 000-10zM7 15a3 3 0 110-6 3 3 0 010 6z"/></svg></button>
+                  <button title="Delete" (click)="deleteCountry(row)" class="p-1.5 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
                 </div>
               </td>
             </tr>
           </tbody>
         </table>
-        <div *ngIf="countries.length === 0" class="text-center py-12 text-surface-500">No sanctioned countries configured</div>
-      </div>
-    </div>
-    <!-- Tab 2: Flagged Transactions (PotentialMatch) -->
-    <div *ngIf="activeTab === 2" class="p-6">
-      <div class="flex items-center justify-between gap-4 mb-6">
-        <div class="relative w-full max-w-sm">
-          <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-surface-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-          <input type="text" placeholder="Search flagged transactions..." [(ngModel)]="flaggedSearch" (ngModelChange)="onFlaggedSearch()"
-            class="w-full pl-10 pr-3 py-2 text-sm rounded-lg border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-800 text-surface-900 dark:text-surface-100 focus:ring-2 focus:ring-brand-500 outline-none transition" />
-        </div>
-        <p class="text-sm text-amber-600 dark:text-amber-400 font-medium shrink-0">{{ flaggedTotalCount }} pending review</p>
-      </div>
-
-      <div *ngIf="loadingFlagged" class="flex justify-center p-12"><svg class="animate-spin h-8 w-8 text-brand-600" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg></div>
-
-      <div *ngIf="!loadingFlagged" class="overflow-x-auto">
-        <table class="w-full text-sm text-left whitespace-nowrap">
-          <thead class="bg-surface-50 dark:bg-surface-900/50">
-            <tr class="border-y border-surface-200 dark:border-surface-700 text-surface-600 dark:text-surface-300">
-              <th class="px-4 py-3 font-semibold">Screened Name</th>
-              <th class="px-4 py-3 font-semibold">Type</th>
-              <th class="px-4 py-3 font-semibold">Matched Against</th>
-              <th class="px-4 py-3 font-semibold">List</th>
-              <th class="px-4 py-3 font-semibold">Score</th>
-              <th class="px-4 py-3 font-semibold">Transaction #</th>
-              <th class="px-4 py-3 font-semibold">Flagged</th>
-              <th class="px-4 py-3 font-semibold text-right">Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let row of flagged" class="border-b border-surface-100 dark:border-surface-700 hover:bg-surface-50 dark:hover:bg-surface-750 transition-colors bg-amber-50/40 dark:bg-amber-900/10">
-              <td class="px-4 py-3 font-medium text-surface-900 dark:text-surface-100">{{ row.screenedName }}</td>
-              <td class="px-4 py-3"><span class="inline-flex px-2 py-0.5 rounded text-xs font-medium border border-surface-200 dark:border-surface-700 bg-surface-100 dark:bg-surface-800">{{ row.screenedType }}</span></td>
-              <td class="px-4 py-3 font-medium text-red-700 dark:text-red-400">{{ row.matchedName || '-' }}</td>
-              <td class="px-4 py-3"><span class="inline-flex px-2 py-0.5 rounded text-xs font-medium bg-purple-50 text-purple-700 border border-purple-200 dark:bg-purple-900/20 dark:text-purple-300 dark:border-purple-800/50">{{ row.matchedListSource || '-' }}</span></td>
-              <td class="px-4 py-3">
-                <span *ngIf="row.matchScore" class="font-bold text-red-600 dark:text-red-400">{{ getScorePercent(row.matchScore) }}</span>
-                <span *ngIf="!row.matchScore" class="text-surface-400">-</span>
-              </td>
-              <td class="px-4 py-3 text-surface-600 dark:text-surface-300 font-mono text-xs">{{ row.transactionId || '-' }}</td>
-              <td class="px-4 py-3 text-surface-500 text-xs">{{ row.createdAt | date:'short' }}</td>
-              <td class="px-4 py-3 text-right">
-                <button title="Review this match" (click)="openReviewForm(row)" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-amber-100 text-amber-700 hover:bg-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:hover:bg-amber-900/50 text-xs font-medium transition">
-                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
-                  Review
-                </button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-        <div *ngIf="flagged.length === 0" class="text-center py-12 text-surface-500">No flagged transactions pending review</div>
-      </div>
-      <!-- Flagged Pagination -->
-      <div *ngIf="!loadingFlagged && flagged.length > 0" class="flex flex-col sm:flex-row items-center justify-between gap-3 mt-4 pt-4 border-t border-surface-200 dark:border-surface-700">
-        <span class="text-sm text-surface-500 dark:text-surface-400">Showing {{ (flaggedPage - 1) * flaggedPageSize + 1 }}&ndash;{{ (flaggedPage - 1) * flaggedPageSize + flagged.length }} of {{ flaggedTotalCount }}</span>
-        <div class="flex items-center gap-2">
-          <button (click)="onFlaggedPage({pageIndex: 0, pageSize: flaggedPageSize})" [disabled]="flaggedPage === 1" class="p-1.5 rounded-md border border-surface-300 dark:border-surface-600 disabled:opacity-40 hover:bg-surface-100 transition"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/></svg></button>
-          <button (click)="onFlaggedPage({pageIndex: flaggedPage - 2, pageSize: flaggedPageSize})" [disabled]="flaggedPage === 1" class="p-1.5 rounded-md border border-surface-300 dark:border-surface-600 disabled:opacity-40 hover:bg-surface-100 transition"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"/></svg></button>
-          <span class="text-sm px-2">Page {{ flaggedPage }} of {{ flaggedTotalPages }}</span>
-          <button (click)="onFlaggedPage({pageIndex: flaggedPage, pageSize: flaggedPageSize})" [disabled]="flaggedPage >= flaggedTotalPages" class="p-1.5 rounded-md border border-surface-300 dark:border-surface-600 disabled:opacity-40 hover:bg-surface-100 transition"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button>
-          <button (click)="onFlaggedPage({pageIndex: flaggedTotalPages - 1, pageSize: flaggedPageSize})" [disabled]="flaggedPage >= flaggedTotalPages" class="p-1.5 rounded-md border border-surface-300 dark:border-surface-600 disabled:opacity-40 hover:bg-surface-100 transition"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M13 5l7 7-7 7M5 5l7 7-7 7"/></svg></button>
+        <div *ngIf="countries.length === 0" class="flex flex-col items-center justify-center py-14 text-surface-400 dark:text-surface-500">
+          <svg class="w-12 h-12 mb-3 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <p class="font-medium">No sanctioned countries configured</p>
         </div>
       </div>
     </div>
 
-    <!-- Tab 3: Whitelist (FalsePositive) -->
-    <div *ngIf="activeTab === 3" class="p-6">
-      <div class="flex items-center justify-between gap-4 mb-4">
-        <div class="relative w-full max-w-sm">
-          <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-surface-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-          <input type="text" placeholder="Search whitelist..." [(ngModel)]="whitelistSearch" (ngModelChange)="onWhitelistSearch()"
-            class="w-full pl-10 pr-3 py-2 text-sm rounded-lg border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-800 text-surface-900 dark:text-surface-100 focus:ring-2 focus:ring-brand-500 outline-none transition" />
+    <!-- ─── Tab 4: Whitelist (FalsePositive) ─── -->
+    <div *ngIf="activeTab === 4" class="p-6">
+      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-5">
+        <div>
+          <h3 class="text-base font-semibold text-surface-900 dark:text-surface-100">Whitelist — Cleared Names</h3>
+          <p class="text-xs text-surface-500 dark:text-surface-400 mt-0.5">Names reviewed and cleared as false positives against <strong>any</strong> list (manual or automatic). Includes the source list for each cleared match.</p>
         </div>
       </div>
-      <p class="text-xs text-surface-500 dark:text-surface-400 mb-4">These sender names were reviewed and cleared as false positives. Future transactions from these names will still be screened but compliance has already reviewed the match.</p>
 
-      <div *ngIf="loadingWhitelist" class="flex justify-center p-12"><svg class="animate-spin h-8 w-8 text-brand-600" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg></div>
+      <!-- Search -->
+      <div class="relative w-full max-w-sm mb-5">
+        <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-surface-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+        <input type="text" placeholder="Search whitelist..." [(ngModel)]="whitelistSearch" (ngModelChange)="onWhitelistSearch()"
+          class="w-full pl-10 pr-3 py-2 text-sm rounded-lg border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-800 text-surface-900 dark:text-surface-100 focus:ring-2 focus:ring-brand-500 outline-none transition" />
+      </div>
+
+      <!-- Source info banner -->
+      <div class="flex items-start gap-3 p-3.5 mb-5 rounded-xl bg-green-50 dark:bg-green-900/10 border border-green-200 dark:border-green-800/40 text-xs text-green-800 dark:text-green-400">
+        <svg class="w-4 h-4 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        <div>
+          <strong>Works with both lists.</strong> The "List Source" column shows whether each cleared match was from a manual entry, OFAC SDN, UN, EU, UK, or another automatic list. Future screenings will still run — this only records past compliance decisions.
+        </div>
+      </div>
+
+      <div *ngIf="loadingWhitelist" class="flex justify-center p-12">
+        <svg class="animate-spin h-8 w-8 text-brand-600" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+      </div>
 
       <div *ngIf="!loadingWhitelist" class="overflow-x-auto">
         <table class="w-full text-sm text-left whitespace-nowrap">
-          <thead class="bg-surface-50 dark:bg-surface-900/50">
-            <tr class="border-y border-surface-200 dark:border-surface-700 text-surface-600 dark:text-surface-300">
+          <thead>
+            <tr class="border-y border-surface-200 dark:border-surface-700 bg-surface-50 dark:bg-surface-900/50 text-surface-600 dark:text-surface-300">
               <th class="px-4 py-3 font-semibold">Screened Name</th>
               <th class="px-4 py-3 font-semibold">Type</th>
-              <th class="px-4 py-3 font-semibold">Was Matched Against</th>
+              <th class="px-4 py-3 font-semibold">Matched Against</th>
+              <th class="px-4 py-3 font-semibold">List Source</th>
               <th class="px-4 py-3 font-semibold">Score</th>
               <th class="px-4 py-3 font-semibold">Transaction #</th>
               <th class="px-4 py-3 font-semibold">Reviewed By</th>
@@ -297,55 +498,61 @@
           </thead>
           <tbody>
             <tr *ngFor="let row of whitelist" class="border-b border-surface-100 dark:border-surface-700 hover:bg-surface-50 dark:hover:bg-surface-750 transition-colors">
-              <td class="px-4 py-3 font-medium text-surface-900 dark:text-surface-100">{{ row.screenedName }}</td>
-              <td class="px-4 py-3"><span class="inline-flex px-2 py-0.5 rounded text-xs font-medium border border-surface-200 dark:border-surface-700 bg-surface-100 dark:bg-surface-800">{{ row.screenedType }}</span></td>
+              <td class="px-4 py-3 font-semibold text-surface-900 dark:text-surface-100">{{ row.screenedName }}</td>
+              <td class="px-4 py-3"><span class="inline-flex px-2 py-0.5 rounded text-xs font-medium bg-surface-100 dark:bg-surface-700 border border-surface-200 dark:border-surface-600">{{ row.screenedType }}</span></td>
               <td class="px-4 py-3 text-surface-600 dark:text-surface-300">
-                <span *ngIf="row.matchedName">{{ row.matchedName }} <span class="text-surface-400">({{ row.matchedListSource }})</span></span>
-                <span *ngIf="!row.matchedName" class="text-surface-400">-</span>
+                <span *ngIf="row.matchedName">{{ row.matchedName }}</span>
+                <span *ngIf="!row.matchedName" class="text-surface-400">—</span>
               </td>
-              <td class="px-4 py-3 text-surface-500">{{ getScorePercent(row.matchScore) }}</td>
-              <td class="px-4 py-3 text-surface-600 dark:text-surface-300 font-mono text-xs">{{ row.transactionId || '-' }}</td>
               <td class="px-4 py-3">
-                <span *ngIf="row.reviewedBy" class="inline-flex items-center gap-1 text-green-700 dark:text-green-400">
+                <span *ngIf="row.matchedListSource" class="inline-flex px-2 py-0.5 rounded text-xs font-bold border" [ngClass]="getSourceBadgeClass(row.matchedListSource)">{{ row.matchedListSource }}</span>
+                <span *ngIf="!row.matchedListSource" class="text-surface-400">—</span>
+              </td>
+              <td class="px-4 py-3 text-surface-500 text-xs">{{ getScorePercent(row.matchScore) }}</td>
+              <td class="px-4 py-3 text-surface-600 dark:text-surface-300 font-mono text-xs">{{ row.transactionId || '—' }}</td>
+              <td class="px-4 py-3">
+                <span *ngIf="row.reviewedBy" class="inline-flex items-center gap-1 text-green-700 dark:text-green-400 text-xs font-medium">
                   <svg class="w-3.5 h-3.5 shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path fill="#fff" d="M10 16l-4-4 1.41-1.41L10 13.17l6.59-6.59L18 8z"/></svg>
                   {{ row.reviewedBy }}
                 </span>
-                <span *ngIf="!row.reviewedBy" class="text-surface-400">-</span>
+                <span *ngIf="!row.reviewedBy" class="text-surface-400 text-xs">—</span>
               </td>
-              <td class="px-4 py-3 text-surface-500 text-xs">{{ row.reviewedAt ? (row.reviewedAt | date:'short') : '-' }}</td>
-              <td class="px-4 py-3 text-surface-500 max-w-xs truncate" [title]="row.reviewNotes || ''">{{ row.reviewNotes || '-' }}</td>
+              <td class="px-4 py-3 text-surface-500 text-xs">{{ row.reviewedAt ? (row.reviewedAt | date:'short') : '—' }}</td>
+              <td class="px-4 py-3 text-surface-500 text-xs max-w-xs truncate" [title]="row.reviewNotes || ''">{{ row.reviewNotes || '—' }}</td>
             </tr>
           </tbody>
         </table>
-        <div *ngIf="whitelist.length === 0" class="text-center py-12 text-surface-500">No whitelisted names yet</div>
+        <div *ngIf="whitelist.length === 0" class="flex flex-col items-center justify-center py-14 text-surface-400 dark:text-surface-500">
+          <svg class="w-12 h-12 mb-3 opacity-40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+          <p class="font-medium">No cleared names yet</p>
+          <p class="text-xs mt-1 opacity-75">Review flagged transactions and mark as "False Positive" to populate this list</p>
+        </div>
       </div>
       <!-- Whitelist Pagination -->
       <div *ngIf="!loadingWhitelist && whitelist.length > 0" class="flex flex-col sm:flex-row items-center justify-between gap-3 mt-4 pt-4 border-t border-surface-200 dark:border-surface-700">
-        <span class="text-sm text-surface-500 dark:text-surface-400">Showing {{ (whitelistPage - 1) * whitelistPageSize + 1 }}&ndash;{{ (whitelistPage - 1) * whitelistPageSize + whitelist.length }} of {{ whitelistTotalCount }}</span>
+        <span class="text-sm text-surface-500">Showing {{ (whitelistPage - 1) * whitelistPageSize + 1 }}&ndash;{{ (whitelistPage - 1) * whitelistPageSize + whitelist.length }} of {{ whitelistTotalCount }}</span>
         <div class="flex items-center gap-2">
-          <button (click)="onWhitelistPage({pageIndex: 0, pageSize: whitelistPageSize})" [disabled]="whitelistPage === 1" class="p-1.5 rounded-md border border-surface-300 dark:border-surface-600 disabled:opacity-40 hover:bg-surface-100 transition"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/></svg></button>
-          <button (click)="onWhitelistPage({pageIndex: whitelistPage - 2, pageSize: whitelistPageSize})" [disabled]="whitelistPage === 1" class="p-1.5 rounded-md border border-surface-300 dark:border-surface-600 disabled:opacity-40 hover:bg-surface-100 transition"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"/></svg></button>
-          <span class="text-sm px-2">Page {{ whitelistPage }} of {{ whitelistTotalPages }}</span>
-          <button (click)="onWhitelistPage({pageIndex: whitelistPage, pageSize: whitelistPageSize})" [disabled]="whitelistPage >= whitelistTotalPages" class="p-1.5 rounded-md border border-surface-300 dark:border-surface-600 disabled:opacity-40 hover:bg-surface-100 transition"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button>
-          <button (click)="onWhitelistPage({pageIndex: whitelistTotalPages - 1, pageSize: whitelistPageSize})" [disabled]="whitelistPage >= whitelistTotalPages" class="p-1.5 rounded-md border border-surface-300 dark:border-surface-600 disabled:opacity-40 hover:bg-surface-100 transition"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M13 5l7 7-7 7M5 5l7 7-7 7"/></svg></button>
+          <button (click)="onWhitelistPage({pageIndex: 0, pageSize: whitelistPageSize})" [disabled]="whitelistPage === 1" class="p-1.5 rounded-md border border-surface-300 dark:border-surface-600 disabled:opacity-40 hover:bg-surface-100 dark:hover:bg-surface-700 transition"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M11 19l-7-7 7-7m8 14l-7-7 7-7"/></svg></button>
+          <button (click)="onWhitelistPage({pageIndex: whitelistPage - 2, pageSize: whitelistPageSize})" [disabled]="whitelistPage === 1" class="p-1.5 rounded-md border border-surface-300 dark:border-surface-600 disabled:opacity-40 hover:bg-surface-100 dark:hover:bg-surface-700 transition"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"/></svg></button>
+          <span class="text-sm px-2">{{ whitelistPage }} / {{ whitelistTotalPages }}</span>
+          <button (click)="onWhitelistPage({pageIndex: whitelistPage, pageSize: whitelistPageSize})" [disabled]="whitelistPage >= whitelistTotalPages" class="p-1.5 rounded-md border border-surface-300 dark:border-surface-600 disabled:opacity-40 hover:bg-surface-100 dark:hover:bg-surface-700 transition"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button>
+          <button (click)="onWhitelistPage({pageIndex: whitelistTotalPages - 1, pageSize: whitelistPageSize})" [disabled]="whitelistPage >= whitelistTotalPages" class="p-1.5 rounded-md border border-surface-300 dark:border-surface-600 disabled:opacity-40 hover:bg-surface-100 dark:hover:bg-surface-700 transition"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M13 5l7 7-7 7M5 5l7 7-7 7"/></svg></button>
         </div>
       </div>
     </div>
 
-  </div>
+  </div><!-- /Tab Content -->
 </div>
 
-<!-- Entry Form Dialog -->
+<!-- ─── Entry Form Dialog ─── -->
 <div *ngIf="showEntryForm" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm" (click)="closeEntryForm()"></div>
 <div *ngIf="showEntryForm" class="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
   <div class="bg-white dark:bg-surface-800 rounded-2xl shadow-xl w-full max-w-xl pointer-events-auto max-h-[90vh] flex flex-col">
     <div class="flex items-center justify-between px-6 py-4 border-b border-surface-100 dark:border-surface-700">
-      <h3 class="text-lg font-semibold text-surface-900 dark:text-surface-100">{{ editingEntry ? 'Edit' : 'Add' }} Sanction Entry</h3>
+      <h3 class="text-lg font-semibold text-surface-900 dark:text-surface-100">{{ editingEntry ? 'Edit' : 'Add' }} Manual Entry</h3>
       <button (click)="closeEntryForm()" class="p-1 rounded-lg hover:bg-surface-100 dark:hover:bg-surface-700 text-surface-400 transition"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg></button>
     </div>
     <div class="p-6 space-y-4 overflow-y-auto">
-
-      <!-- Core fields -->
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div class="sm:col-span-2">
           <label class="block text-xs font-medium text-surface-600 dark:text-surface-400 mb-1">Name *</label>
@@ -383,8 +590,6 @@
           <textarea [(ngModel)]="entryForm.remarks" rows="2" class="w-full px-3 py-2 rounded-lg border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-700 text-surface-900 dark:text-surface-100 focus:ring-2 focus:ring-brand-500 outline-none transition text-sm"></textarea>
         </div>
       </div>
-
-      <!-- Individual Details Section -->
       <ng-container *ngIf="entryForm.entryType === 'Individual'">
         <div class="pt-3 border-t border-surface-100 dark:border-surface-700">
           <p class="text-xs font-semibold text-surface-500 dark:text-surface-400 uppercase tracking-wider mb-3">Individual Details</p>
@@ -410,13 +615,11 @@
             </div>
             <div class="sm:col-span-2">
               <label class="block text-xs font-medium text-surface-600 dark:text-surface-400 mb-1">Position / Title</label>
-              <input type="text" [(ngModel)]="entryForm.position" placeholder="e.g. Minister of Finance, Director" class="w-full px-3 py-2 rounded-lg border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-700 text-surface-900 dark:text-surface-100 focus:ring-2 focus:ring-brand-500 outline-none transition text-sm" />
+              <input type="text" [(ngModel)]="entryForm.position" placeholder="e.g. Minister of Finance" class="w-full px-3 py-2 rounded-lg border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-700 text-surface-900 dark:text-surface-100 focus:ring-2 focus:ring-brand-500 outline-none transition text-sm" />
             </div>
           </div>
         </div>
       </ng-container>
-
-      <!-- Organization Details Section -->
       <ng-container *ngIf="entryForm.entryType === 'Organization'">
         <div class="pt-3 border-t border-surface-100 dark:border-surface-700">
           <p class="text-xs font-semibold text-surface-500 dark:text-surface-400 uppercase tracking-wider mb-3">Organization Details</p>
@@ -435,16 +638,15 @@
           </div>
         </div>
       </ng-container>
-
     </div>
     <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-surface-100 dark:border-surface-700">
-      <button (click)="closeEntryForm()" class="px-4 py-2 text-sm font-medium text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors">Cancel</button>
-      <button (click)="saveEntry()" class="px-4 py-2 text-sm font-medium bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition-colors shadow-sm">{{ editingEntry ? 'Update' : 'Create' }}</button>
+      <button (click)="closeEntryForm()" class="px-4 py-2 text-sm font-medium text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition">Cancel</button>
+      <button (click)="saveEntry()" class="px-4 py-2 text-sm font-semibold bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition shadow-sm">{{ editingEntry ? 'Update' : 'Create' }}</button>
     </div>
   </div>
 </div>
 
-<!-- Country Form Dialog -->
+<!-- ─── Country Form Dialog ─── -->
 <div *ngIf="showCountryForm" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm" (click)="closeCountryForm()"></div>
 <div *ngIf="showCountryForm" class="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
   <div class="bg-white dark:bg-surface-800 rounded-2xl shadow-xl w-full max-w-lg pointer-events-auto max-h-[90vh] flex flex-col">
@@ -485,31 +687,33 @@
       </div>
     </div>
     <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-surface-100 dark:border-surface-700">
-      <button (click)="closeCountryForm()" class="px-4 py-2 text-sm font-medium text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors">Cancel</button>
-      <button (click)="saveCountry()" class="px-4 py-2 text-sm font-medium bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition-colors shadow-sm">{{ editingCountry ? 'Update' : 'Add' }}</button>
+      <button (click)="closeCountryForm()" class="px-4 py-2 text-sm font-medium text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition">Cancel</button>
+      <button (click)="saveCountry()" class="px-4 py-2 text-sm font-semibold bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition shadow-sm">{{ editingCountry ? 'Update' : 'Add' }}</button>
     </div>
   </div>
 </div>
 
-<!-- Review Form Dialog -->
+<!-- ─── Review Form Dialog ─── -->
 <div *ngIf="showReviewForm" class="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm" (click)="closeReviewForm()"></div>
 <div *ngIf="showReviewForm" class="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
   <div class="bg-white dark:bg-surface-800 rounded-2xl shadow-xl w-full max-w-md pointer-events-auto flex flex-col">
     <div class="flex items-center justify-between px-6 py-4 border-b border-amber-200 dark:border-amber-900/30 bg-amber-50 dark:bg-amber-900/10 rounded-t-2xl">
-      <h3 class="text-lg font-semibold text-amber-800 dark:text-amber-500">Review Screening Match</h3>
+      <h3 class="text-lg font-semibold text-amber-800 dark:text-amber-400">Review Screening Match</h3>
       <button (click)="closeReviewForm()" class="p-1 rounded-lg hover:bg-amber-200 dark:hover:bg-amber-800/50 text-amber-600 dark:text-amber-400 transition"><svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg></button>
     </div>
     <div class="p-6 space-y-4">
       <div class="p-4 rounded-xl border border-surface-200 dark:border-surface-700 bg-surface-50 dark:bg-surface-900/50 text-sm space-y-2" *ngIf="reviewingScreening">
-        <p><span class="text-surface-500 dark:text-surface-400 font-medium inline-block w-20">Screened:</span> <span class="font-semibold text-surface-900 dark:text-surface-100">{{ reviewingScreening.screenedName }}</span> ({{ reviewingScreening.screenedType }})</p>
-        <p><span class="text-surface-500 dark:text-surface-400 font-medium inline-block w-20">Matched:</span> <span class="font-semibold text-surface-900 dark:text-surface-100">{{ reviewingScreening.matchedName }}</span> ({{ reviewingScreening.matchedListSource }})</p>
-        <p><span class="text-surface-500 dark:text-surface-400 font-medium inline-block w-20">Score:</span> <span class="font-bold text-red-600 dark:text-red-400">{{ getScorePercent(reviewingScreening.matchScore) }}</span></p>
+        <p><span class="text-surface-500 font-medium inline-block w-20 text-xs uppercase tracking-wide">Screened</span> <span class="font-semibold text-surface-900 dark:text-surface-100">{{ reviewingScreening.screenedName }}</span> <span class="text-surface-500 text-xs">({{ reviewingScreening.screenedType }})</span></p>
+        <p><span class="text-surface-500 font-medium inline-block w-20 text-xs uppercase tracking-wide">Matched</span> <span class="font-semibold text-surface-900 dark:text-surface-100">{{ reviewingScreening.matchedName }}</span>
+          <span *ngIf="reviewingScreening.matchedListSource" class="ml-2 inline-flex px-1.5 py-0.5 rounded text-xs font-bold border" [ngClass]="getSourceBadgeClass(reviewingScreening.matchedListSource)">{{ reviewingScreening.matchedListSource }}</span>
+        </p>
+        <p><span class="text-surface-500 font-medium inline-block w-20 text-xs uppercase tracking-wide">Score</span> <span class="font-bold text-red-600 dark:text-red-400">{{ getScorePercent(reviewingScreening.matchScore) }}</span></p>
       </div>
       <div>
         <label class="block text-xs font-medium text-surface-600 dark:text-surface-400 mb-1">Decision</label>
         <select [(ngModel)]="reviewForm.status" class="w-full px-3 py-2 rounded-lg border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-700 text-surface-900 dark:text-surface-100 focus:ring-2 focus:ring-brand-500 outline-none transition text-sm">
-          <option value="ConfirmedMatch">Confirmed Match</option>
-          <option value="FalsePositive">False Positive</option>
+          <option value="ConfirmedMatch">Confirmed Match — block transaction</option>
+          <option value="FalsePositive">False Positive — clear and whitelist</option>
         </select>
       </div>
       <div>
@@ -518,8 +722,8 @@
       </div>
     </div>
     <div class="flex items-center justify-end gap-3 px-6 py-4 border-t border-surface-100 dark:border-surface-700">
-      <button (click)="closeReviewForm()" class="px-4 py-2 text-sm font-medium text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition-colors">Cancel</button>
-      <button (click)="submitReview()" class="px-4 py-2 text-sm font-medium bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition-colors shadow-sm">Submit Review</button>
+      <button (click)="closeReviewForm()" class="px-4 py-2 text-sm font-medium text-surface-700 dark:text-surface-300 hover:bg-surface-100 dark:hover:bg-surface-700 rounded-lg transition">Cancel</button>
+      <button (click)="submitReview()" class="px-4 py-2 text-sm font-semibold bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition shadow-sm">Submit Review</button>
     </div>
   </div>
 </div>

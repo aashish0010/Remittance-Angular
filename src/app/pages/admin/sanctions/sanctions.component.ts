@@ -44,6 +44,16 @@ export class SanctionsComponent implements OnInit, OnDestroy {
   flaggedSearch = '';
   loadingFlagged = false;
 
+  // Ingested Entries (OFAC / UN / EU / UK)
+  ingested: any[] = [];
+  ingestedTotalCount = 0;
+  ingestedPage = 1;
+  ingestedPageSize = 50;
+  ingestedSearch = '';
+  ingestedSourceFilter = '';
+  loadingIngested = false;
+  ingestedSources = ['', 'OFAC_SDN', 'OFAC_CONS', 'UN', 'EU', 'UK'];
+
   // Whitelist (FalsePositive)
   whitelist: any[] = [];
   whitelistTotalCount = 0;
@@ -122,6 +132,7 @@ export class SanctionsComponent implements OnInit, OnDestroy {
     this.loadCountries();
     this.loadFlagged();
     this.loadWhitelist();
+    this.loadIngested();
     this.loadReferenceCountries();
   }
 
@@ -449,6 +460,68 @@ export class SanctionsComponent implements OnInit, OnDestroy {
         },
         error: (err) => this.notify.error(err?.error?.message || 'Failed')
       });
+  }
+
+  // ---- Ingested Entries ----
+  loadIngested(): void {
+    this.loadingIngested = true;
+    this.api.getIngestedEntriesPaged({
+      page: this.ingestedPage,
+      pageSize: this.ingestedPageSize,
+      search: this.ingestedSearch || undefined,
+      source: this.ingestedSourceFilter || undefined
+    }).pipe(takeUntil(this.destroy$)).subscribe({
+      next: res => {
+        if (res?.success && res.data) {
+          this.ingested = res.data.items || [];
+          this.ingestedTotalCount = res.data.totalCount || 0;
+        }
+        this.loadingIngested = false;
+      },
+      error: () => this.loadingIngested = false
+    });
+  }
+
+  onIngestedSearch(): void {
+    if (this.searchTimer) clearTimeout(this.searchTimer);
+    this.searchTimer = setTimeout(() => {
+      this.ingestedPage = 1;
+      this.loadIngested();
+    }, 400);
+  }
+
+  onIngestedSourceChange(): void {
+    this.ingestedPage = 1;
+    this.loadIngested();
+  }
+
+  onIngestedPage(event: { pageIndex: number; pageSize: number }): void {
+    this.ingestedPage = event.pageIndex + 1;
+    this.ingestedPageSize = event.pageSize;
+    this.loadIngested();
+  }
+
+  get ingestedTotalPages(): number {
+    return Math.ceil(this.ingestedTotalCount / this.ingestedPageSize) || 1;
+  }
+
+  getSourceBadgeClass(source: string): string {
+    switch (source) {
+      case 'OFAC_SDN':  return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 border-red-200 dark:border-red-800/50';
+      case 'OFAC_CONS': return 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400 border-orange-200 dark:border-orange-800/50';
+      case 'UN':        return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400 border-blue-200 dark:border-blue-800/50';
+      case 'EU':        return 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-400 border-indigo-200 dark:border-indigo-800/50';
+      case 'UK':        return 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400 border-purple-200 dark:border-purple-800/50';
+      default:          return 'bg-surface-100 text-surface-600 dark:bg-surface-700 dark:text-surface-300';
+    }
+  }
+
+  parseAliasNames(aliasJson: string | null): string {
+    if (!aliasJson) return '-';
+    try {
+      const arr = JSON.parse(aliasJson);
+      return arr.map((a: any) => a.name).filter(Boolean).join(', ') || '-';
+    } catch { return '-'; }
   }
 
   getStatusColor(status: string): string {
