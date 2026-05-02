@@ -495,8 +495,14 @@ export class ApiService {
   }
 
   // Agent: Banks for a payout agent
-  getAgentBanksForPayout(agentId: number): Observable<ApiResponse<AgentBankModel[]>> {
-    return this.get<AgentBankModel[]>(`api/agent/banks/agent/${agentId}`);
+  getAgentBanksForPayout(agentId: number, country?: string, paymentMethodId?: number): Observable<ApiResponse<AgentBankModel[]>> {
+    const params: string[] = [];
+    if (country) params.push(`country=${encodeURIComponent(country)}`);
+    if (paymentMethodId) params.push(`paymentMethodId=${paymentMethodId}`);
+    const url = params.length
+      ? `api/agent/banks/agent/${agentId}?${params.join('&')}`
+      : `api/agent/banks/agent/${agentId}`;
+    return this.get<AgentBankModel[]>(url);
   }
 
   // Agent: Cash pickup locations for a payout agent (banks with cash payment method)
@@ -509,8 +515,9 @@ export class ApiService {
     return this.get<AgentLocationModel[]>(`api/agent/locations/wallet-locations/${agentId}`);
   }
 
-  getReceiverPaymentDetails(receiverId: number, methodType: string): Observable<ApiResponse<any>> {
-    return this.get<any>(`api/agent/receivers/${receiverId}/payment-details/${methodType}`);
+  getReceiverPaymentDetails(receiverId: number, methodType: string, country?: string): Observable<ApiResponse<any>> {
+    const params = country ? `?country=${encodeURIComponent(country)}` : '';
+    return this.get<any>(`api/agent/receivers/${receiverId}/payment-details/${methodType}${params}`);
   }
 
   // Agent: Locations for a payout agent

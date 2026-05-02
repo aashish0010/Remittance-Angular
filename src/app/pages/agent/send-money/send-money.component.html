@@ -601,38 +601,85 @@
             <div class="flex-1 min-w-0">
               <p class="font-semibold text-surface-900 dark:text-surface-100 truncate">{{ store.selectedReceiver()!.fullName }}</p>
               <p class="text-xs text-surface-500 dark:text-surface-400">{{ store.selectedReceiver()!.phone }}</p>
-              @if (selectedSavedDetail) {
-              <div @fadeSlideUp class="flex items-center gap-1.5 mt-1">
-                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium
-                  bg-gradient-to-r from-brand-50 to-indigo-50 dark:from-brand-900/30 dark:to-indigo-900/30
-                  text-brand-700 dark:text-brand-300 border border-brand-200/60 dark:border-brand-700/40
-                  ring-1 ring-brand-100 dark:ring-brand-800/30 max-w-[180px]">
-                  <svg class="w-2.5 h-2.5 flex-shrink-0 text-brand-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
-                  <span class="truncate">{{ selectedSavedDetail.bankName }}</span>
-                  @if (selectedSavedDetail.accountNumber) {
-                  <span class="text-brand-400 dark:text-brand-500 flex-shrink-0">·</span>
-                  <span class="flex-shrink-0">{{ selectedSavedDetail.accountNumber }}</span>
-                  }
-                </span>
-                <button (click)="togglePayoutSwapPanel()"
-                  [@swapIconRotate]="showPayoutSwapPanel ? 'open' : 'closed'"
-                  class="flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center
-                    text-surface-400 dark:text-surface-500
-                    hover:text-brand-500 dark:hover:text-brand-400
-                    hover:bg-brand-50 dark:hover:bg-brand-900/30
-                    transition-colors duration-150"
-                  title="Swap payout account">
-                  <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"/>
-                  </svg>
-                </button>
-              </div>
-              }
             </div>
             <button (click)="clearSelectedReceiver()" class="text-surface-400 hover:text-rose-500 dark:hover:text-rose-400 transition-colors">
               <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
             </button>
           </div>
+
+          <!-- ── Payout Account Summary ── -->
+          @if (selectedSavedDetail || transactionPayoutDetails.bankName || transactionPayoutDetails.accountNumber) {
+          @let bankName = selectedSavedDetail?.bankName || transactionPayoutDetails.bankName;
+          @let bankCode = selectedSavedDetail?.bankCode || transactionPayoutDetails.bankCode;
+          @let accNum = selectedSavedDetail?.accountNumber || transactionPayoutDetails.accountNumber;
+          @let branchName = selectedSavedDetail?.branchName || transactionPayoutDetails.branchName;
+          @let branchCode = selectedSavedDetail?.branchCode || transactionPayoutDetails.branchCode;
+          <div @fadeSlideUp class="rounded-xl border border-brand-200 dark:border-brand-800/50 overflow-hidden">
+            <!-- header bar -->
+            <div class="flex items-center justify-between px-3 py-2 bg-brand-50 dark:bg-brand-950/50 border-b border-brand-200 dark:border-brand-800/50">
+              <div class="flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5 text-brand-500 dark:text-brand-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+                </svg>
+                <span class="text-[10px] font-bold text-brand-600 dark:text-brand-400 uppercase tracking-wider">Payout Account</span>
+              </div>
+              <button (click)="togglePayoutSwapPanel()"
+                [@swapIconRotate]="showPayoutSwapPanel ? 'open' : 'closed'"
+                class="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold
+                  text-brand-600 dark:text-brand-400
+                  bg-white dark:bg-surface-800
+                  border border-brand-200 dark:border-brand-700
+                  hover:bg-brand-100 dark:hover:bg-brand-900/40
+                  transition-colors duration-150">
+                <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"/>
+                </svg>
+                Change
+              </button>
+            </div>
+            <!-- detail rows -->
+            <div class="px-3 py-2.5 bg-white dark:bg-surface-900 grid grid-cols-2 gap-x-4 gap-y-1.5">
+              @if (bankName) {
+              <div>
+                <p class="text-[10px] text-surface-400 dark:text-surface-500 uppercase tracking-wide font-medium">Bank</p>
+                <p class="text-xs font-semibold text-surface-800 dark:text-surface-200 truncate">{{ bankName }}</p>
+              </div>
+              }
+              @if (bankCode) {
+              <div>
+                <p class="text-[10px] text-surface-400 dark:text-surface-500 uppercase tracking-wide font-medium">Bank Code</p>
+                <p class="text-xs font-semibold text-surface-800 dark:text-surface-200 font-mono">{{ bankCode }}</p>
+              </div>
+              }
+              @if (accNum) {
+              <div>
+                <p class="text-[10px] text-surface-400 dark:text-surface-500 uppercase tracking-wide font-medium">Account</p>
+                <p class="text-xs font-semibold text-surface-800 dark:text-surface-200 font-mono">
+                  ···· {{ accNum | slice:-4 }}
+                </p>
+              </div>
+              }
+              @if (branchName) {
+              <div>
+                <p class="text-[10px] text-surface-400 dark:text-surface-500 uppercase tracking-wide font-medium">Branch</p>
+                <p class="text-xs font-semibold text-surface-800 dark:text-surface-200 truncate">{{ branchName }}</p>
+              </div>
+              }
+              @if (branchCode) {
+              <div>
+                <p class="text-[10px] text-surface-400 dark:text-surface-500 uppercase tracking-wide font-medium">Branch Code</p>
+                <p class="text-xs font-semibold text-surface-800 dark:text-surface-200 font-mono">{{ branchCode }}</p>
+              </div>
+              }
+              @if (receiverCountry) {
+              <div>
+                <p class="text-[10px] text-surface-400 dark:text-surface-500 uppercase tracking-wide font-medium">Payout Country</p>
+                <p class="text-xs font-semibold text-surface-800 dark:text-surface-200">{{ receiverCountry }}</p>
+              </div>
+              }
+            </div>
+          </div>
+          }
 
           <!-- Payout account swap panel -->
           @if (showPayoutSwapPanel) {

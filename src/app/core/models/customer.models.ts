@@ -33,6 +33,8 @@ export interface ReceiverPaymentDetailModel {
   id: number;
   receiverId: number;
   paymentMethodType: string;
+  country?: string;
+  payoutPartnerId?: number;
   bankName?: string;
   bankCode?: string;
   accountNumber?: string;

@@ -1,6 +1,7 @@
 export interface CountryInfo {
   name: string;
   currency: string;
+  code?: string;
 }
 
 export interface PagedRequest {

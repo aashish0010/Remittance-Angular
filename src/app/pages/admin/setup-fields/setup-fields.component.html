@@ -12,8 +12,8 @@
                 : 'px-4 py-2 text-sm font-medium rounded-lg text-surface-600 dark:text-surface-400 hover:bg-surface-100 dark:hover:bg-surface-700 transition'">
         {{ tab.label }}
       </button>
-      <button (click)="onTabChange(6)"
-              [class]="activeTabIndex === 6
+      <button (click)="onTabChange(5)"
+              [class]="activeTabIndex === 5
                 ? 'px-4 py-2 text-sm font-semibold rounded-lg bg-brand-600 text-white shadow-sm transition'
                 : 'px-4 py-2 text-sm font-medium rounded-lg text-surface-600 dark:text-surface-400 hover:bg-surface-100 dark:hover:bg-surface-700 transition'">
         Document Types
@@ -21,9 +21,9 @@
     </div>
 
     <!-- ================================================================= -->
-    <!-- Setup Field Tabs (0-5)                                            -->
+    <!-- Setup Field Tabs (0-4)                                            -->
     <!-- ================================================================= -->
-    <div *ngIf="activeTabIndex <= 5" class="pt-2">
+    <div *ngIf="activeTabIndex <= 4" class="pt-2">
 
       <!-- Toolbar -->
       <div class="flex justify-end mb-3">
@@ -179,7 +179,7 @@
     <!-- ================================================================= -->
     <!-- Document Types Tab (index 6)                                      -->
     <!-- ================================================================= -->
-    <div *ngIf="activeTabIndex === 6" class="pt-2">
+    <div *ngIf="activeTabIndex === 5" class="pt-2">
 
       <!-- Toolbar -->
       <div class="flex justify-end mb-3">

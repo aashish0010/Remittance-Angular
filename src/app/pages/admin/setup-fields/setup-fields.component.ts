@@ -44,7 +44,6 @@ const SETUP_TABS: SetupTab[] = [
   { label: 'Purposes', category: 'Purpose' },
   { label: 'Source of Fund', category: 'SourceOfFund' },
   { label: 'Countries', category: 'Country' },
-  { label: 'Currencies', category: 'Currency' },
 ];
 
 // ---------------------------------------------------------------------------
@@ -139,9 +138,9 @@ export class SetupFieldsComponent implements OnInit {
   }
 
   private loadCurrentTabData(): void {
-    if (this.activeTabIndex <= 5) {
+    if (this.activeTabIndex <= 4) {
       this.loadSetupFields(this.setupTabs[this.activeTabIndex].category);
-    } else if (this.activeTabIndex === 6) {
+    } else if (this.activeTabIndex === 5) {
       this.loadDocumentTypes();
     }
   }
@@ -158,7 +157,7 @@ export class SetupFieldsComponent implements OnInit {
   // ---------------------------------------------------------------------------
 
   get currentCategory(): string {
-    return this.activeTabIndex <= 5 ? this.setupTabs[this.activeTabIndex].category : '';
+    return this.activeTabIndex <= 4 ? this.setupTabs[this.activeTabIndex].category : '';
   }
 
   loadSetupFields(category: string): void {

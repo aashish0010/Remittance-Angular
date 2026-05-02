@@ -137,6 +137,7 @@ export class SendMoneyComponent implements OnInit, OnDestroy {
   senderCountry = '';
   senderCurrency = '';
   receiverCountry = '';
+  receiverCountryCode = '';
   receiverCurrency = '';
   sendAmountInput = 0;
   receiveAmount = 0;
@@ -236,6 +237,9 @@ export class SendMoneyComponent implements OnInit, OnDestroy {
   pinInput = '';
   pinConfirm = '';
   pinError = '';
+
+  // ── Prefill flag: avoids double bank entry after new receiver creation ────
+  private _prefillPayout: typeof this.transactionPayoutDetails | null = null;
 
   // ── Debounce ──────────────────────────────────────────────────────────────
   private calcSubject = new Subject<void>();
@@ -352,6 +356,7 @@ export class SendMoneyComponent implements OnInit, OnDestroy {
   onReceiverCountryChange(): void {
     const found = this.countries.find(c => c.name === this.receiverCountry);
     this.receiverCurrency = found?.currency ?? '';
+    this.receiverCountryCode = found?.code ?? '';
     this.findRoute();
     this.onAmountChange();
   }
@@ -411,7 +416,7 @@ export class SendMoneyComponent implements OnInit, OnDestroy {
   private loadPayoutInfrastructure(agentId: number): void {
     const methodName = this.resolvedPaymentMethodName();
     if (methodName.includes('bank')) {
-      this.api.getAgentBanksForPayout(agentId).subscribe((r: any) => {
+      this.api.getAgentBanksForPayout(agentId, this.receiverCountryCode || undefined, this.selectedPaymentMethodId ?? undefined).subscribe((r: any) => {
         if (r.success) this.payoutBanks = r.data ?? [];
       });
     } else if (methodName.includes('cash') || methodName.includes('pickup')) {
@@ -762,7 +767,7 @@ export class SendMoneyComponent implements OnInit, OnDestroy {
     this.store.setSelectedReceiver(r);
     this.showCreateReceiver = false;
     this.checkMissingReceiverFields(r);
-    if (r.country) this.receiverCountry = r.country;
+    // Do NOT override receiverCountry from receiver profile — corridor destination is set in Step 0
     this.savedPayoutDetails = [];
     this.selectedSavedDetail = null;
     this.showPayoutSwapPanel = false;
@@ -786,6 +791,10 @@ export class SendMoneyComponent implements OnInit, OnDestroy {
     if (this.showCreateReceiver) {
       this.receiverForm.reset();
       this.receiverFormErrors = {};
+      // Pre-set country to the corridor's destination country (from Step 0 calculator)
+      if (this.receiverCountry) {
+        this.receiverForm.patchValue({ country: this.receiverCountry });
+      }
     }
   }
 
@@ -832,6 +841,25 @@ export class SendMoneyComponent implements OnInit, OnDestroy {
         if (r.success && r.data) {
           this.receivers = [r.data, ...this.receivers];
           this.filteredReceivers = this.receivers;
+          // Capture payout details from form before selectReceiver resets state,
+          // so loadReceiverPaymentDetail won't show the bank form again for a brand-new receiver
+          if (this.isBankTransfer() && v.accountNumber) {
+            this._prefillPayout = {
+              bankName: v.bankName || null, bankCode: v.bankCode || null, bankId: v.bankId || null,
+              accountNumber: v.accountNumber || null, branchName: v.branchName || null,
+              branchCode: v.branchCode || null, branchId: v.branchId || null,
+            };
+          } else if (this.isCashTransfer() && v.bankName) {
+            this._prefillPayout = {
+              bankName: v.bankName || null, bankCode: v.bankCode || null, bankId: v.bankId || null,
+              accountNumber: null, branchName: null, branchCode: null, branchId: null,
+            };
+          } else if (this.isWalletTransfer() && v.accountNumber) {
+            this._prefillPayout = {
+              bankName: v.bankName || null, bankCode: v.bankCode || null, bankId: v.bankId || null,
+              accountNumber: v.accountNumber || null, branchName: null, branchCode: null, branchId: null,
+            };
+          }
           this.selectReceiver(r.data);
           this.showCreateReceiver = false;
         } else {
@@ -865,8 +893,18 @@ export class SendMoneyComponent implements OnInit, OnDestroy {
   private loadReceiverPaymentDetail(): void {
     const rv = this.store.selectedReceiver();
     if (!rv) return;
+    // If a new receiver was just created with bank details, use those directly
+    if (this._prefillPayout) {
+      this.transactionPayoutDetails = this._prefillPayout;
+      this._prefillPayout = null;
+      this.selectedSavedDetail = null;
+      this.showNewAccountForm = false;
+      this.savedPayoutDetails = [];
+      return;
+    }
     const methodType = this.isCashTransfer() ? 'cash' : this.isWalletTransfer() ? 'wallet' : 'bank';
-    this.api.getReceiverPaymentDetails(rv.id, methodType).subscribe((r: any) => {
+    this.api.getReceiverPaymentDetails(rv.id, methodType, this.receiverCountry).subscribe((r: any) => {
+      // Filter by current corridor's receive country (skip details saved for a different country)
       const list: any[] = r?.data ?? [];
       this.savedPayoutDetails = list;
       if (list.length > 0) {
