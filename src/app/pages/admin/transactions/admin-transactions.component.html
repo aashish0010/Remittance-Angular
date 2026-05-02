@@ -67,19 +67,15 @@
       class="w-full sm:w-44 px-3 py-2 rounded-lg border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-700 text-surface-900 dark:text-surface-100 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition text-sm"
     >
       <option value="All">All Statuses</option>
-      <option value="Pending">Pending</option>
-      <option value="PendingApproval">Pending Approval</option>
-      <option value="Approved">Approved</option>
-      <option value="Processing">Processing</option>
-      <option value="PendingPayout">Pending Payout</option>
-      <option value="ProcessingAtPartner">At Partner</option>
-      <option value="PaidOut">Paid Out</option>
-      <option value="FailedAtPartner">Failed at Partner</option>
       <option value="OnHold">On Hold</option>
       <option value="Compliance">Compliance</option>
+      <option value="PendingApproval">Pending Approval</option>
+      <option value="Pending">Pending</option>
+      <option value="PendingPayout">Pending Payout</option>
+      <option value="ProcessingAtPartner">At Partner</option>
       <option value="Completed">Completed</option>
-      <option value="Cancelled">Cancelled</option>
       <option value="Failed">Failed</option>
+      <option value="Cancelled">Cancelled</option>
     </select>
   </div>
 
@@ -149,7 +145,7 @@
                 Complete
               </button>
 
-              <!-- Approved/Processing: Confirm Payout -->
+              <!-- Pending: Confirm Payout -->
               <button
                 *ngIf="canConfirmPayout(txn.status)"
                 (click)="confirmPayout(txn)"

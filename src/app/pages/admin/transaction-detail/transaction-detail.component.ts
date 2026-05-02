@@ -107,7 +107,7 @@ export class TransactionDetailComponent implements OnInit, OnDestroy {
   }
 
   isPayoutStatus(status: string): boolean {
-    return ['PendingPayout', 'ProcessingAtPartner', 'PaidOut', 'FailedAtPartner'].includes(status);
+    return ['PendingPayout', 'ProcessingAtPartner', 'Completed', 'Failed'].includes(status);
   }
 
   goBack(): void {
@@ -189,7 +189,7 @@ export class TransactionDetailComponent implements OnInit, OnDestroy {
     this.api.markTransactionPaid(this.txn.id).subscribe({
       next: res => {
         if (res?.success) {
-          this.txn = { ...this.txn!, status: 'PaidOut' };
+          this.txn = { ...this.txn!, status: 'Completed' };
           this.notify.success('Transaction marked as paid.');
           this.loadIntegrationLogs(this.txn!.id);
         } else {
@@ -221,12 +221,9 @@ export class TransactionDetailComponent implements OnInit, OnDestroy {
   getStatusClass(status: string): string {
     switch (status) {
       case 'Completed': return 'bg-success-100 text-success-700 dark:bg-success-900/30 dark:text-success-400';
-      case 'PaidOut': return 'bg-success-100 text-success-700 dark:bg-success-900/30 dark:text-success-400';
       case 'Pending': return 'bg-warning-100 text-warning-700 dark:bg-warning-900/30 dark:text-warning-400';
-      case 'Approved': case 'Processing': return 'bg-brand-100 text-brand-700 dark:bg-brand-900/30 dark:text-brand-400';
       case 'PendingPayout': return 'bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-400';
       case 'ProcessingAtPartner': return 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400';
-      case 'FailedAtPartner': return 'bg-danger-100 text-danger-700 dark:bg-danger-900/30 dark:text-danger-400';
       case 'OnHold': return 'bg-warning-50 text-warning-600 dark:bg-warning-900/20 dark:text-warning-300';
       case 'Failed': return 'bg-danger-100 text-danger-700 dark:bg-danger-900/30 dark:text-danger-400';
       case 'Cancelled': return 'bg-surface-200 text-surface-600 dark:bg-surface-700 dark:text-surface-300';
@@ -242,8 +239,6 @@ export class TransactionDetailComponent implements OnInit, OnDestroy {
     if (status === 'PendingApproval') return 'Pending Approval';
     if (status === 'PendingPayout') return 'Pending Payout';
     if (status === 'ProcessingAtPartner') return 'Processing at Partner';
-    if (status === 'PaidOut') return 'Paid Out';
-    if (status === 'FailedAtPartner') return 'Failed at Partner';
     return status;
   }
 
@@ -257,19 +252,18 @@ export class TransactionDetailComponent implements OnInit, OnDestroy {
     }
   }
 
-  canApprove(): boolean { return this.txn?.status === 'Pending' || this.txn?.status === 'PendingApproval'; }
-  canComplete(): boolean { return this.txn?.status === 'Pending' || this.txn?.status === 'Approved'; }
-  canConfirmPayout(): boolean { return this.txn?.status === 'Approved' || this.txn?.status === 'Processing'; }
-  canRetryPayout(): boolean { return this.txn?.status === 'FailedAtPartner'; }
+  canApprove(): boolean { return this.txn?.status === 'PendingApproval'; }
+  canComplete(): boolean { return this.txn?.status === 'Pending'; }
+  canConfirmPayout(): boolean { return this.txn?.status === 'Pending'; }
+  canRetryPayout(): boolean { return this.txn?.status === 'Failed'; }
   canMarkPaid(): boolean {
-    return !!this.txn && this.txn.status !== 'PaidOut' && this.txn.status !== 'Completed' && this.txn.status !== 'Cancelled';
+    return !!this.txn && this.txn.status !== 'Completed' && this.txn.status !== 'Cancelled';
   }
   canCancel(): boolean {
     return this.appSettings.cancellationAllowed
       && !!this.txn
       && this.txn.status !== 'Completed'
       && this.txn.status !== 'Cancelled'
-      && this.txn.status !== 'Failed'
-      && this.txn.status !== 'PaidOut';
+      && this.txn.status !== 'Failed';
   }
 }

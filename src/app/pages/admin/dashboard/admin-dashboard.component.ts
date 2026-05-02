@@ -331,13 +331,16 @@ export class AdminDashboardComponent implements OnInit {
         return 'bg-success-100 text-success-700';
       case 'Pending':
         return 'bg-warning-100 text-warning-700';
-      case 'Processing':
-      case 'Approved':
-        return 'bg-brand-100 text-brand-700';
       case 'OnHold':
         return 'bg-surface-200 text-surface-700';
+      case 'Compliance':
+        return 'bg-warning-100 text-warning-700';
       case 'PendingApproval':
         return 'bg-orange-100 text-orange-700';
+      case 'PendingPayout':
+        return 'bg-sky-100 text-sky-700';
+      case 'ProcessingAtPartner':
+        return 'bg-indigo-100 text-indigo-700';
       case 'Failed':
         return 'bg-danger-100 text-danger-700';
       case 'Cancelled':
@@ -351,12 +354,14 @@ export class AdminDashboardComponent implements OnInit {
     switch (status) {
       case 'Pending':
         return 'bg-warning-500 text-white';
-      case 'Processing':
+      case 'PendingPayout':
+      case 'ProcessingAtPartner':
         return 'bg-brand-500 text-white';
       case 'Completed':
         return 'bg-success-500 text-white';
       case 'OnHold':
         return 'bg-surface-500 text-white';
+      case 'Compliance':
       case 'PendingApproval':
         return 'bg-orange-500 text-white';
       case 'Failed':

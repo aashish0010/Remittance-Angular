@@ -235,19 +235,15 @@ export class AdminTransactionsComponent implements OnInit, OnDestroy {
   }
 
   canConfirmPayout(status: string): boolean {
-    return status === 'Approved' || status === 'Processing';
+    return status === 'Pending';
   }
 
   getStatusClass(status: string): string {
     switch (status) {
       case 'Pending': return 'bg-warning-100 text-warning-700 dark:bg-warning-900/30 dark:text-warning-400';
-      case 'Processing':
-      case 'Approved': return 'bg-brand-100 text-brand-700 dark:bg-brand-900/30 dark:text-brand-400';
       case 'Completed': return 'bg-success-100 text-success-700 dark:bg-success-900/30 dark:text-success-400';
-      case 'PaidOut': return 'bg-success-100 text-success-700 dark:bg-success-900/30 dark:text-success-400';
-      case 'Cancelled': return 'bg-danger-100 text-danger-700 dark:bg-danger-900/30 dark:text-danger-400';
+      case 'Cancelled':
       case 'Failed': return 'bg-danger-100 text-danger-700 dark:bg-danger-900/30 dark:text-danger-400';
-      case 'FailedAtPartner': return 'bg-danger-100 text-danger-700 dark:bg-danger-900/30 dark:text-danger-400';
       case 'OnHold': return 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400';
       case 'Compliance': return 'bg-warning-100 text-warning-700 dark:bg-warning-900/30 dark:text-warning-400';
       case 'PendingApproval': return 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400';
@@ -263,8 +259,6 @@ export class AdminTransactionsComponent implements OnInit, OnDestroy {
       case 'PendingApproval': return 'Pending Approval';
       case 'PendingPayout': return 'Pending Payout';
       case 'ProcessingAtPartner': return 'At Partner';
-      case 'PaidOut': return 'Paid Out';
-      case 'FailedAtPartner': return 'Failed at Partner';
       default: return status;
     }
   }

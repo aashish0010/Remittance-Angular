@@ -14,11 +14,14 @@ export interface DashboardModel {
   activeCorridors: number;
   totalCustomers: number;
   pendingTransactions: number;
-  processingTransactions: number;
-  completedTransactions: number;
-  cancelledTransactions: number;
-  failedTransactions: number;
   onHoldTransactions: number;
+  complianceTransactions: number;
+  pendingApprovalTransactions: number;
+  pendingPayoutTransactions: number;
+  processingAtPartnerTransactions: number;
+  completedTransactions: number;
+  failedTransactions: number;
+  cancelledTransactions: number;
   recentTransactions: RecentTransactionModel[];
   activeExchangeRates: ActiveExchangeRateModel[];
 }

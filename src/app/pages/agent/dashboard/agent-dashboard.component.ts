@@ -118,8 +118,8 @@ export class AgentDashboardComponent implements OnInit {
         return 'bg-success-100 text-success-700';
       case 'Pending':
         return 'bg-warning-100 text-warning-700';
-      case 'Approved':
-      case 'Processing':
+      case 'PendingPayout':
+      case 'ProcessingAtPartner':
         return 'bg-brand-100 text-brand-700';
       case 'Cancelled':
         return 'bg-surface-100 text-surface-500';

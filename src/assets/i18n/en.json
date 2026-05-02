@@ -188,13 +188,14 @@
     "noTransactions": "No transactions found",
     "statuses": {
       "OnHold": "On Hold",
+      "Compliance": "Under Review",
       "PendingApproval": "Pending Approval",
-      "Processing": "Processing",
+      "Pending": "Pending",
+      "PendingPayout": "Pending Payout",
+      "ProcessingAtPartner": "Processing at Partner",
       "Completed": "Completed",
-      "Cancelled": "Cancelled",
       "Failed": "Failed",
-      "Refunded": "Refunded",
-      "Reversed": "Reversed"
+      "Cancelled": "Cancelled"
     }
   },
   "sendMoney": {

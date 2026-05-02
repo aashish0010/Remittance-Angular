@@ -259,13 +259,13 @@
           <span class="text-[11px] font-semibold text-warning-600 dark:text-warning-500">Pending</span>
         </a>
 
-        <!-- Processing -->
-        <a routerLink="/admin/transactions" [queryParams]="{status: 'Processing'}"
+        <!-- Pending Payout -->
+        <a routerLink="/admin/transactions" [queryParams]="{status: 'PendingPayout'}"
            class="group flex flex-col items-center gap-1.5 p-3 rounded-xl border transition-all duration-150 cursor-pointer no-underline
                   border-brand-200 bg-brand-50 hover:bg-brand-100
                   dark:border-brand-700/60 dark:bg-brand-950/60 dark:hover:bg-brand-900/70">
-          <span class="text-xl font-bold tabular-nums text-brand-600 dark:text-brand-300">{{ dashboard.processingTransactions }}</span>
-          <span class="text-[11px] font-semibold text-brand-600 dark:text-brand-400">Processing</span>
+          <span class="text-xl font-bold tabular-nums text-brand-600 dark:text-brand-300">{{ dashboard.pendingPayoutTransactions }}</span>
+          <span class="text-[11px] font-semibold text-brand-600 dark:text-brand-400">In Payout</span>
         </a>
 
         <!-- Completed -->
