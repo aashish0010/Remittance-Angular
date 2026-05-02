@@ -5,7 +5,7 @@ import { catchError, map, switchMap } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { AuthStateService } from './auth-state.service';
 import { ApiResponse, LoginResponse } from '../models/auth.models';
-import { AgentModel, AgentBalance, AgentAccountingSummary, AgentLimitAdjustmentModel, AgentCommissionModel, AgentLocationModel, AgentLocationBranchModel, AgentLocationUserModel, CreateLocationUserRequest, UpdateLocationUserRequest, AgentBankModel, AgentBankBranchModel, PaymentMethodModel, AgentEarningsResponse, AgentListItem } from '../models/agent.models';
+import { AgentModel, AgentBalance, AgentAccountingSummary, AgentLimitAdjustmentModel, AgentCommissionModel, AgentLocationModel, AgentLocationBranchModel, AgentLocationUserModel, CreateLocationUserRequest, UpdateLocationUserRequest, AgentBankModel, AgentBankBranchModel, PaymentMethodModel, AgentEarningsResponse, AgentListItem, AgentFieldMappingModel } from '../models/agent.models';
 import { ExchangeRateModel } from '../models/exchange-rate.models';
 import { CommissionRateModel } from '../models/commission.models';
 import { ComplianceAlertModel, ComplianceRuleModel } from '../models/compliance.models';
@@ -260,6 +260,23 @@ export class ApiService {
     return this.put<TransactionResult>(`api/admin/transactions/${id}/complete`);
   }
 
+  // Payout partner actions
+  confirmPayout(id: number): Observable<ApiResponse<object>> {
+    return this.put<object>(`api/admin/transactions/${id}/confirm-payout`);
+  }
+
+  retryPayout(id: number): Observable<ApiResponse<object>> {
+    return this.put<object>(`api/admin/transactions/${id}/retry-payout`);
+  }
+
+  markTransactionPaid(id: number): Observable<ApiResponse<object>> {
+    return this.put<object>(`api/admin/transactions/${id}/mark-paid`);
+  }
+
+  getIntegrationLogs(id: number): Observable<ApiResponse<any[]>> {
+    return this.get<any[]>(`api/admin/transactions/${id}/integration-logs`);
+  }
+
   // Agent transaction actions
   releaseTransaction(id: number): Observable<ApiResponse<TransactionResult>> {
     return this.put<TransactionResult>(`api/agent/transactions/${id}/release`);
@@ -420,6 +437,10 @@ export class ApiService {
     return this.post<TransferCalculationResult>('api/agent/transactions/calculate', dto);
   }
 
+  createRateQuote(sourceCurrency: string, destinationCurrency: string, payoutPartnerId: number, country?: string): Observable<ApiResponse<{ quoteId: string; expiresAt: string; effectiveRate: number }>> {
+    return this.post('api/agent/rates/quote', { sourceCurrency, destinationCurrency, payoutPartnerId, country });
+  }
+
   sendTransaction(model: SendTransactionModel): Observable<ApiResponse<TransactionResult>> {
     return this.post<TransactionResult>('api/agent/transactions/send', model);
   }
@@ -437,6 +458,10 @@ export class ApiService {
     return this.post<CustomerModel>('api/agent/customers', dto);
   }
 
+  updateAgentCustomer(id: number, dto: any): Observable<ApiResponse<CustomerModel>> {
+    return this.put<CustomerModel>(`api/agent/customers/${id}`, dto);
+  }
+
   // Agent: Receivers
   getAgentReceiversByCustomer(customerId: number): Observable<ApiResponse<ReceiverModel[]>> {
     return this.get<ReceiverModel[]>(`api/agent/receivers/by-customer/${customerId}`);
@@ -444,6 +469,14 @@ export class ApiService {
 
   createAgentReceiver(dto: any): Observable<ApiResponse<ReceiverModel>> {
     return this.post<ReceiverModel>('api/agent/receivers', dto);
+  }
+
+  updateAgentReceiver(id: number, dto: any): Observable<ApiResponse<ReceiverModel>> {
+    return this.put<ReceiverModel>(`api/agent/receivers/${id}`, dto);
+  }
+
+  getAgentFieldMappings(payoutAgentId: number): Observable<ApiResponse<AgentFieldMappingModel[]>> {
+    return this.get<AgentFieldMappingModel[]>(`api/agent/field-mappings/${payoutAgentId}`);
   }
 
   // Agent: Routing (corridors)
@@ -464,6 +497,20 @@ export class ApiService {
   // Agent: Banks for a payout agent
   getAgentBanksForPayout(agentId: number): Observable<ApiResponse<AgentBankModel[]>> {
     return this.get<AgentBankModel[]>(`api/agent/banks/agent/${agentId}`);
+  }
+
+  // Agent: Cash pickup locations for a payout agent (banks with cash payment method)
+  getAgentCashLocations(agentId: number): Observable<ApiResponse<AgentBankModel[]>> {
+    return this.get<AgentBankModel[]>(`api/agent/banks/cash-locations/${agentId}`);
+  }
+
+  // Agent: Wallet/mobile money locations for a payout agent (filtered by wallet payment method)
+  getAgentWalletLocations(agentId: number): Observable<ApiResponse<AgentLocationModel[]>> {
+    return this.get<AgentLocationModel[]>(`api/agent/locations/wallet-locations/${agentId}`);
+  }
+
+  getReceiverPaymentDetails(receiverId: number, methodType: string): Observable<ApiResponse<any>> {
+    return this.get<any>(`api/agent/receivers/${receiverId}/payment-details/${methodType}`);
   }
 
   // Agent: Locations for a payout agent

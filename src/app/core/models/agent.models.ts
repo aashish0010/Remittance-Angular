@@ -11,6 +11,7 @@ export interface AgentModel {
   currentBalance: number;
   isApproved: boolean;
   isActive: boolean;
+  isThirdPartyApi: boolean;
   createdAt: string;
   licenseNumber?: string;
   address?: string;
@@ -187,4 +188,12 @@ export interface AgentListItem {
   id: number;
   businessName: string;
   agentType: string;
+}
+
+export interface AgentFieldMappingModel {
+  id: number;
+  partnerColumn: string;
+  tableName: 'Customer' | 'Receiver' | 'Transaction';
+  ourColumn: string;
+  isRequired: boolean;
 }

@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------------------
-// Send Money — Single Canvas SCSS
+// Send Money — Wizard SCSS
 // ---------------------------------------------------------------------------
 
 :host {
@@ -7,40 +7,99 @@
   a { text-decoration: none; color: inherit; }
 }
 
-// ── Section Cards ─────────────────────────────────────────────────────────
+// ── Input Field ────────────────────────────────────────────────────────────
+// Light: white bg / slate-300 border / slate-900 text
+// Dark:  surface-800 bg / surface-700 border / surface-100 text
 
-.canvas-section {
-  transition: opacity 0.3s ease-out, transform 0.3s ease-out;
-  will-change: opacity, transform;
+.input-field {
+  width: 100%;
+  padding: 0.625rem 0.875rem;
+  border-radius: 0.625rem;
+  background: #ffffff;
+  border: 1px solid #cbd5e1; // surface-300
+  color: #0f172a;            // surface-900
+  font-size: 0.875rem;
+  line-height: 1.5;
+  outline: none;
+  transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+  appearance: none;
+  -webkit-appearance: none;
+
+  &::placeholder {
+    color: #94a3b8; // surface-400
+  }
+
+  &:focus {
+    border-color: #60a5fa; // brand-400
+    background: #f8fafc;   // surface-50
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+
+  option {
+    background: #ffffff;
+    color: #0f172a;
+  }
 }
 
-.section-locked {
-  opacity: 0.42;
-  pointer-events: none;
-  user-select: none;
-  filter: grayscale(0.2);
+:host-context(.dark) .input-field {
+  background: #1e293b;   // surface-800
+  border-color: #334155; // surface-700
+  color: #f1f5f9;        // surface-100
+
+  &::placeholder {
+    color: #64748b; // surface-500
+  }
+
+  &:focus {
+    border-color: #60a5fa; // brand-400
+    background: #283548;   // surface-750
+  }
+
+  option {
+    background: #1e293b;
+    color: #f1f5f9;
+  }
 }
 
-// When a section unlocks (applied via Angular animation or class toggle)
-@keyframes sectionUnlock {
-  from { opacity: 0.42; transform: translateY(6px); }
-  to   { opacity: 1;    transform: translateY(0);   }
+// ── Step Container + Slide Animations ─────────────────────────────────────
+
+.step-container,
+.sub-step-container {
+  will-change: transform, opacity;
 }
 
-.section-unlocked {
-  animation: sectionUnlock 0.3s ease-out forwards;
+$slide-duration: 300ms;
+$slide-easing: cubic-bezier(0.4, 0, 0.2, 1);
+$slide-offset: 36px;
+
+@keyframes slideInRight {
+  from { transform: translateX($slide-offset); opacity: 0; }
+  to   { transform: translateX(0);             opacity: 1; }
 }
 
-// ── Step Number Bubble ────────────────────────────────────────────────────
-
-@keyframes stepPulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.35); }
-  50%       { box-shadow: 0 0 0 8px rgba(59, 130, 246, 0);  }
+@keyframes slideInLeft {
+  from { transform: translateX(-$slide-offset); opacity: 0; }
+  to   { transform: translateX(0);              opacity: 1; }
 }
 
-.step-num-active {
-  animation: stepPulse 2.2s ease-in-out infinite;
+@keyframes slideOutLeft {
+  from { transform: translateX(0);              opacity: 1; }
+  to   { transform: translateX(-$slide-offset); opacity: 0; }
 }
+
+@keyframes slideOutRight {
+  from { transform: translateX(0);             opacity: 1; }
+  to   { transform: translateX($slide-offset); opacity: 0; }
+}
+
+.slide-in-right  { animation: slideInRight  $slide-duration $slide-easing forwards; }
+.slide-in-left   { animation: slideInLeft   $slide-duration $slide-easing forwards; }
+.slide-out-left  { animation: slideOutLeft  $slide-duration $slide-easing forwards; }
+.slide-out-right { animation: slideOutRight $slide-duration $slide-easing forwards; }
 
 // ── Search Dropdown ───────────────────────────────────────────────────────
 
@@ -54,22 +113,38 @@
   transform-origin: top center;
 }
 
-// ── Calculation Panel ─────────────────────────────────────────────────────
+// ── Selected Card Appear ──────────────────────────────────────────────────
+
+@keyframes selectedCardIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to   { opacity: 1; transform: translateY(0);    }
+}
+
+.selected-card-appear {
+  animation: selectedCardIn 0.2s ease-out forwards;
+}
+
+// ── Compliance Alert ──────────────────────────────────────────────────────
+
+@keyframes alertSlideIn {
+  from { opacity: 0; transform: translateX(8px); }
+  to   { opacity: 1; transform: translateX(0);   }
+}
+
+.alert-item {
+  animation: alertSlideIn 0.2s ease-out forwards;
+}
+
+// ── Calculation Value Pop ─────────────────────────────────────────────────
 
 @keyframes calcValuePop {
-  0%   { transform: scale(1); }
+  0%   { transform: scale(1);    }
   40%  { transform: scale(1.04); }
-  100% { transform: scale(1); }
+  100% { transform: scale(1);    }
 }
 
 .calc-value-update {
   animation: calcValuePop 0.25s ease-out;
-}
-
-// ── Balance Progress Bar ──────────────────────────────────────────────────
-
-.balance-bar-fill {
-  transition: width 0.7s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 // ── Success Overlay ───────────────────────────────────────────────────────
@@ -80,9 +155,9 @@
 }
 
 @keyframes successCardBounce {
-  0%   { opacity: 0; transform: scale(0.88) translateY(24px); }
-  60%  { opacity: 1; transform: scale(1.02) translateY(-4px); }
-  100% { opacity: 1; transform: scale(1)    translateY(0);    }
+  0%   { opacity: 0; transform: scale(0.88) translateY(24px);  }
+  60%  { opacity: 1; transform: scale(1.02) translateY(-4px);  }
+  100% { opacity: 1; transform: scale(1)    translateY(0);     }
 }
 
 .success-overlay {
@@ -126,24 +201,36 @@
   animation: branchPopupIn 0.22s ease-out forwards;
 }
 
-// ── Selected Card Appear ──────────────────────────────────────────────────
+// ── Step Pulse (progress dot) ─────────────────────────────────────────────
 
-@keyframes selectedCardIn {
-  from { opacity: 0; transform: translateY(-8px); }
-  to   { opacity: 1; transform: translateY(0);    }
+@keyframes stepPulse {
+  0%, 100% { box-shadow: 0 0 0 0   rgba(59, 130, 246, 0.35); }
+  50%       { box-shadow: 0 0 0 8px rgba(59, 130, 246, 0);    }
 }
 
-.selected-card-appear {
-  animation: selectedCardIn 0.2s ease-out forwards;
+.step-num-active {
+  animation: stepPulse 2.2s ease-in-out infinite;
 }
 
-// ── Compliance Alert Stagger ──────────────────────────────────────────────
+// ── Reduced-motion overrides ──────────────────────────────────────────────
 
-@keyframes alertSlideIn {
-  from { opacity: 0; transform: translateX(8px); }
-  to   { opacity: 1; transform: translateX(0);   }
-}
-
-.alert-item {
-  animation: alertSlideIn 0.2s ease-out forwards;
+@media (prefers-reduced-motion: reduce) {
+  .slide-in-right,
+  .slide-in-left,
+  .slide-out-left,
+  .slide-out-right,
+  .search-dropdown,
+  .selected-card-appear,
+  .alert-item,
+  .success-overlay,
+  .success-card,
+  .pin-dialog,
+  .branch-popup,
+  .step-num-active,
+  .calc-value-update {
+    animation: none !important;
+    transition: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
 }

@@ -1,3 +1,16 @@
+export interface PayoutIntegrationLog {
+  id: number;
+  transactionId: number;
+  event: string;
+  providerKey: string;
+  requestPayload?: string;
+  responsePayload?: string;
+  isSuccess: boolean;
+  errorMessage?: string;
+  triggeredByUserId?: string;
+  createdAt: string;
+}
+
 export interface TransactionResult {
   id: number;
   referenceNumber: string;
@@ -41,6 +54,10 @@ export interface TransactionResult {
   agentId?: number;
   payoutAgentId?: number;
   approvedByUserId?: string;
+  partnerReferenceId?: string;
+  lastPartnerError?: string;
+  payoutSubmittedAt?: string;
+  payoutCompletedAt?: string;
   createdAt: string;
   updatedAt?: string;
   completedAt?: string;

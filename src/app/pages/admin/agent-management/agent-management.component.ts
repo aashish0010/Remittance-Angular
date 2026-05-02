@@ -36,6 +36,7 @@ interface CreateAgentForm {
   licenseNumber: string;
   address: string;
   fundingType: string;
+  isThirdPartyApi: boolean;
 }
 
 interface EditAgentForm {
@@ -48,14 +49,15 @@ interface EditAgentForm {
   address: string;
   currency: string;
   fundingType: string;
+  isThirdPartyApi: boolean;
 }
 
 function emptyCreateForm(): CreateAgentForm {
-  return { fullName: '', email: '', phone: '', businessName: '', agentType: 'SendingAgent', country: '', city: '', currency: 'USD', creditLimit: 0, licenseNumber: '', address: '', fundingType: 'PreFunding' };
+  return { fullName: '', email: '', phone: '', businessName: '', agentType: 'SendingAgent', country: '', city: '', currency: 'USD', creditLimit: 0, licenseNumber: '', address: '', fundingType: 'PreFunding', isThirdPartyApi: false };
 }
 
 function emptyEditForm(): EditAgentForm {
-  return { businessName: '', agentType: 'SendingAgent', country: '', city: '', creditLimit: 0, licenseNumber: '', address: '', currency: 'USD', fundingType: 'PreFunding' };
+  return { businessName: '', agentType: 'SendingAgent', country: '', city: '', creditLimit: 0, licenseNumber: '', address: '', currency: 'USD', fundingType: 'PreFunding', isThirdPartyApi: false };
 }
 
 @Component({
@@ -346,6 +348,7 @@ export class AgentManagementComponent implements OnInit, OnDestroy {
       address: a.address,
       currency: a.currency,
       fundingType: isSending ? a.fundingType : null,
+      isThirdPartyApi: a.isThirdPartyApi,
     };
     this.api.createAgent(dto).subscribe({
       next: res => {
@@ -383,6 +386,7 @@ export class AgentManagementComponent implements OnInit, OnDestroy {
       address: agent.address ?? '',
       currency: agent.currency ?? this.getCurrencyForCountry(agent.country),
       fundingType: agent.fundingType ?? 'PreFunding',
+      isThirdPartyApi: agent.isThirdPartyApi ?? false,
     };
     this.editError = '';
     this.showEditPopup = true;
@@ -406,6 +410,7 @@ export class AgentManagementComponent implements OnInit, OnDestroy {
       address: e.address,
       currency: e.currency,
       fundingType: e.fundingType,
+      isThirdPartyApi: e.isThirdPartyApi,
     };
     this.api.updateAgent(this.editAgentId, dto).subscribe({
       next: res => {

@@ -4,7 +4,7 @@ import {
   getLabelLineStatesModels,
   setLabelLineStyle,
   updateLabelLinePoints
-} from "./chunk-22XF32XU.js";
+} from "./chunk-IVJBGWKB.js";
 import {
   Arc_default,
   AxisModelCommonMixin,
@@ -119,7 +119,7 @@ import {
   updateProps,
   use,
   version
-} from "./chunk-5VICNRQ7.js";
+} from "./chunk-WB3NXKRV.js";
 import {
   BoundingRect_default,
   CompoundPath_default,
@@ -158,10 +158,10 @@ import {
   util_exports,
   vector_exports,
   zrender_exports
-} from "./chunk-3SQZNJOP.js";
+} from "./chunk-BYZ4ZWXK.js";
 import {
   __export
-} from "./chunk-S5KMCARS.js";
+} from "./chunk-7FKUYU2M.js";
 
 // node_modules/echarts/lib/export/api/helper.js
 var helper_exports = {};
@@ -310,13 +310,13 @@ __export(util_exports2, {
 
 // node_modules/echarts/lib/export/api.js
 function extendComponentModel(proto) {
-  var Model = Component_default2.extend(proto);
-  Component_default2.registerClass(Model);
+  var Model = Component_default.extend(proto);
+  Component_default.registerClass(Model);
   return Model;
 }
 function extendComponentView(proto) {
-  var View = Component_default.extend(proto);
-  Component_default.registerClass(View);
+  var View = Component_default2.extend(proto);
+  Component_default2.registerClass(View);
   return View;
 }
 function extendSeriesModel(proto) {
@@ -717,8 +717,8 @@ use(installLabelLayout);
 export {
   Axis_default as Axis,
   Chart_default as ChartView,
-  Component_default2 as ComponentModel,
-  Component_default as ComponentView,
+  Component_default as ComponentModel,
+  Component_default2 as ComponentView,
   SeriesData_default as List,
   Model_default as Model,
   PRIORITY,

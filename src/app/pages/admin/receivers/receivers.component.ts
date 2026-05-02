@@ -19,14 +19,18 @@ interface ReceiverForm {
   country: string;
   city: string;
   bankName: string;
+  bankCode: string;
   accountNumber: string;
+  branchName: string;
+  branchCode: string;
   relationship: string;
 }
 
 function emptyForm(): ReceiverForm {
   return {
     customerId: null, fullName: '', phone: '', email: '',
-    country: '', city: '', bankName: '', accountNumber: '', relationship: '',
+    country: '', city: '', bankName: '', bankCode: '',
+    accountNumber: '', branchName: '', branchCode: '', relationship: '',
   };
 }
 
@@ -201,7 +205,10 @@ export class ReceiversComponent implements OnInit, OnDestroy {
       country: receiver.country,
       city: receiver.city || '',
       bankName: receiver.bankName || '',
+      bankCode: receiver.bankCode || '',
       accountNumber: receiver.accountNumber || '',
+      branchName: receiver.branchName || '',
+      branchCode: receiver.branchCode || '',
       relationship: receiver.relationship || '',
     };
     this.formError = '';
@@ -234,7 +241,10 @@ export class ReceiversComponent implements OnInit, OnDestroy {
       this.validateSpecialChars(f.phone, this.safePhonePattern, 'Phone'),
       this.validateSpecialChars(f.city, this.safeNamePattern, 'City'),
       this.validateSpecialChars(f.bankName, this.safeNamePattern, 'Bank Name'),
+      this.validateSpecialChars(f.bankCode, this.safeAlphanumPattern, 'Bank Code'),
       this.validateSpecialChars(f.accountNumber, this.safeAlphanumPattern, 'Account Number'),
+      this.validateSpecialChars(f.branchName, this.safeNamePattern, 'Branch Name'),
+      this.validateSpecialChars(f.branchCode, this.safeAlphanumPattern, 'Branch Code'),
       this.validateSpecialChars(f.relationship, this.safeNamePattern, 'Relationship'),
     ];
     const firstError = checks.find(e => e !== null);
@@ -252,7 +262,10 @@ export class ReceiversComponent implements OnInit, OnDestroy {
       country: f.country,
       city: f.city || null,
       bankName: f.bankName || null,
+      bankCode: f.bankCode || null,
       accountNumber: f.accountNumber || null,
+      branchName: f.branchName || null,
+      branchCode: f.branchCode || null,
       relationship: f.relationship || null,
     };
 

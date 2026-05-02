@@ -66,6 +66,7 @@ export class AppSettingsService {
   // Transaction
   get requirePurpose(): boolean         { return this.getBool('transaction.requirePurpose', false); }
   get requireSourceOfFunds(): boolean   { return this.getBool('transaction.requireSourceOfFunds', false); }
+  get requireRelationship(): boolean    { return this.getBool('transaction.requireRelationship', false); }
   get requireManagerApproval(): boolean { return this.getBool('transaction.requireManagerApproval', false); }
   get managerApprovalThreshold(): number { return this.getNumber('transaction.managerApprovalThreshold', 5000); }
   get allowQuickSend(): boolean         { return this.getBool('transaction.allowQuickSend', true); }

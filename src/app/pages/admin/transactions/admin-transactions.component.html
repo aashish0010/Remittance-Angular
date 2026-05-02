@@ -67,9 +67,16 @@
       class="w-full sm:w-44 px-3 py-2 rounded-lg border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-700 text-surface-900 dark:text-surface-100 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none transition text-sm"
     >
       <option value="All">All Statuses</option>
+      <option value="Pending">Pending</option>
+      <option value="PendingApproval">Pending Approval</option>
+      <option value="Approved">Approved</option>
+      <option value="Processing">Processing</option>
+      <option value="PendingPayout">Pending Payout</option>
+      <option value="ProcessingAtPartner">At Partner</option>
+      <option value="PaidOut">Paid Out</option>
+      <option value="FailedAtPartner">Failed at Partner</option>
       <option value="OnHold">On Hold</option>
       <option value="Compliance">Compliance</option>
-      <option value="Pending">Pending</option>
       <option value="Completed">Completed</option>
       <option value="Cancelled">Cancelled</option>
       <option value="Failed">Failed</option>
@@ -134,18 +141,32 @@
               <button
                 *ngIf="txn.status === 'Pending'"
                 (click)="completeTransaction(txn)"
-                class="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium text-success-600 dark:text-success-400 hover:bg-success-50 dark:hover:bg-success-900/20 transition">
+                [disabled]="actionLoadingId === txn.id"
+                class="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium text-success-600 dark:text-success-400 hover:bg-success-50 dark:hover:bg-success-900/20 transition disabled:opacity-50 disabled:cursor-not-allowed">
                 <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
                 </svg>
                 Complete
               </button>
 
-              <!-- Pending/Completed: Cancel (hidden when transaction.cancellationAllowed = false) -->
+              <!-- Approved/Processing: Confirm Payout -->
+              <button
+                *ngIf="canConfirmPayout(txn.status)"
+                (click)="confirmPayout(txn)"
+                [disabled]="actionLoadingId === txn.id"
+                class="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition disabled:opacity-50 disabled:cursor-not-allowed">
+                <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0 1 21.485 12 59.77 59.77 0 0 1 3.27 20.876L5.999 12Zm0 0h7.5" />
+                </svg>
+                Confirm Payout
+              </button>
+
+              <!-- Pending/Completed: Cancel -->
               <button
                 *ngIf="(txn.status === 'Pending' || txn.status === 'Completed') && appSettings.cancellationAllowed"
                 (click)="cancelTransaction(txn)"
-                class="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium text-danger-600 dark:text-danger-400 hover:bg-danger-50 dark:hover:bg-danger-900/20 transition">
+                [disabled]="actionLoadingId === txn.id"
+                class="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium text-danger-600 dark:text-danger-400 hover:bg-danger-50 dark:hover:bg-danger-900/20 transition disabled:opacity-50 disabled:cursor-not-allowed">
                 <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
                 </svg>
@@ -364,6 +385,24 @@
       <div *ngIf="selectedTransaction.payoutAgentName">
         <span class="block text-xs font-medium text-surface-500 dark:text-surface-400 mb-1">Payout Partner</span>
         <span class="text-sm text-surface-900 dark:text-surface-100">{{ selectedTransaction.payoutAgentName }}</span>
+      </div>
+      <div *ngIf="selectedTransaction.partnerReferenceId">
+        <span class="block text-xs font-medium text-surface-500 dark:text-surface-400 mb-1">Partner Reference</span>
+        <span class="text-sm font-mono text-surface-900 dark:text-surface-100">{{ selectedTransaction.partnerReferenceId }}</span>
+      </div>
+    </div>
+
+    <!-- Partner Error Alert -->
+    <div
+      *ngIf="selectedTransaction.lastPartnerError"
+      class="mt-4 rounded-xl border border-danger-200 dark:border-danger-800 bg-danger-50 dark:bg-danger-900/20 p-4 flex items-start gap-3"
+    >
+      <svg class="h-5 w-5 text-danger-500 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+      </svg>
+      <div>
+        <p class="text-sm font-medium text-danger-700 dark:text-danger-300">Partner Error</p>
+        <p class="text-xs text-danger-600 dark:text-danger-400 mt-1">{{ selectedTransaction.lastPartnerError }}</p>
       </div>
     </div>
   </div>

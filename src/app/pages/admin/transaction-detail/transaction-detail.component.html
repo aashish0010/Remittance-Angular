@@ -230,14 +230,26 @@
             <span class="text-sm text-surface-500 dark:text-surface-400">Approved By</span>
             <span class="text-surface-900 dark:text-surface-100 font-medium text-sm font-mono">{{ txn.approvedByUserId }}</span>
           </div>
+          <div *ngIf="txn.payoutSubmittedAt" class="flex justify-between items-baseline py-1 border-b border-surface-100 dark:border-surface-700">
+            <span class="text-sm text-surface-500 dark:text-surface-400">Payout Submitted</span>
+            <span class="text-surface-900 dark:text-surface-100 font-medium text-sm">{{ txn.payoutSubmittedAt | date:'medium' }}</span>
+          </div>
+          <div *ngIf="txn.payoutCompletedAt" class="flex justify-between items-baseline py-1 border-b border-surface-100 dark:border-surface-700">
+            <span class="text-sm text-surface-500 dark:text-surface-400">Payout Completed</span>
+            <span class="text-success-700 dark:text-success-400 font-medium text-sm">{{ txn.payoutCompletedAt | date:'medium' }}</span>
+          </div>
+          <div *ngIf="txn.partnerReferenceId" class="flex justify-between items-baseline py-1 border-b border-surface-100 dark:border-surface-700">
+            <span class="text-sm text-surface-500 dark:text-surface-400">Partner Reference</span>
+            <span class="text-surface-900 dark:text-surface-100 font-medium text-sm font-mono">{{ txn.partnerReferenceId }}</span>
+          </div>
         </div>
       </div>
 
     </div>
 
     <!-- Action Buttons -->
-    <div *ngIf="canApprove() || canComplete() || canCancel()"
-         class="flex gap-3 p-4 rounded-2xl border border-surface-200 dark:border-surface-700 bg-surface-50 dark:bg-surface-800/50">
+    <div class="flex flex-wrap gap-3 p-4 rounded-2xl border border-surface-200 dark:border-surface-700 bg-surface-50 dark:bg-surface-800/50">
+      <!-- Standard actions -->
       <button
         *ngIf="canApprove()"
         (click)="approve()"
@@ -257,10 +269,49 @@
       >
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5">
           <path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clip-rule="evenodd" />
-          <path fill-rule="evenodd" d="M12.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clip-rule="evenodd" />
         </svg>
         Complete
       </button>
+
+      <!-- Confirm Payout -->
+      <button
+        *ngIf="canConfirmPayout()"
+        (click)="confirmPayout()"
+        [disabled]="actionLoading"
+        class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium text-sm"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5">
+          <path d="M3.105 2.289a.75.75 0 00-.826.95l1.414 4.925A1.5 1.5 0 005.135 9.25h6.115a.75.75 0 010 1.5H5.135a1.5 1.5 0 00-1.442 1.086l-1.414 4.926a.75.75 0 00.826.95 28.896 28.896 0 0015.293-7.154.75.75 0 000-1.114A28.897 28.897 0 003.105 2.289z" />
+        </svg>
+        Confirm Payout
+      </button>
+
+      <!-- Retry Payout -->
+      <button
+        *ngIf="canRetryPayout()"
+        (click)="retryPayout()"
+        [disabled]="actionLoading"
+        class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-warning-600 text-white hover:bg-warning-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium text-sm"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5">
+          <path fill-rule="evenodd" d="M15.312 11.424a5.5 5.5 0 01-9.201 2.466l-.312-.311h2.433a.75.75 0 000-1.5H3.989a.75.75 0 00-.75.75v4.242a.75.75 0 001.5 0v-2.43l.31.31a7 7 0 0011.712-3.138.75.75 0 00-1.449-.39zm1.23-3.723a.75.75 0 00.219-.53V2.929a.75.75 0 00-1.5 0V5.36l-.31-.31A7 7 0 003.239 8.188a.75.75 0 101.448.389A5.5 5.5 0 0113.89 6.11l.311.31h-2.432a.75.75 0 000 1.5h4.243a.75.75 0 00.53-.219z" clip-rule="evenodd" />
+        </svg>
+        Retry Payout
+      </button>
+
+      <!-- Mark as Paid (manual override) -->
+      <button
+        *ngIf="canMarkPaid()"
+        (click)="markPaid()"
+        [disabled]="actionLoading"
+        class="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-success-300 dark:border-success-700 bg-white dark:bg-surface-800 text-success-700 dark:text-success-400 hover:bg-success-50 dark:hover:bg-success-900/20 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium text-sm"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" />
+        </svg>
+        Mark as Paid
+      </button>
+
       <button
         *ngIf="canCancel()"
         (click)="cancel()"
@@ -272,6 +323,86 @@
         </svg>
         Cancel
       </button>
+    </div>
+
+    <!-- Partner Error Banner -->
+    <div
+      *ngIf="txn.lastPartnerError"
+      class="rounded-2xl border border-danger-200 dark:border-danger-800 bg-danger-50 dark:bg-danger-900/20 p-4 flex items-start gap-3"
+    >
+      <svg class="h-5 w-5 text-danger-500 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+      </svg>
+      <div class="flex-1 min-w-0">
+        <p class="text-sm font-semibold text-danger-700 dark:text-danger-300">Partner Integration Error</p>
+        <p class="text-xs text-danger-600 dark:text-danger-400 mt-1 break-words">{{ txn.lastPartnerError }}</p>
+      </div>
+    </div>
+
+    <!-- Integration Logs -->
+    <div class="rounded-2xl border border-surface-200 dark:border-surface-700 bg-white dark:bg-surface-800 shadow-soft overflow-hidden">
+      <!-- Collapsible header -->
+      <button
+        (click)="toggleLogs()"
+        class="w-full flex items-center justify-between p-6 hover:bg-surface-50 dark:hover:bg-surface-700/50 transition-colors"
+      >
+        <h3 class="flex items-center gap-2 text-sm font-semibold text-brand-600 dark:text-brand-400">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5">
+            <path fill-rule="evenodd" d="M2 4.75A.75.75 0 012.75 4h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 4.75zM2 10a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 10zm0 5.25a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75a.75.75 0 01-.75-.75z" clip-rule="evenodd" />
+          </svg>
+          Integration Logs
+          <span *ngIf="integrationLogs.length > 0" class="ml-1 px-2 py-0.5 text-xs rounded-full bg-brand-100 text-brand-700 dark:bg-brand-900/30 dark:text-brand-400">{{ integrationLogs.length }}</span>
+        </h3>
+        <svg
+          class="h-5 w-5 text-surface-400 transition-transform"
+          [ngClass]="{ 'rotate-180': showLogs }"
+          xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
+        >
+          <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+        </svg>
+      </button>
+
+      <!-- Log entries -->
+      <div *ngIf="showLogs" class="border-t border-surface-200 dark:border-surface-700">
+        <!-- Loading -->
+        <div *ngIf="logsLoading" class="flex items-center justify-center py-8">
+          <svg class="animate-spin h-6 w-6 text-brand-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+          </svg>
+        </div>
+
+        <!-- Empty state -->
+        <div *ngIf="!logsLoading && integrationLogs.length === 0" class="px-6 py-8 text-center text-sm text-surface-400 dark:text-surface-500">
+          No integration logs yet.
+        </div>
+
+        <!-- Log list -->
+        <div *ngIf="!logsLoading && integrationLogs.length > 0" class="divide-y divide-surface-100 dark:divide-surface-700">
+          <div *ngFor="let log of integrationLogs" class="p-4">
+            <div class="flex items-start gap-3">
+              <!-- Status dot -->
+              <div
+                class="mt-1 h-2.5 w-2.5 rounded-full shrink-0"
+                [ngClass]="log.isSuccess ? 'bg-success-500' : 'bg-danger-500'"
+              ></div>
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2 flex-wrap mb-1">
+                  <span class="px-2 py-0.5 text-xs font-semibold rounded-full" [ngClass]="getLogEventClass(log.event)">{{ log.event }}</span>
+                  <span class="text-xs text-surface-500 dark:text-surface-400 font-mono">{{ log.providerKey }}</span>
+                  <span class="ml-auto text-xs text-surface-400 dark:text-surface-500 whitespace-nowrap">{{ log.createdAt | date:'MMM dd, HH:mm:ss' }}</span>
+                </div>
+                <p *ngIf="log.errorMessage" class="text-xs text-danger-600 dark:text-danger-400 mt-1 break-words">{{ log.errorMessage }}</p>
+                <!-- Expandable raw payload -->
+                <details *ngIf="log.responsePayload" class="mt-2">
+                  <summary class="text-xs text-surface-400 dark:text-surface-500 cursor-pointer hover:text-surface-600 dark:hover:text-surface-300">View response</summary>
+                  <pre class="mt-1 text-xs bg-surface-50 dark:bg-surface-900 p-2 rounded-lg overflow-x-auto text-surface-700 dark:text-surface-300 whitespace-pre-wrap">{{ log.responsePayload }}</pre>
+                </details>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
   </ng-container>

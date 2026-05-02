@@ -377,6 +377,7 @@ export class CustomerRegisterComponent implements OnInit, OnDestroy {
       }
     }
     this.saving = true;
+    const primaryDoc = this.documentUploads.find(d => d.documentType && d.documentNumber);
     const dto: any = {
       fullName: f.fullName,
       dateOfBirth: this.formatDate(f.dateOfBirth),
@@ -385,11 +386,15 @@ export class CustomerRegisterComponent implements OnInit, OnDestroy {
       email: f.email || null,
       phone: f.phone || null,
       country: f.country,
-      contactCountry: f.contactCountry || null,
       city: f.city || null,
       state: f.state || null,
       postalCode: f.postalCode || null,
       address: f.address || null,
+      idDocumentType: primaryDoc?.documentType || null,
+      idDocumentNumber: primaryDoc?.documentNumber || null,
+      docIssueDate: primaryDoc?.issueDate ? this.formatDate(primaryDoc.issueDate) : null,
+      docExpiryDate: primaryDoc?.expiryDate ? this.formatDate(primaryDoc.expiryDate) : null,
+      docIssuingCountry: primaryDoc?.issuingCountry || null,
     };
 
     const obs = this.isEditing

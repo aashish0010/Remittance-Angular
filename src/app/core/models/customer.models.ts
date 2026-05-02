@@ -29,6 +29,20 @@ export interface CustomerDocumentModel {
   isVerified: boolean;
 }
 
+export interface ReceiverPaymentDetailModel {
+  id: number;
+  receiverId: number;
+  paymentMethodType: string;
+  bankName?: string;
+  bankCode?: string;
+  accountNumber?: string;
+  branchName?: string;
+  branchCode?: string;
+  bankId?: number;
+  branchId?: number;
+  updatedAt: string;
+}
+
 export interface ReceiverModel {
   id: number;
   customerId: number;

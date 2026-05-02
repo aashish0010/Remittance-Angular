@@ -1,29 +1,28 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
+import { trigger, state, style, animate, transition, query, stagger } from '@angular/animations';
 import { CommonModule, DecimalPipe } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormGroup, FormControl } from '@angular/forms';
-import { Router, RouterModule } from '@angular/router';
+import { Router } from '@angular/router';
 import { DatePicker } from 'primeng/datepicker';
 import { z } from 'zod';
+import { Subject, debounceTime, takeUntil } from 'rxjs';
+
 import { NotificationService } from '../../../core/services/notification.service';
 import { ApiService } from '../../../core/services/api.service';
 import { AuthStateService } from '../../../core/services/auth-state.service';
 import { AppSettingsService } from '../../../core/services/app-settings.service';
-import { SendTransactionModel, TransactionResult, CalculateTransferRequest, ComplianceViolation } from '../../../core/models/transaction.models';
-import { CountryInfo } from '../../../core/models/common.models';
-import { AgentModel, AgentBalance, PaymentMethodModel, AgentBankModel, AgentBankBranchModel, AgentLocationModel } from '../../../core/models/agent.models';
+
+import { SendMoneyStore, StepDirection } from './send-money.store';
+import { AgentBankModel, AgentLocationModel, PaymentMethodModel } from '../../../core/models/agent.models';
 import { CustomerModel, ReceiverModel } from '../../../core/models/customer.models';
 import { PaymentCorridorModel, CorridorPayoutPartnerModel } from '../../../core/models/routing.models';
-import { Subject } from 'rxjs';
-import { debounceTime } from 'rxjs/operators';
-import { SendMoneyStore } from './send-money.store';
+import { TransactionResult, ComplianceViolation, CalculateTransferRequest } from '../../../core/models/transaction.models';
+import { CountryInfo } from '../../../core/models/common.models';
 
-// ---------------------------------------------------------------------------
-// Zod Schemas
-// ---------------------------------------------------------------------------
-export const CustomerFormSchema = z.object({
-  fullName: z.string().min(1, 'Full name is required').max(100, 'Max 100 characters'),
-  phone: z.string().min(1, 'Phone is required').max(20, 'Max 20 characters'),
-  email: z.union([z.string().email('Invalid email'), z.literal(''), z.null(), z.undefined()]),
+const CustomerFormSchema = z.object({
+  fullName: z.string().min(1, 'Full name is required').max(100),
+  phone: z.string().min(1, 'Phone is required').max(20),
+  email: z.union([z.string().email('Invalid email'), z.literal(''), z.null(), z.undefined()]).optional(),
   dateOfBirth: z.union([z.date(), z.string(), z.null()]).optional(),
   gender: z.string().nullish(),
   nationality: z.string().min(1, 'Nationality is required'),
@@ -39,10 +38,10 @@ export const CustomerFormSchema = z.object({
   docIssuingCountry: z.string().nullish(),
 });
 
-export const ReceiverFormSchema = z.object({
-  fullName: z.string().min(1, 'Full name is required').max(100, 'Max 100 characters'),
-  phone: z.string().min(1, 'Phone is required').max(20, 'Max 20 characters'),
-  email: z.union([z.string().email('Invalid email'), z.literal(''), z.null(), z.undefined()]),
+const ReceiverFormSchema = z.object({
+  fullName: z.string().min(1, 'Full name is required').max(100),
+  phone: z.string().min(1, 'Phone is required').max(20),
+  email: z.union([z.string().email('Invalid email'), z.literal(''), z.null(), z.undefined()]).optional(),
   country: z.string().nullish(),
   city: z.string().nullish(),
   bankName: z.string().nullish(),
@@ -50,92 +49,121 @@ export const ReceiverFormSchema = z.object({
   accountNumber: z.string().nullish(),
   branchName: z.string().nullish(),
   branchCode: z.string().nullish(),
-  bankId: z.number().nullable().optional(),
-  branchId: z.number().nullable().optional(),
+  bankId: z.number().nullish(),
+  branchId: z.number().nullish(),
   relationship: z.string().nullish(),
 });
-
-export type CustomerFormValue = z.infer<typeof CustomerFormSchema>;
-export type ReceiverFormValue = z.infer<typeof ReceiverFormSchema>;
 
 @Component({
   selector: 'app-send-money',
   standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule,
-    ReactiveFormsModule,
-    RouterModule,
-    DecimalPipe,
-    DatePicker,
-  ],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, DecimalPipe, DatePicker],
   providers: [SendMoneyStore],
   templateUrl: './send-money.component.html',
   styleUrl: './send-money.component.scss',
+  animations: [
+    trigger('slideDown', [
+      transition(':enter', [
+        style({ opacity: 0, transform: 'translateY(-10px)', maxHeight: '0px' }),
+        animate('220ms cubic-bezier(0.4,0,0.2,1)', style({ opacity: 1, transform: 'translateY(0)', maxHeight: '500px' }))
+      ]),
+      transition(':leave', [
+        animate('160ms cubic-bezier(0.4,0,1,1)', style({ opacity: 0, transform: 'translateY(-6px)', maxHeight: '0px' }))
+      ])
+    ]),
+    trigger('fadeSlideUp', [
+      transition(':enter', [
+        style({ opacity: 0, transform: 'translateY(8px)' }),
+        animate('200ms 40ms ease-out', style({ opacity: 1, transform: 'translateY(0)' }))
+      ]),
+      transition(':leave', [
+        animate('150ms ease-in', style({ opacity: 0, transform: 'translateY(4px)' }))
+      ])
+    ]),
+    trigger('staggerList', [
+      transition(':enter', [
+        query('.stagger-item', [
+          style({ opacity: 0, transform: 'translateX(-8px)' }),
+          stagger(50, animate('180ms ease-out', style({ opacity: 1, transform: 'translateX(0)' })))
+        ], { optional: true })
+      ])
+    ]),
+    trigger('swapIconRotate', [
+      state('closed', style({ transform: 'rotate(0deg)' })),
+      state('open', style({ transform: 'rotate(180deg)' })),
+      transition('closed <=> open', animate('200ms ease-in-out'))
+    ])
+  ]
 })
-export class SendMoneyComponent implements OnInit {
+export class SendMoneyComponent implements OnInit, OnDestroy {
   readonly store = inject(SendMoneyStore);
+  private api = inject(ApiService);
+  private auth = inject(AuthStateService);
+  private notify = inject(NotificationService);
+  readonly appSettings = inject(AppSettingsService);
+  router = inject(Router);
 
-  // Step tracking (kept as local properties that sync with store)
-  get step(): number { return this.store.currentStep(); }
-  set step(v: number) { this.store.setStep(v); }
-
-  submitting = false;
-  successResult: TransactionResult | null = null;
-
-  // Transaction PIN
-  showPinDialog = false;
-  pinMode: 'set' | 'verify' = 'verify';
-  pinInput = '';
-  pinConfirm = '';
-  pinError = '';
-  pinLoading = false;
-
-  // Agent profile & balance
-  agentProfile: AgentModel | null = null;
-  agentBalance: AgentBalance | null = null;
-  agentBalanceZero = false;
-  balanceWarning = '';
-  agentAvailableBalance: number | null = null;
-
-  // KYC / DOB warnings
-  kycWarning = '';
-  dobWarning = '';
-
-  // Customer search dropdown control
-  showCustomerDropdown = false;
-
-  // Date constraints for PrimeNG DatePicker
-  todayDate = new Date();
-  get maxDobDate(): Date {
-    const d = new Date();
-    d.setFullYear(d.getFullYear() - this.appSettings.minimumAge);
-    return d;
-  }
-  minExpiryDate: Date = new Date();
-
-  // Reference data
+  // ── Ref data ──────────────────────────────────────────────────────────────
+  agentProfile: any = null;
+  private currentQuoteId: string | null = null;
+  agentBalance: any = null;
   countries: CountryInfo[] = [];
   paymentMethods: PaymentMethodModel[] = [];
   allCorridors: PaymentCorridorModel[] = [];
+  idTypes: any[] = [];
 
-  // Step 1: Customer
+  // ── Customers / Receivers ─────────────────────────────────────────────────
   customers: CustomerModel[] = [];
   filteredCustomers: CustomerModel[] = [];
   customerSearch = '';
-  selectedCustomerId: number | null = null;
-  selectedCustomer: CustomerModel | null = null;
+  receivers: ReceiverModel[] = [];
+  filteredReceivers: ReceiverModel[] = [];
+  receiverSearch = '';
+
+  // ── UI state ──────────────────────────────────────────────────────────────
+  showCustomerDropdown = false;
   showCreateCustomer = false;
-  customerFormError = '';
-  savingCustomer = false;
+  showCreateReceiver = false;
+  showBranchPopup = false;
+  showMissingCustomerForm = false;
+  showMissingReceiverForm = false;
 
-  // Customer Reactive Form
-  // Document upload
-  frontImageFile: File | null = null;
-  backImageFile: File | null = null;
-  frontImagePreview: string | null = null;
-  backImagePreview: string | null = null;
+  // Animation
+  stepAnimClass = '';
+  subStepAnimClass = '';
+  animating = false;
 
+  // ── Calculator state ──────────────────────────────────────────────────────
+  senderCountry = '';
+  senderCurrency = '';
+  receiverCountry = '';
+  receiverCurrency = '';
+  sendAmountInput = 0;
+  receiveAmount = 0;
+  exchangeRate = 0;
+  serviceCharge = 0;
+  totalPayable = 0;
+  loadingCalc = false;
+  calcError = '';
+  matchedPartners: CorridorPayoutPartnerModel[] = [];
+  selectedPartnerLocal: CorridorPayoutPartnerModel | null = null;
+  selectedPayoutModeId: number | null = null;
+  payoutBanks: AgentBankModel[] = [];
+  payoutLocations: AgentLocationModel[] = [];
+  payoutCashLocations: AgentBankModel[] = [];
+  selectedPaymentMethodId: number | null = null;
+  transactionPayoutDetails: {
+    bankName: string | null; bankCode: string | null; bankId: number | null;
+    accountNumber: string | null; branchName: string | null;
+    branchCode: string | null; branchId: number | null;
+  } = { bankName: null, bankCode: null, bankId: null, accountNumber: null, branchName: null, branchCode: null, branchId: null };
+  savedPayoutDetails: any[] = [];
+  selectedSavedDetail: any | null = null;
+  showPayoutSwapPanel: boolean = false;
+  showNewAccountForm: boolean = false;
+  complianceViolations: ComplianceViolation[] = [];
+
+  // ── Customer form ─────────────────────────────────────────────────────────
   customerForm = new FormGroup({
     fullName: new FormControl(''),
     phone: new FormControl(''),
@@ -155,46 +183,13 @@ export class SendMoneyComponent implements OnInit {
     docIssuingCountry: new FormControl(''),
   });
   customerFormErrors: Record<string, string> = {};
+  customerFrontFile: File | null = null;
+  customerBackFile: File | null = null;
+  customerFrontPreview: string | null = null;
+  customerBackPreview: string | null = null;
+  savingCustomer = false;
 
-  // Step 2: Amount & Calculation
-  sendAmount = 0;
-  senderCountry = '';
-  senderCurrency = '';
-  receiverCountry = '';
-  receiverCurrency = '';
-  selectedPaymentMethodId: number | null = null;
-
-  // Route matching
-  matchedCorridor: PaymentCorridorModel | null = null;
-  matchedPartners: CorridorPayoutPartnerModel[] = [];
-  selectedPartnerId: number | null = null;
-  selectedPartner: CorridorPayoutPartnerModel | null = null;
-  availablePayoutModes: PaymentMethodModel[] = [];
-  selectedPayoutModeId: number | null = null;
-  routeError = '';
-
-  // Calculation results
-  exchangeRate = 0;
-  serviceCharge = 0;
-  totalPayable = 0;
-  receiveAmount = 0;
-  loadingCalc = false;
-  calculationDone = false;
-  calcError = '';
-  complianceViolations: ComplianceViolation[] = [];
-  complianceBlocked = false;
-
-  // Step 3: Receiver
-  receivers: ReceiverModel[] = [];
-  filteredReceivers: ReceiverModel[] = [];
-  receiverSearch = '';
-  selectedReceiverId: number | null = null;
-  selectedReceiver: ReceiverModel | null = null;
-  showCreateReceiver = false;
-  receiverFormError = '';
-  savingReceiver = false;
-
-  // Receiver Reactive Form
+  // ── Receiver form ─────────────────────────────────────────────────────────
   receiverForm = new FormGroup({
     fullName: new FormControl(''),
     phone: new FormControl(''),
@@ -211,1138 +206,911 @@ export class SendMoneyComponent implements OnInit {
     relationship: new FormControl(''),
   });
   receiverFormErrors: Record<string, string> = {};
+  savingReceiver = false;
 
-  // Payout location data
-  payoutBanks: AgentBankModel[] = [];
-  payoutLocations: AgentLocationModel[] = [];
-  selectedBankId: number | null = null;
-  selectedLocationId: number | null = null;
+  // ── Missing fields (third-party) ──────────────────────────────────────────
+  missingCustomerData: Record<string, string> = {};
+  missingReceiverData: Record<string, string> = {};
+  savingMissingCustomer = false;
+  savingMissingReceiver = false;
 
-  // Branch popup
-  showBranchPopup = false;
-  branchBank: AgentBankModel | null = null;
-  branchList: AgentBankBranchModel[] = [];
-  filteredBranches: AgentBankBranchModel[] = [];
+  // ── Branch popup ──────────────────────────────────────────────────────────
   branchSearch = '';
-  selectedBranch: AgentBankBranchModel | null = null;
+  branchBankName = '';
+  allBranches: any[] = [];
+  filteredBranches: any[] = [];
+  branchContext: 'form' | 'txn' = 'form';
 
-  idTypes: string[] = [];
-
-  private calcTrigger$ = new Subject<void>();
-
-  // Transaction meta fields (shown/required based on settings)
+  // ── Compliance ────────────────────────────────────────────────────────────
   purpose = '';
   sourceOfFunds = '';
+  relationship = '';
+  purposes: any[] = [];
+  sourcesOfFund: any[] = [];
+  relationships: any[] = [];
 
-  get requirePurpose(): boolean { return this.appSettings.requirePurpose; }
-  get requireSourceOfFunds(): boolean { return this.appSettings.requireSourceOfFunds; }
-  get requireManagerApproval(): boolean { return this.appSettings.requireManagerApproval; }
-  get managerApprovalThreshold(): number { return this.appSettings.managerApprovalThreshold; }
-  get needsManagerApproval(): boolean {
-    return this.requireManagerApproval
-      && this.managerApprovalThreshold > 0
-      && this.sendAmount > this.managerApprovalThreshold;
-  }
-  get singleTxnLimit(): number { return this.appSettings.singleTransactionLimit; }
-  get dailyTxnLimit(): number  { return this.appSettings.dailyLimit; }
-  get exceedsSingleLimit(): boolean {
-    return this.singleTxnLimit > 0 && this.sendAmount > this.singleTxnLimit;
-  }
+  // ── PIN ───────────────────────────────────────────────────────────────────
+  lockingRate = false;
+  showPinDialog = false;
+  pinMode: 'set' | 'verify' = 'verify';
+  pinInput = '';
+  pinConfirm = '';
+  pinError = '';
 
-  constructor(
-    private api: ApiService,
-    private auth: AuthStateService,
-    private router: Router,
-    private notify: NotificationService,
-    public appSettings: AppSettingsService,
-  ) {}
+  // ── Debounce ──────────────────────────────────────────────────────────────
+  private calcSubject = new Subject<void>();
+  private destroy$ = new Subject<void>();
 
   ngOnInit(): void {
-    this.appSettings.load();
-    this.auth.loadFromSession();
-    this.loadReferenceData();
-
-    this.calcTrigger$.pipe(debounceTime(400)).subscribe(() => {
+    this.calcSubject.pipe(debounceTime(400), takeUntil(this.destroy$)).subscribe(() => {
       this.calculateViaBackend();
     });
+    this.loadInitialData();
   }
 
-  // ---------------------------------------------------------------------------
-  // Zod Validation Helpers
-  // ---------------------------------------------------------------------------
-
-  private validateCustomerForm(): boolean {
-    const result = CustomerFormSchema.safeParse(this.customerForm.getRawValue());
-    this.customerFormErrors = {};
-    if (!result.success) {
-      for (const issue of result.error.issues) {
-        const field = issue.path[0] as string;
-        if (!this.customerFormErrors[field]) {
-          this.customerFormErrors[field] = issue.message;
-        }
-      }
-      return false;
-    }
-    return true;
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
-  private validateReceiverForm(): boolean {
-    const result = ReceiverFormSchema.safeParse(this.receiverForm.getRawValue());
-    this.receiverFormErrors = {};
-    if (!result.success) {
-      for (const issue of result.error.issues) {
-        const field = issue.path[0] as string;
-        if (!this.receiverFormErrors[field]) {
-          this.receiverFormErrors[field] = issue.message;
-        }
-      }
-      return false;
-    }
-    return true;
-  }
-
-  // ---------------------------------------------------------------------------
-  // Reference Data
-  // ---------------------------------------------------------------------------
-
-  private loadReferenceData(): void {
-    this.api.getAgentBalance().subscribe(r => {
-      if (r?.success && r.data) {
-        this.agentBalance = r.data;
-        if (r.data.availableBalance <= 0) {
-          this.agentBalanceZero = true;
-          this.store.setAgentBalanceZero(true);
-          this.notify.error('Insufficient balance. Your available balance is 0. Please contact admin to top up.');
-        }
-      }
-    });
-    this.api.getAgentProfile().subscribe(r => {
-      if (r?.success && r.data) {
+  // ── Initial data load ─────────────────────────────────────────────────────
+  private loadInitialData(): void {
+    this.api.getAgentProfile().subscribe((r: any) => {
+      if (r.success) {
         this.agentProfile = r.data;
-        this.senderCountry = r.data.country;
-        if (r.data.currency) {
-          this.senderCurrency = r.data.currency;
-        }
-        // Only check balance here if agentBalance endpoint failed
-        if (!this.agentBalance) {
-          const available = r.data.creditLimit - r.data.currentBalance;
-          if (available <= 0) {
-            this.agentBalanceZero = true;
-            this.store.setAgentBalanceZero(true);
-          }
-        }
+        this.senderCountry = r.data?.country ?? '';
+        this.senderCurrency = r.data?.currency ?? '';
+        this.findRoute();
       }
     });
-    this.api.getCountries().subscribe(r => {
-      if (r?.success && r.data) this.countries = r.data;
-    });
-    this.api.getAgentPaymentMethods().subscribe(r => {
-      if (r?.success && r.data) this.paymentMethods = r.data.filter(m => m.isActive);
-    });
-    this.api.getAgentCorridors().subscribe(r => {
-      if (r?.success && r.data) this.allCorridors = r.data.filter(c => c.isActive);
-    });
-    this.api.getAgentCustomers().subscribe(r => {
-      if (r?.success && r.data) {
-        this.customers = r.data;
-        this.filteredCustomers = [...r.data];
+    this.api.getAgentBalance().subscribe((r: any) => {
+      if (r.success) {
+        this.agentBalance = r.data;
+        this.store.setAgentBalanceZero(!r.data || r.data.availableBalance <= 0);
       }
     });
-    this.api.getReferenceSetupFields('IdType').subscribe(r => {
-      if (r?.success && r.data) {
-        this.idTypes = r.data.filter((d: any) => d.isActive).map((d: any) => d.name);
+    this.api.getCountries().subscribe((r: any) => {
+      if (r.success) this.countries = r.data ?? [];
+    });
+    this.api.getAgentPaymentMethods().subscribe((r: any) => {
+      if (r.success) this.paymentMethods = r.data ?? [];
+    });
+    this.api.getAgentCorridors().subscribe((r: any) => {
+      if (r.success) this.allCorridors = r.data ?? [];
+    });
+    this.api.getAgentCustomers().subscribe((r: any) => {
+      if (r.success) {
+        this.customers = r.data ?? [];
+        this.filteredCustomers = this.customers;
       }
+    });
+    this.api.getReferenceSetupFields('IdType').subscribe((r: any) => {
+      if (r.success) this.idTypes = r.data ?? [];
+    });
+    this.api.getReferenceSetupFields('Purpose').subscribe((r: any) => {
+      if (r.success) this.purposes = r.data ?? [];
+    });
+    this.api.getReferenceSetupFields('SourceOfFund').subscribe((r: any) => {
+      if (r.success) this.sourcesOfFund = r.data ?? [];
+    });
+    this.api.getReferenceSetupFields('Relationship').subscribe((r: any) => {
+      if (r.success) this.relationships = r.data ?? [];
     });
   }
 
-  // ---------------------------------------------------------------------------
-  // Step 1: Customer Selection/Creation
-  // ---------------------------------------------------------------------------
-
-  filterCustomers(): void {
-    const s = this.customerSearch.toLowerCase();
-    this.filteredCustomers = !s
-      ? [...this.customers]
-      : this.customers.filter(c =>
-          c.fullName.toLowerCase().includes(s) ||
-          (c.email || '').toLowerCase().includes(s) ||
-          (c.phone || '').toLowerCase().includes(s)
-        );
+  // ── Step navigation ───────────────────────────────────────────────────────
+  goToStep(step: number, direction: StepDirection = 'forward'): void {
+    if (this.animating) return;
+    this.animating = true;
+    const exitClass = direction === 'forward' ? 'slide-out-left' : 'slide-out-right';
+    const enterClass = direction === 'forward' ? 'slide-in-right' : 'slide-in-left';
+    this.stepAnimClass = exitClass;
+    setTimeout(() => {
+      this.store.setStep(step, direction);
+      this.stepAnimClass = enterClass;
+      setTimeout(() => {
+        this.stepAnimClass = '';
+        this.animating = false;
+      }, 300);
+    }, 250);
   }
 
-  selectCustomer(customer: CustomerModel): void {
-    this.selectedCustomerId = customer.id;
-    this.selectedCustomer = customer;
-    this.customerSearch = '';
-    this.showCustomerDropdown = false;
-    this.store.setSelectedCustomer(customer);
-    this.kycWarning = '';
-    this.dobWarning = '';
-
-    if (this.appSettings.kycEnabled && !customer.isKycVerified) {
-      this.kycWarning = 'This customer has not completed KYC verification. Transaction cannot proceed.';
-    }
-
-    if (customer.dateOfBirth) {
-      const dob = new Date(customer.dateOfBirth);
-      const today = new Date();
-      let age = today.getFullYear() - dob.getFullYear();
-      const monthDiff = today.getMonth() - dob.getMonth();
-      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
-        age--;
-      }
-      const minAge = this.appSettings.minimumAge;
-      if (age < minAge) {
-        this.dobWarning = `Customer is ${age} years old. Must be at least ${minAge} years old to send a transaction.`;
-      }
-    }
-
-    this.store.setKycWarning(this.kycWarning);
-    this.store.setDobWarning(this.dobWarning);
-
-    // Load receivers immediately after customer selection
-    this.receivers = [];
-    this.filteredReceivers = [];
-    this.loadReceivers();
+  nextStep(): void {
+    this.goToStep(this.store.currentStep() + 1, 'forward');
   }
 
-  clearSelectedCustomer(): void {
-    this.selectedCustomerId = null;
-    this.selectedCustomer = null;
-    this.store.setSelectedCustomer(null);
-    this.kycWarning = '';
-    this.dobWarning = '';
-    this.store.setKycWarning('');
-    this.store.setDobWarning('');
-    this.showCustomerDropdown = false;
-    this.receivers = [];
-    this.filteredReceivers = [];
-  }
-
-  toggleCreateCustomer(): void {
-    this.showCreateCustomer = !this.showCreateCustomer;
-    this.customerFormError = '';
-    this.customerFormErrors = {};
-    if (this.showCreateCustomer) {
-      this.customerForm.reset();
-      this.frontImageFile = null;
-      this.backImageFile = null;
-      this.frontImagePreview = null;
-      this.backImagePreview = null;
+  prevStep(): void {
+    if (this.store.currentStep() > 0) {
+      this.goToStep(this.store.currentStep() - 1, 'backward');
     }
   }
 
-  onFrontImageSelected(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    if (input.files && input.files[0]) {
-      this.frontImageFile = input.files[0];
-      const reader = new FileReader();
-      reader.onload = (e) => this.frontImagePreview = e.target?.result as string;
-      reader.readAsDataURL(this.frontImageFile);
-    }
+  goToSubStep(sub: 'customer' | 'receiver', direction: StepDirection = 'forward'): void {
+    if (this.animating) return;
+    this.animating = true;
+    const exitClass = direction === 'forward' ? 'slide-out-left' : 'slide-out-right';
+    const enterClass = direction === 'forward' ? 'slide-in-right' : 'slide-in-left';
+    this.subStepAnimClass = exitClass;
+    setTimeout(() => {
+      this.store.setCustomerSubStep(sub, direction);
+      this.subStepAnimClass = enterClass;
+      setTimeout(() => {
+        this.subStepAnimClass = '';
+        this.animating = false;
+      }, 300);
+    }, 250);
   }
 
-  onBackImageSelected(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    if (input.files && input.files[0]) {
-      this.backImageFile = input.files[0];
-      const reader = new FileReader();
-      reader.onload = (e) => this.backImagePreview = e.target?.result as string;
-      reader.readAsDataURL(this.backImageFile);
+  // ── Calculator ────────────────────────────────────────────────────────────
+  onAmountChange(): void {
+    this.store.setSendAmount(this.sendAmountInput);
+    if (this.sendAmountInput > 0 && this.senderCurrency && this.receiverCurrency && this.selectedPaymentMethodId) {
+      this.calcSubject.next();
     }
   }
-
-  private uploadDocumentsForCustomer(customerId: number): void {
-    const formValue = this.customerForm.getRawValue();
-    if (!this.frontImageFile && !this.backImageFile) return;
-    if (!formValue.idDocumentType || !formValue.idDocumentNumber) return;
-
-    const formData = new FormData();
-    formData.append('customerId', customerId.toString());
-    formData.append('documentType', formValue.idDocumentType);
-    formData.append('documentNumber', formValue.idDocumentNumber);
-    formData.append('requiredSides', this.backImageFile ? '2' : '1');
-    if (formValue.docIssuingCountry) {
-      formData.append('issuingCountry', formValue.docIssuingCountry);
-    }
-    if (this.frontImageFile) {
-      formData.append('frontImage', this.frontImageFile);
-    }
-    if (this.backImageFile) {
-      formData.append('backImage', this.backImageFile);
-    }
-
-    this.api.uploadDocument(formData).subscribe({
-      next: (res) => {
-        if (res?.success) {
-          this.notify.success('Document uploaded successfully.');
-        }
-      },
-      error: () => {
-        this.notify.error('Customer created but document upload failed. You can upload later from admin.');
-      },
-    });
-  }
-
-  private formatDate(d: Date | null | undefined): string {
-    if (!d) return '';
-    const yyyy = d.getFullYear();
-    const mm = String(d.getMonth() + 1).padStart(2, '0');
-    const dd = String(d.getDate()).padStart(2, '0');
-    return `${yyyy}-${mm}-${dd}`;
-  }
-
-  saveNewCustomer(): void {
-    this.customerFormError = '';
-    if (!this.validateCustomerForm()) {
-      this.customerFormError = 'Please fix the highlighted fields.';
-      return;
-    }
-    if (!this.appSettings.skipDocumentUpload && !this.frontImageFile) {
-      this.customerFormError = 'Please upload at least the front image of the ID document.';
-      return;
-    }
-
-    this.savingCustomer = true;
-    const formValue = this.customerForm.getRawValue();
-    const newCustomer = {
-      fullName: formValue.fullName || '',
-      email: formValue.email || '',
-      phone: formValue.phone || '',
-      dateOfBirth: this.formatDate(formValue.dateOfBirth),
-      gender: formValue.gender || '',
-      nationality: formValue.nationality || '',
-      country: formValue.country || '',
-      city: formValue.city || '',
-      state: formValue.state || '',
-      postalCode: formValue.postalCode || '',
-      address: formValue.address || '',
-      idDocumentType: formValue.idDocumentType || '',
-      idDocumentNumber: formValue.idDocumentNumber || '',
-      docIssueDate: this.formatDate(formValue.docIssueDate),
-      docExpiryDate: this.formatDate(formValue.docExpiryDate),
-      docIssuingCountry: formValue.docIssuingCountry || '',
-    };
-
-    this.api.createAgentCustomer(newCustomer).subscribe({
-      next: res => {
-        if (res?.success && res.data) {
-          this.customers.push(res.data);
-          this.filteredCustomers = [...this.customers];
-          this.selectCustomer(res.data);
-          this.uploadDocumentsForCustomer(res.data.id);
-          this.showCreateCustomer = false;
-          this.notify.success('Customer created!');
-        } else {
-          this.customerFormError = res?.message || 'Failed to create customer.';
-        }
-        this.savingCustomer = false;
-      },
-      error: () => {
-        this.customerFormError = 'Server error.';
-        this.savingCustomer = false;
-      },
-    });
-  }
-
-  // ---------------------------------------------------------------------------
-  // Step 2: Amount Calculation (backend-driven)
-  // ---------------------------------------------------------------------------
 
   onReceiverCountryChange(): void {
-    const country = this.countries.find(c => c.name === this.receiverCountry);
-    if (country) {
-      this.receiverCurrency = country.currency;
-    } else {
-      this.receiverCurrency = '';
-    }
+    const found = this.countries.find(c => c.name === this.receiverCountry);
+    this.receiverCurrency = found?.currency ?? '';
     this.findRoute();
-    this.triggerCalculation();
+    this.onAmountChange();
   }
 
   onPaymentMethodChange(): void {
+    this.payoutBanks = [];
+    this.payoutCashLocations = [];
+    this.payoutLocations = [];
+    this.transactionPayoutDetails = { bankName: null, bankCode: null, bankId: null, accountNumber: null, branchName: null, branchCode: null, branchId: null };
+    this.savedPayoutDetails = [];
+    this.selectedSavedDetail = null;
+    this.showPayoutSwapPanel = false;
+    this.showNewAccountForm = false;
     this.store.setSelectedPaymentMethodId(this.selectedPaymentMethodId);
     this.findRoute();
-    this.triggerCalculation();
-  }
-
-  onAmountChange(): void {
-    this.store.setSendAmount(this.sendAmount);
-    this.triggerCalculation();
-  }
-
-  private triggerCalculation(): void {
-    this.calculationDone = false;
-    this.store.setCalculationDone(false);
-    this.calcError = '';
-    this.complianceViolations = [];
-    this.complianceBlocked = false;
-    this.store.setComplianceBlocked(false);
-    this.balanceWarning = '';
-    this.store.setBalanceWarning('');
-    this.agentAvailableBalance = null;
-    if (this.canCalculate()) {
-      this.calcTrigger$.next();
-    } else {
-      this.exchangeRate = 0;
-      this.receiveAmount = 0;
-      this.serviceCharge = 0;
-      this.totalPayable = 0;
-    }
-  }
-
-  private canCalculate(): boolean {
-    return !!(
-      this.senderCountry &&
-      this.senderCurrency &&
-      this.receiverCountry &&
-      this.receiverCurrency &&
-      this.sendAmount > 0 &&
-      this.selectedPartner
-    );
-  }
-
-  private calculateViaBackend(): void {
-    if (!this.canCalculate()) return;
-
-    this.loadingCalc = true;
-    this.calcError = '';
-
-    const req: CalculateTransferRequest = {
-      sendAmount: this.sendAmount,
-      sendCurrency: this.senderCurrency,
-      receiveCurrency: this.receiverCurrency,
-      senderCountry: this.senderCountry,
-      receiverCountry: this.receiverCountry,
-      paymentMethodId: this.selectedPaymentMethodId || undefined,
-      paymentMethodName: this.getPayoutModeName() || undefined,
-      payoutPartnerId: this.selectedPartner?.payoutAgentId || undefined,
-      sendingAgentId: this.agentProfile?.id || undefined,
-      senderName: this.selectedCustomer?.fullName || undefined,
-      customerId: this.selectedCustomerId || undefined,
-    };
-
-    this.api.calculateTransfer(req).subscribe({
-      next: res => {
-        if (res?.success && res.data) {
-          this.exchangeRate = res.data.exchangeRate;
-          this.receiveAmount = res.data.receiveAmount;
-          this.serviceCharge = res.data.serviceCharge;
-          this.totalPayable = res.data.totalPayable;
-          this.complianceViolations = res.data.complianceViolations || [];
-          this.complianceBlocked = this.complianceViolations.some(v => v.action === 'Block');
-          this.agentAvailableBalance = res.data.agentAvailableBalance ?? null;
-          this.balanceWarning = res.data.balanceWarning || '';
-          this.calculationDone = true;
-          this.calcError = '';
-          // Sync to store
-          this.store.setCalculationDone(true);
-          this.store.setComplianceBlocked(this.complianceBlocked);
-          this.store.setBalanceWarning(this.balanceWarning);
-          // Auto-advance to receiver section on first successful calculation
-          if (this.selectedCustomerId && this.step < 2 && !this.complianceBlocked && !this.balanceWarning) {
-            this.store.setStep(2);
-            this.loadReceivers();
-          }
-        } else {
-          this.calcError = res?.message || 'Calculation failed.';
-          this.calculationDone = false;
-          this.store.setCalculationDone(false);
-        }
-        this.loadingCalc = false;
-      },
-      error: err => {
-        this.calcError = err?.error?.message || 'Failed to calculate. Please try again.';
-        this.calculationDone = false;
-        this.store.setCalculationDone(false);
-        this.loadingCalc = false;
-      },
-    });
+    this.onAmountChange();
+    this.loadReceiverPaymentDetail();
   }
 
   private findRoute(): void {
-    this.matchedCorridor = null;
-    this.matchedPartners = [];
-    this.selectedPartnerId = null;
-    this.selectedPartner = null;
-    this.availablePayoutModes = [];
-    this.selectedPayoutModeId = null;
-    this.routeError = '';
-
     if (!this.senderCountry || !this.receiverCountry || !this.senderCurrency || !this.receiverCurrency) return;
 
-    this.matchedCorridor = this.allCorridors.find(c =>
+    const corridor = this.allCorridors.find(c =>
       c.sourceCountry === this.senderCountry &&
       c.destinationCountry === this.receiverCountry &&
       c.sourceCurrency === this.senderCurrency &&
       c.destinationCurrency === this.receiverCurrency
-    ) || null;
+    );
 
-    if (!this.matchedCorridor) {
-      this.routeError = `No transfer route available from ${this.senderCountry} to ${this.receiverCountry}.`;
+    if (!corridor) {
+      this.store.setRouteState(null, null, null);
+      this.matchedPartners = [];
+      this.currentQuoteId = null;
+      this.calcError = 'No route found for this corridor.';
       return;
     }
 
-    this.matchedPartners = (this.matchedCorridor.payoutPartners ?? []).filter(p => p.isActive);
+    this.matchedPartners = corridor.payoutPartners?.filter((p: any) => p.isActive) ?? [];
+    const partner = this.matchedPartners[0] ?? null;
 
-    if (!this.selectedPaymentMethodId) return;
+    const payoutModes: number[] = partner?.paymentModeIds ?? [];
+    const payoutModeId = payoutModes[0] ?? null;
 
-    const matchingPartner = this.matchedPartners.find(p =>
-      p.paymentModeIds.includes(this.selectedPaymentMethodId!)
-    );
+    this.selectedPayoutModeId = payoutModeId;
+    this.selectedPartnerLocal = partner;
+    this.store.setRouteState(corridor, partner, payoutModeId);
+    this.store.setSelectedPaymentMethodId(this.selectedPaymentMethodId);
+    this.calcError = '';
 
-    if (matchingPartner) {
-      this.selectedPartnerId = matchingPartner.id;
-      this.selectedPartner = matchingPartner;
-      this.selectedPayoutModeId = this.selectedPaymentMethodId;
-      const allowedMethods = this.appSettings.availablePayoutMethods; // e.g. ['CashPickup', 'BankDeposit']
-      this.availablePayoutModes = this.paymentMethods.filter(pm =>
-        matchingPartner.paymentModeIds.includes(pm.id) &&
-        (allowedMethods.length === 0 || allowedMethods.some(m => pm.name.toLowerCase().includes(m.toLowerCase())))
-      );
-      // Sync to store
-      this.store.setRouteState(this.matchedCorridor, this.selectedPartner, this.selectedPayoutModeId);
+    if (partner) {
+      this.loadPayoutInfrastructure(partner.payoutAgentId);
+    } else if ((this.isCashTransfer() || this.isWalletTransfer()) && this.agentProfile?.id) {
+      this.loadPayoutInfrastructure(this.agentProfile.id);
+    }
+  }
+
+  private loadPayoutInfrastructure(agentId: number): void {
+    const methodName = this.resolvedPaymentMethodName();
+    if (methodName.includes('bank')) {
+      this.api.getAgentBanksForPayout(agentId).subscribe((r: any) => {
+        if (r.success) this.payoutBanks = r.data ?? [];
+      });
+    } else if (methodName.includes('cash') || methodName.includes('pickup')) {
+      this.api.getAgentCashLocations(agentId).subscribe((r: any) => {
+        if (r.success) this.payoutCashLocations = r.data ?? [];
+      });
+    } else if (methodName.includes('wallet') || methodName.includes('mobile')) {
+      this.api.getAgentWalletLocations(agentId).subscribe((r: any) => {
+        if (r.success) this.payoutLocations = r.data ?? [];
+      });
     } else {
-      this.routeError = `The selected payment method is not available for ${this.receiverCountry}. Please choose a different method.`;
-      this.store.setRouteState(null, null, null);
+      this.api.getAgentLocationsForPayout(agentId).subscribe((r: any) => {
+        if (r.success) this.payoutLocations = r.data ?? [];
+      });
     }
   }
 
-  // ---------------------------------------------------------------------------
-  // Step 3: Receiver Selection/Creation
-  // ---------------------------------------------------------------------------
+  private calculateViaBackend(): void {
+    if (!this.store.selectedPartner() || !this.selectedPaymentMethodId || this.sendAmountInput <= 0) return;
+    this.loadingCalc = true;
+    this.complianceViolations = [];
+    this.store.setCalculationDone(false);
 
-  loadReceivers(): void {
-    if (!this.selectedCustomerId) return;
-    const loadingForCustomerId = this.selectedCustomerId;
-    this.api.getAgentReceiversByCustomer(loadingForCustomerId).subscribe(r => {
-      // Guard: discard response if customer changed while request was in-flight
-      if (this.selectedCustomerId !== loadingForCustomerId) return;
-      if (r?.success && r.data) {
-        this.receivers = r.data.filter(rec => rec.isActive);
-        this.filterReceivers();
+    const dto: any = {
+      sendAmount: this.sendAmountInput,
+      sendCurrency: this.senderCurrency,
+      receiveCurrency: this.receiverCurrency,
+      senderCountry: this.senderCountry,
+      receiverCountry: this.receiverCountry,
+      paymentMethodId: this.selectedPaymentMethodId ?? 0,
+      paymentMethodName: this.paymentMethods.find(m => m.id === this.selectedPaymentMethodId)?.name ?? '',
+      payoutPartnerId: this.store.selectedPartner()!.payoutAgentId,
+    };
+
+    this.api.calculateTransfer(dto).subscribe({
+      next: (r: any) => {
+        this.loadingCalc = false;
+        if (r.success && r.data) {
+          this.receiveAmount = r.data.receiveAmount;
+          this.exchangeRate = r.data.exchangeRate;
+          this.serviceCharge = r.data.serviceCharge;
+          this.totalPayable = r.data.totalPayable;
+          this.currentQuoteId = r.data.quoteId ?? null;
+          this.complianceViolations = r.data.complianceViolations ?? [];
+
+          const blocked = this.complianceViolations.some((v: ComplianceViolation) => v.action === 'Block');
+          this.store.setComplianceBlocked(blocked);
+          this.store.setBalanceWarning(r.data.balanceWarning ?? '');
+          this.store.setCalculationDone(true);
+          this.calcError = '';
+
+          // Fetch field mappings after corridor resolved
+          const payoutAgentId = this.store.selectedPartner()!.payoutAgentId;
+          this.api.getAgentFieldMappings(payoutAgentId).subscribe((mr: any) => {
+            if (mr.success) this.store.setFieldMappings(mr.data ?? []);
+          });
+        } else {
+          this.calcError = r.message ?? 'Calculation failed.';
+          this.complianceViolations = [];
+          this.receiveAmount = 0;
+          this.exchangeRate = 0;
+          this.serviceCharge = 0;
+          this.totalPayable = 0;
+          this.currentQuoteId = null;
+          this.store.setComplianceBlocked(false);
+          this.store.setCalculationDone(false);
+        }
+      },
+      error: () => {
+        this.loadingCalc = false;
+        this.calcError = 'Calculation error. Please try again.';
+        this.complianceViolations = [];
+        this.receiveAmount = 0;
+        this.exchangeRate = 0;
+        this.serviceCharge = 0;
+        this.totalPayable = 0;
+        this.currentQuoteId = null;
+        this.store.setComplianceBlocked(false);
+      },
+    });
+  }
+
+  proceedFromCalculator(): void {
+    if (!this.store.canProceedStep0()) return;
+    this.api.getAgentCustomers().subscribe((r: any) => {
+      if (r.success) {
+        this.customers = r.data ?? [];
+        this.filteredCustomers = this.customers;
       }
     });
-    if (this.selectedPartner) {
-      this.api.getAgentBanksForPayout(this.selectedPartner.payoutAgentId).subscribe(r => {
-        if (r?.success && r.data) {
-          this.payoutBanks = r.data.filter(b => b.isActive);
-          if (this.selectedPayoutModeId) {
-            this.payoutBanks = this.payoutBanks.filter(b =>
-              !b.paymentMethodId || b.paymentMethodId === this.selectedPayoutModeId
-            );
+    this.goToStep(1, 'forward');
+  }
+
+  // ── Payout mode helpers ───────────────────────────────────────────────────
+  private resolvedPaymentMethodName(): string {
+    // Use Number() to handle string coercion from ngModel, fall back to store signal
+    const id = Number(this.selectedPaymentMethodId ?? this.store.selectedPaymentMethodId());
+    if (!id) return '';
+    return (this.paymentMethods.find(m => m.id === id)?.name ?? '').toLowerCase();
+  }
+
+  isBankTransfer(): boolean {
+    return this.resolvedPaymentMethodName().includes('bank');
+  }
+
+  isCashTransfer(): boolean {
+    const n = this.resolvedPaymentMethodName();
+    return n.includes('cash') || n.includes('pickup');
+  }
+
+  isWalletTransfer(): boolean {
+    const n = this.resolvedPaymentMethodName();
+    return n.includes('wallet') || n.includes('mobile');
+  }
+
+  // ── Customer search/select ────────────────────────────────────────────────
+  hideCustomerDropdownDelayed(): void {
+    setTimeout(() => { this.showCustomerDropdown = false; }, 200);
+  }
+
+  filterCustomers(): void {
+    const q = this.customerSearch.toLowerCase();
+    this.filteredCustomers = q
+      ? this.customers.filter(c => c.fullName.toLowerCase().includes(q) || (c.phone ?? '').toLowerCase().includes(q))
+      : this.customers;
+    this.showCustomerDropdown = true;
+  }
+
+  selectCustomer(c: CustomerModel): void {
+    this.store.setSelectedCustomer(c);
+    this.customerSearch = c.fullName;
+    this.showCustomerDropdown = false;
+    this.showCreateCustomer = false;
+
+    if (this.appSettings.kycEnabled && !c.isKycVerified) {
+      this.store.setKycWarning('Customer KYC not verified. Proceed with caution.');
+    } else {
+      this.store.setKycWarning('');
+    }
+
+    if (c.dateOfBirth) {
+      const age = Math.floor((Date.now() - new Date(c.dateOfBirth).getTime()) / 31557600000);
+      if (age < (this.appSettings.minimumAge ?? 18)) {
+        this.store.setDobWarning(`Customer is under ${this.appSettings.minimumAge ?? 18} years old.`);
+      } else {
+        this.store.setDobWarning('');
+      }
+    }
+
+    this.checkMissingCustomerFields(c);
+    this.api.getAgentReceiversByCustomer(c.id).subscribe((r: any) => {
+      if (r.success) {
+        this.receivers = r.data ?? [];
+        this.filteredReceivers = this.receivers;
+      }
+    });
+  }
+
+  clearSelectedCustomer(): void {
+    this.store.setSelectedCustomer(null);
+    this.store.setSelectedReceiver(null);
+    this.customerSearch = '';
+    this.receivers = [];
+    this.filteredReceivers = [];
+    this.showMissingCustomerForm = false;
+  }
+
+  toggleCreateCustomer(): void {
+    this.showCreateCustomer = !this.showCreateCustomer;
+    if (this.showCreateCustomer) {
+      this.customerForm.reset();
+      this.customerFormErrors = {};
+    }
+  }
+
+  // ── Missing fields logic ──────────────────────────────────────────────────
+  private checkMissingCustomerFields(c: CustomerModel): void {
+    if (this.store.apiType() !== 'thirdParty') {
+      this.store.setMissingCustomerFields([]);
+      return;
+    }
+    const data = c as any;
+    const missing = this.store.customerMappings().filter(m => m.isRequired && !data[m.ourColumn]);
+    this.store.setMissingCustomerFields(missing);
+    if (missing.length > 0) {
+      this.missingCustomerData = {};
+      this.showMissingCustomerForm = true;
+    }
+  }
+
+  private checkMissingReceiverFields(r: ReceiverModel): void {
+    if (this.store.apiType() !== 'thirdParty') {
+      this.store.setMissingReceiverFields([]);
+      return;
+    }
+    const data = r as any;
+    const missing = this.store.receiverMappings().filter(m => m.isRequired && !data[m.ourColumn]);
+    this.store.setMissingReceiverFields(missing);
+    if (missing.length > 0) {
+      this.missingReceiverData = {};
+      this.showMissingReceiverForm = true;
+    }
+  }
+
+  saveMissingCustomerFields(): void {
+    const customer = this.store.selectedCustomer();
+    if (!customer) return;
+    const missing = this.store.missingCustomerFields();
+    if (!missing.every(m => !!this.missingCustomerData[m.ourColumn])) {
+      this.notify.error('Please fill all required fields.');
+      return;
+    }
+    this.savingMissingCustomer = true;
+    this.api.updateAgentCustomer(customer.id, this.missingCustomerData).subscribe({
+      next: (r: any) => {
+        this.savingMissingCustomer = false;
+        if (r.success) {
+          this.store.setSelectedCustomer(r.data);
+          this.store.setMissingCustomerFields([]);
+          this.showMissingCustomerForm = false;
+          this.notify.success('Customer profile updated.');
+        } else {
+          this.notify.error(r.message ?? 'Update failed.');
+        }
+      },
+      error: () => { this.savingMissingCustomer = false; this.notify.error('Update failed.'); },
+    });
+  }
+
+  saveMissingReceiverFields(): void {
+    const receiver = this.store.selectedReceiver();
+    if (!receiver) return;
+    const missing = this.store.missingReceiverFields();
+    if (!missing.every(m => !!this.missingReceiverData[m.ourColumn])) {
+      this.notify.error('Please fill all required fields.');
+      return;
+    }
+    this.savingMissingReceiver = true;
+    this.api.updateAgentReceiver(receiver.id, this.missingReceiverData).subscribe({
+      next: (r: any) => {
+        this.savingMissingReceiver = false;
+        if (r.success) {
+          this.store.setSelectedReceiver(r.data);
+          this.store.setMissingReceiverFields([]);
+          this.showMissingReceiverForm = false;
+          this.notify.success('Receiver profile updated.');
+        } else {
+          this.notify.error(r.message ?? 'Update failed.');
+        }
+      },
+      error: () => { this.savingMissingReceiver = false; this.notify.error('Update failed.'); },
+    });
+  }
+
+  // ── Create customer ───────────────────────────────────────────────────────
+  private validateCustomerForm(): boolean {
+    const v = this.customerForm.value;
+    let schema: z.ZodTypeAny = CustomerFormSchema;
+    if (this.store.apiType() === 'thirdParty') {
+      const shape: Record<string, z.ZodTypeAny> = {};
+      this.store.customerMappings().forEach(m => {
+        shape[m.ourColumn] = m.isRequired ? z.string().min(1, `${m.ourColumn} is required`) : z.string().optional();
+      });
+      schema = z.object(shape);
+    }
+    const result = schema.safeParse(v);
+    if (!result.success) {
+      this.customerFormErrors = {};
+      (result.error?.issues ?? []).forEach(e => {
+        if (e.path[0]) this.customerFormErrors[e.path[0] as string] = e.message;
+      });
+      return false;
+    }
+    this.customerFormErrors = {};
+    return true;
+  }
+
+  saveNewCustomer(): void {
+    if (!this.validateCustomerForm()) return;
+    this.savingCustomer = true;
+    const v = this.customerForm.value;
+    const dto: any = {
+      fullName: v.fullName, phone: v.phone, email: v.email || null,
+      dateOfBirth: v.dateOfBirth, gender: v.gender || null,
+      nationality: v.nationality, country: v.country,
+      city: v.city || null, state: v.state || null,
+      postalCode: v.postalCode || null, address: v.address || null,
+      idDocumentType: v.idDocumentType, idDocumentNumber: v.idDocumentNumber,
+      docIssueDate: v.docIssueDate, docExpiryDate: v.docExpiryDate,
+      docIssuingCountry: v.docIssuingCountry || null,
+    };
+    this.api.createAgentCustomer(dto).subscribe({
+      next: (r: any) => {
+        this.savingCustomer = false;
+        if (r.success && r.data) {
+          this.customers = [r.data, ...this.customers];
+          this.filteredCustomers = this.customers;
+          this.selectCustomer(r.data);
+          this.showCreateCustomer = false;
+          if ((this.customerFrontFile || this.customerBackFile) && !this.appSettings.skipDocumentUpload) {
+            const fd = new FormData();
+            fd.append('customerId', String(r.data.id));
+            fd.append('documentType', v.idDocumentType ?? '');
+            if (this.customerFrontFile) fd.append('frontImage', this.customerFrontFile);
+            if (this.customerBackFile) fd.append('backImage', this.customerBackFile);
+            this.api.uploadDocument(fd).subscribe();
           }
+        } else {
+          this.notify.error(r.message ?? 'Failed to create customer.');
         }
-      });
-      this.api.getAgentLocationsForPayout(this.selectedPartner.payoutAgentId).subscribe(r => {
-        if (r?.success && r.data) {
-          this.payoutLocations = r.data.filter(l => l.isActive);
-        }
-      });
-    }
-  }
-
-  filterReceivers(): void {
-    const s = this.receiverSearch.toLowerCase();
-    const bankNames = this.payoutBanks.map(b => b.bankName.toLowerCase());
-
-    let filtered = this.receivers.filter(r => {
-      // Only filter by country when a destination country has been selected
-      if (this.receiverCountry && r.country !== this.receiverCountry) return false;
-      if (bankNames.length && r.bankName) {
-        if (!bankNames.includes(r.bankName.toLowerCase())) return false;
-      }
-      return true;
+      },
+      error: () => { this.savingCustomer = false; this.notify.error('Failed to create customer.'); },
     });
-
-    if (s) {
-      filtered = filtered.filter(r =>
-        r.fullName.toLowerCase().includes(s) ||
-        (r.phone || '').toLowerCase().includes(s)
-      );
-    }
-    this.filteredReceivers = filtered;
   }
 
-  selectReceiver(receiver: ReceiverModel): void {
-    this.selectedReceiverId = receiver.id;
-    this.selectedReceiver = receiver;
-    this.store.setSelectedReceiver(receiver);
+  onFrontFileChange(e: Event): void {
+    const f = (e.target as HTMLInputElement).files?.[0];
+    if (!f) return;
+    this.customerFrontFile = f;
+    const rd = new FileReader();
+    rd.onload = ev => this.customerFrontPreview = ev.target?.result as string;
+    rd.readAsDataURL(f);
+  }
+
+  onBackFileChange(e: Event): void {
+    const f = (e.target as HTMLInputElement).files?.[0];
+    if (!f) return;
+    this.customerBackFile = f;
+    const rd = new FileReader();
+    rd.onload = ev => this.customerBackPreview = ev.target?.result as string;
+    rd.readAsDataURL(f);
+  }
+
+  proceedToReceiver(): void {
+    if (!this.store.canProceedCustomer()) return;
+    this.goToSubStep('receiver', 'forward');
+  }
+
+  // ── Receiver search/select ────────────────────────────────────────────────
+  filterReceivers(): void {
+    const q = this.receiverSearch.toLowerCase();
+    this.filteredReceivers = q
+      ? this.receivers.filter(r => r.fullName.toLowerCase().includes(q) || (r.phone ?? '').toLowerCase().includes(q))
+      : this.receivers;
+  }
+
+  selectReceiver(r: ReceiverModel): void {
+    this.store.setSelectedReceiver(r);
+    this.showCreateReceiver = false;
+    this.checkMissingReceiverFields(r);
+    if (r.country) this.receiverCountry = r.country;
+    this.savedPayoutDetails = [];
+    this.selectedSavedDetail = null;
+    this.showPayoutSwapPanel = false;
+    this.showNewAccountForm = false;
+    this.transactionPayoutDetails = { bankName: null, bankCode: null, bankId: null, accountNumber: null, branchName: null, branchCode: null, branchId: null };
+    this.loadReceiverPaymentDetail();
   }
 
   clearSelectedReceiver(): void {
-    this.selectedReceiverId = null;
-    this.selectedReceiver = null;
     this.store.setSelectedReceiver(null);
+    this.showMissingReceiverForm = false;
+    this.transactionPayoutDetails = { bankName: null, bankCode: null, bankId: null, accountNumber: null, branchName: null, branchCode: null, branchId: null };
+    this.savedPayoutDetails = [];
+    this.selectedSavedDetail = null;
+    this.showPayoutSwapPanel = false;
+    this.showNewAccountForm = false;
   }
 
   toggleCreateReceiver(): void {
     this.showCreateReceiver = !this.showCreateReceiver;
-    this.receiverFormError = '';
-    this.receiverFormErrors = {};
     if (this.showCreateReceiver) {
       this.receiverForm.reset();
-      this.receiverForm.patchValue({ country: this.receiverCountry });
+      this.receiverFormErrors = {};
     }
   }
 
-  saveNewReceiver(): void {
-    this.receiverFormError = '';
+  private validateReceiverForm(): boolean {
+    const v = this.receiverForm.value;
+    let schema: z.ZodTypeAny = ReceiverFormSchema;
+    if (this.store.apiType() === 'thirdParty') {
+      const shape: Record<string, z.ZodTypeAny> = {};
+      this.store.receiverMappings().forEach(m => {
+        shape[m.ourColumn] = m.isRequired ? z.string().min(1, `${m.ourColumn} is required`) : z.string().optional();
+      });
+      schema = z.object(shape);
+    }
+    const result = schema.safeParse(v);
+    if (!result.success) {
+      this.receiverFormErrors = {};
+      (result.error?.issues ?? []).forEach(e => {
+        if (e.path[0]) this.receiverFormErrors[e.path[0] as string] = e.message;
+      });
+      return false;
+    }
     this.receiverFormErrors = {};
-
-    // Zod validation
-    if (!this.validateReceiverForm()) {
-      this.receiverFormError = 'Please fix the highlighted fields.';
-      return;
-    }
-
-    // Bank transfer: bank name + account number mandatory
-    if (this.isBankTransfer()) {
-      const fv = this.receiverForm.getRawValue();
-      let hasFieldErrors = false;
-      if (!this.selectedBankId && !fv.bankName?.trim()) {
-        this.receiverFormErrors['bankName'] = 'Bank name is required.';
-        hasFieldErrors = true;
-      }
-      if (!fv.accountNumber?.trim()) {
-        this.receiverFormErrors['accountNumber'] = 'Account number is required.';
-        hasFieldErrors = true;
-      }
-      if (hasFieldErrors) {
-        this.receiverFormError = 'Please fix the highlighted fields.';
-        return;
-      }
-    }
-
-    // Compliance fields (if required by settings)
-    if (this.requirePurpose && !this.purpose.trim()) {
-      this.receiverFormError = 'Purpose of remittance is required.';
-      return;
-    }
-    if (this.requireSourceOfFunds && !this.sourceOfFunds.trim()) {
-      this.receiverFormError = 'Source of funds is required.';
-      return;
-    }
-
-    // Duplicate receiver check
-    const fvDup = this.receiverForm.getRawValue();
-    const dupName = (fvDup.fullName || '').trim().toLowerCase();
-    const dupPhone = (fvDup.phone || '').trim();
-    const dupAccount = (fvDup.accountNumber || '').trim();
-    const dupBankCode = (() => {
-      if (this.selectedBankId) {
-        return this.payoutBanks.find(b => b.id === this.selectedBankId)?.bankCode?.trim() || '';
-      }
-      return (fvDup.bankCode || '').trim();
-    })();
-    const dupCountry = (fvDup.country || this.receiverCountry || '').trim();
-
-    const isDuplicate = this.receivers.some(r => {
-      const rName = r.fullName.trim().toLowerCase();
-      if (rName !== dupName) return false;
-      if (this.isBankTransfer()) {
-        const rAccount = (r.accountNumber || '').trim();
-        const rBankCode = (r.bankCode || '').trim();
-        return rAccount === dupAccount && rBankCode === dupBankCode;
-      } else {
-        // Cash / Wallet: match by name + country + phone
-        return (r.country || '').trim() === dupCountry && (r.phone || '').trim() === dupPhone;
-      }
-    });
-
-    if (isDuplicate) {
-      this.receiverFormError = 'A receiver with the same details already exists. Please select them from the list instead.';
-      return;
-    }
-
-    this.savingReceiver = true;
-    const formValue = this.receiverForm.getRawValue();
-
-    const newReceiver: any = {
-      fullName: formValue.fullName || '',
-      phone: formValue.phone || '',
-      email: formValue.email || '',
-      country: formValue.country || '',
-      city: formValue.city || '',
-      bankName: formValue.bankName || '',
-      bankCode: formValue.bankCode || '',
-      accountNumber: formValue.accountNumber || '',
-      branchName: formValue.branchName || '',
-      branchCode: formValue.branchCode || '',
-      bankId: formValue.bankId || null,
-      branchId: formValue.branchId || null,
-      relationship: formValue.relationship || '',
-    };
-
-    // Populate bank/branch IDs from selected payout bank/branch
-    const selBank = this.selectedBankId ? this.payoutBanks.find(b => b.id === this.selectedBankId) : null;
-    if (selBank) {
-      newReceiver.bankCode = selBank.bankCode || '';
-      newReceiver.bankId = selBank.id;
-    }
-    if (this.selectedBranch) {
-      newReceiver.branchName = this.selectedBranch.branchName;
-      newReceiver.branchCode = this.selectedBranch.branchCode || '';
-      newReceiver.branchId = this.selectedBranch.id;
-    }
-    const dto = { ...newReceiver, customerId: this.selectedCustomerId };
-    this.api.createAgentReceiver(dto).subscribe({
-      next: res => {
-        if (res?.success && res.data) {
-          this.receivers.push(res.data);
-          this.filterReceivers();
-          this.selectReceiver(res.data);
-          this.showCreateReceiver = false;
-          this.notify.success('Receiver created!');
-        } else {
-          this.receiverFormError = res?.message || 'Failed.';
-        }
-        this.savingReceiver = false;
-      },
-      error: () => {
-        this.receiverFormError = 'Server error.';
-        this.savingReceiver = false;
-      },
-    });
-  }
-
-  getPayoutModeName(): string {
-    return this.paymentMethods.find(pm => pm.id === this.selectedPayoutModeId)?.name || '';
-  }
-
-  isCashTransfer(): boolean {
-    const name = this.getPayoutModeName().toLowerCase();
-    return name.includes('cash');
-  }
-
-  isBankTransfer(): boolean {
-    const name = this.getPayoutModeName().toLowerCase();
-    return name.includes('bank');
-  }
-
-  isWalletTransfer(): boolean {
-    const name = this.getPayoutModeName().toLowerCase();
-    return name.includes('wallet') || name.includes('mobile');
-  }
-
-  onBankSelected(): void {
-    this.selectedBranch = null;
-    const bank = this.payoutBanks.find(b => b.id === this.selectedBankId);
-    if (bank) {
-      this.receiverForm.patchValue({
-        bankName: bank.bankName,
-        bankCode: bank.bankCode || '',
-        bankId: bank.id,
-      });
-    }
-  }
-
-  onLocationSelected(): void {
-    const loc = this.payoutLocations.find(l => l.id === this.selectedLocationId);
-    if (loc) {
-      this.receiverForm.patchValue({
-        bankName: loc.locationName,
-        bankCode: loc.locationCode || '',
-        bankId: loc.id,
-      });
-    }
-  }
-
-  // ---------------------------------------------------------------------------
-  // Branch Popup
-  // ---------------------------------------------------------------------------
-
-  openBranchPopup(): void {
-    const bank = this.selectedBankId
-      ? this.payoutBanks.find(b => b.id === this.selectedBankId)
-      : null;
-    if (!bank) return;
-    this.branchBank = bank;
-    this.branchList = (bank.branches || []).filter(br => br.isActive);
-    this.filteredBranches = [...this.branchList];
-    this.branchSearch = '';
-    this.showBranchPopup = true;
-  }
-
-  filterBranches(): void {
-    const s = this.branchSearch.toLowerCase();
-    this.filteredBranches = !s
-      ? [...this.branchList]
-      : this.branchList.filter(br =>
-          br.branchName.toLowerCase().includes(s) ||
-          (br.branchCode || '').toLowerCase().includes(s) ||
-          (br.address || '').toLowerCase().includes(s)
-        );
-  }
-
-  selectBranch(branch: AgentBankBranchModel): void {
-    this.selectedBranch = branch;
-    this.showBranchPopup = false;
-  }
-
-  closeBranchPopup(): void {
-    this.showBranchPopup = false;
-  }
-
-  // ---------------------------------------------------------------------------
-  // Stepper Navigation
-  // ---------------------------------------------------------------------------
-
-  canProceedStep1(): boolean {
-    return !!this.selectedCustomer && !this.kycWarning && !this.dobWarning;
-  }
-
-  canProceedStep2(): boolean {
-    return this.calculationDone && !this.complianceBlocked && !this.balanceWarning
-      && !!this.selectedPartner && !!this.selectedPayoutModeId
-      && this.sendAmount > 0 && !!this.selectedPaymentMethodId
-      && !this.agentBalanceZero && !this.exceedsSingleLimit;
-  }
-
-  canProceedStep3(): boolean {
-    if (!this.selectedReceiver) return false;
-    // Compliance fields are always required (purpose + source of funds)
-    if (!this.purpose.trim()) return false;
-    if (!this.sourceOfFunds.trim()) return false;
     return true;
   }
 
-  nextStep(): void {
-    if (this.step === 0 && !this.canProceedStep1()) {
-      this.notify.error('Please select or create a customer first.');
-      return;
-    }
-    if (this.step === 1 && !this.canProceedStep2()) {
-      this.notify.error('Please complete all transfer details.');
-      return;
-    }
-    if (this.step === 1) {
-      this.loadReceivers();
-    }
-    if (this.step === 2 && !this.canProceedStep3()) {
-      if (!this.selectedReceiver) {
-        this.notify.error('Please select or create a receiver.');
-      } else if (this.requirePurpose && !this.purpose.trim()) {
-        this.notify.error('Purpose of remittance is required.');
-      } else if (this.requireSourceOfFunds && !this.sourceOfFunds.trim()) {
-        this.notify.error('Source of funds is required.');
-      }
-      return;
-    }
-    this.store.nextStep();
-  }
-
-  prevStep(): void {
-    this.store.prevStep();
-  }
-
-  // ---------------------------------------------------------------------------
-  // Submit Transaction
-  // ---------------------------------------------------------------------------
-
-  submitTransaction(): void {
-    if (!this.selectedCustomer || !this.selectedReceiver || !this.selectedPartner) {
-      this.notify.error('Missing required data.');
-      return;
-    }
-
-    this.submitting = true;
-    this.api.getTransactionPinStatus().subscribe({
-      next: (res: any) => {
-        this.submitting = false;
-        const hasPin = res?.data ?? false;
-        if (!hasPin) {
-          this.pinMode = 'set';
-          this.pinInput = '';
-          this.pinConfirm = '';
-          this.pinError = '';
-          this.showPinDialog = true;
+  saveNewReceiver(): void {
+    if (!this.validateReceiverForm()) return;
+    this.savingReceiver = true;
+    const customer = this.store.selectedCustomer();
+    if (!customer) { this.savingReceiver = false; return; }
+    const v = this.receiverForm.value;
+    const dto: any = {
+      customerId: customer.id,
+      fullName: v.fullName, phone: v.phone, email: v.email || null,
+      country: v.country || null, city: v.city || null,
+      bankName: v.bankName || null, bankCode: v.bankCode || null,
+      accountNumber: v.accountNumber || null, branchName: v.branchName || null,
+      branchCode: v.branchCode || null, bankId: v.bankId || null,
+      branchId: v.branchId || null, relationship: v.relationship || null,
+    };
+    this.api.createAgentReceiver(dto).subscribe({
+      next: (r: any) => {
+        this.savingReceiver = false;
+        if (r.success && r.data) {
+          this.receivers = [r.data, ...this.receivers];
+          this.filteredReceivers = this.receivers;
+          this.selectReceiver(r.data);
+          this.showCreateReceiver = false;
         } else {
-          this.pinMode = 'verify';
-          this.pinInput = '';
-          this.pinError = '';
-          this.showPinDialog = true;
+          this.notify.error(r.message ?? 'Failed to create receiver.');
         }
       },
+      error: () => { this.savingReceiver = false; this.notify.error('Failed to create receiver.'); },
+    });
+  }
+
+  // ── Bank / branch ─────────────────────────────────────────────────────────
+  onBankSelected(bank: AgentBankModel): void {
+    this.receiverForm.patchValue({ bankName: bank.bankName, bankCode: bank.bankCode ?? '', bankId: bank.id, branchName: '', branchCode: '', branchId: null, accountNumber: '' });
+    this.allBranches = bank.branches ?? [];
+    this.filteredBranches = bank.branches ?? [];
+    if (bank.branches?.length) {
+      this.branchBankName = bank.bankName;
+      this.branchContext = 'form';
+      this.showBranchPopup = true;
+    }
+  }
+
+  onLocationSelected(location: AgentLocationModel): void {
+    this.receiverForm.patchValue({ bankName: location.locationName, bankCode: location.locationCode ?? '', bankId: location.id, accountNumber: '' });
+  }
+
+  onCashLocationSelected(bank: AgentBankModel): void {
+    this.receiverForm.patchValue({ bankName: bank.bankName, bankCode: bank.bankCode ?? '', bankId: bank.id });
+  }
+
+  private loadReceiverPaymentDetail(): void {
+    const rv = this.store.selectedReceiver();
+    if (!rv) return;
+    const methodType = this.isCashTransfer() ? 'cash' : this.isWalletTransfer() ? 'wallet' : 'bank';
+    this.api.getReceiverPaymentDetails(rv.id, methodType).subscribe((r: any) => {
+      const list: any[] = r?.data ?? [];
+      this.savedPayoutDetails = list;
+      if (list.length > 0) {
+        this.selectedSavedDetail = list[0];
+        this.showNewAccountForm = false;
+      } else {
+        this.selectedSavedDetail = null;
+        this.showNewAccountForm = true;
+      }
+    });
+  }
+
+  selectSavedDetail(d: any): void {
+    this.selectedSavedDetail = d;
+    this.showPayoutSwapPanel = false;
+    this.showNewAccountForm = false;
+  }
+
+  useNewPayoutDetail(): void {
+    this.selectedSavedDetail = null;
+    this.showPayoutSwapPanel = false;
+    this.showNewAccountForm = true;
+    this.transactionPayoutDetails = { bankName: null, bankCode: null, bankId: null, accountNumber: null, branchName: null, branchCode: null, branchId: null };
+  }
+
+  togglePayoutSwapPanel(): void {
+    this.showPayoutSwapPanel = !this.showPayoutSwapPanel;
+  }
+
+  onBankSelectedTxn(bank: AgentBankModel): void {
+    this.transactionPayoutDetails = {
+      bankName: bank.bankName, bankCode: bank.bankCode ?? null, bankId: bank.id,
+      accountNumber: this.transactionPayoutDetails.accountNumber,
+      branchName: null, branchCode: null, branchId: null,
+    };
+    this.allBranches = bank.branches ?? [];
+    this.filteredBranches = bank.branches ?? [];
+    if (bank.branches?.length) { this.branchBankName = bank.bankName; this.branchContext = 'txn'; this.showBranchPopup = true; }
+  }
+
+  onCashLocationSelectedTxn(bank: AgentBankModel): void {
+    this.transactionPayoutDetails = {
+      bankName: bank.bankName, bankCode: bank.bankCode ?? null, bankId: bank.id,
+      accountNumber: null, branchName: null, branchCode: null, branchId: null,
+    };
+  }
+
+  onLocationSelectedTxn(loc: AgentLocationModel): void {
+    this.transactionPayoutDetails = {
+      bankName: loc.locationName, bankCode: loc.locationCode ?? null, bankId: loc.id,
+      accountNumber: this.transactionPayoutDetails.accountNumber,
+      branchName: null, branchCode: null, branchId: null,
+    };
+  }
+
+  selectBranchTxn(branch: any): void {
+    this.transactionPayoutDetails = { ...this.transactionPayoutDetails, branchName: branch.branchName, branchCode: branch.branchCode ?? null, branchId: branch.id };
+    this.showBranchPopup = false;
+  }
+
+  filterBranches(): void {
+    const q = this.branchSearch.toLowerCase();
+    this.filteredBranches = q
+      ? this.allBranches.filter(b => b.branchName.toLowerCase().includes(q) || (b.branchCode ?? '').toLowerCase().includes(q))
+      : this.allBranches;
+  }
+
+  selectBranch(branch: any): void {
+    this.receiverForm.patchValue({ branchName: branch.branchName, branchCode: branch.branchCode ?? '', branchId: branch.id });
+    this.showBranchPopup = false;
+  }
+
+  proceedFromCustomerReceiver(): void {
+    if (!this.store.canProceedStep1()) return;
+    const sd = this.selectedSavedDetail;
+    const pd = this.transactionPayoutDetails;
+    if (this.isBankTransfer()) {
+      const acctNum = sd?.accountNumber ?? pd.accountNumber;
+      if (!acctNum) { this.notify.error('Account number is required for bank transfer.'); return; }
+    }
+    if (this.isWalletTransfer()) {
+      const acctNum = sd?.accountNumber ?? pd.accountNumber;
+      if (!acctNum) { this.notify.error('Wallet number is required for wallet transfer.'); return; }
+    }
+    if (this.isCashTransfer()) {
+      const loc = sd?.bankName ?? pd.bankName;
+      if (!loc) { this.notify.error('Payout location is required for cash payment.'); return; }
+    }
+    this.goToStep(2, 'forward');
+  }
+
+  proceedFromCompliance(): void {
+    this.goToStep(3, 'forward');
+  }
+
+  // ── Submit / PIN ──────────────────────────────────────────────────────────
+  submitTransaction(): void {
+    const partner = this.store.selectedPartner();
+    if (!partner) return;
+
+    this.lockingRate = true;
+    this.api.createRateQuote(
+      this.senderCurrency,
+      this.receiverCurrency,
+      partner.payoutAgentId,
+      this.receiverCountry
+    ).subscribe({
+      next: (r: any) => {
+        this.lockingRate = false;
+        if (!r.success) {
+          this.notify.error(r.message ?? 'Failed to lock exchange rate. Please try again.');
+          return;
+        }
+        this.currentQuoteId = r.data?.quoteId ?? null;
+        this.pinInput = '';
+        this.pinConfirm = '';
+        this.pinError = '';
+        this.api.getTransactionPinStatus().subscribe((pr: any) => {
+          this.pinMode = pr?.data === true ? 'verify' : 'set';
+          this.showPinDialog = true;
+        });
+      },
       error: () => {
-        this.submitting = false;
-        this.notify.error('Failed to check PIN status. Please try again.');
+        this.lockingRate = false;
+        this.notify.error('Failed to lock exchange rate. Please try again.');
       },
     });
   }
 
   onPinSubmit(): void {
     this.pinError = '';
-
+    if (!/^\d{4,6}$/.test(this.pinInput)) {
+      this.pinError = 'PIN must be 4–6 digits.';
+      return;
+    }
     if (this.pinMode === 'set') {
-      if (!this.pinInput || this.pinInput.length < 4 || this.pinInput.length > 6) {
-        this.pinError = 'PIN must be 4-6 digits.';
-        return;
-      }
-      if (!/^\d+$/.test(this.pinInput)) {
-        this.pinError = 'PIN must contain only digits.';
-        return;
-      }
-      if (this.pinInput !== this.pinConfirm) {
-        this.pinError = 'PINs do not match.';
-        return;
-      }
-      this.pinLoading = true;
-      this.api.setTransactionPin(this.pinInput).subscribe({
-        next: (res: any) => {
-          this.pinLoading = false;
-          if (res?.success) {
-            this.notify.success('Transaction PIN set successfully.');
-            this.pinMode = 'verify';
-            this.pinInput = '';
-            this.pinError = '';
-          } else {
-            this.pinError = res?.message || 'Failed to set PIN.';
-          }
-        },
-        error: (err: any) => {
-          this.pinLoading = false;
-          this.pinError = err?.error?.message || 'Failed to set PIN.';
-        },
+      if (this.pinInput !== this.pinConfirm) { this.pinError = 'PINs do not match.'; return; }
+      this.api.setTransactionPin(this.pinInput).subscribe((r: any) => {
+        if (r?.success) { this.showPinDialog = false; this.executeSendTransaction(); }
+        else this.pinError = r?.message ?? 'Failed to set PIN.';
       });
     } else {
-      if (!this.pinInput || this.pinInput.length < 4 || this.pinInput.length > 6) {
-        this.pinError = 'Enter your 4-6 digit PIN.';
-        return;
-      }
-      this.pinLoading = true;
-      this.api.verifyTransactionPin(this.pinInput).subscribe({
-        next: (res: any) => {
-          this.pinLoading = false;
-          if (res?.success) {
-            this.showPinDialog = false;
-            this.pinInput = '';
-            this.executeSendTransaction();
-          } else {
-            this.pinError = res?.message || 'Invalid PIN.';
-          }
-        },
-        error: (err: any) => {
-          this.pinLoading = false;
-          this.pinError = err?.error?.message || 'Invalid PIN. Please try again.';
-        },
+      this.api.verifyTransactionPin(this.pinInput).subscribe((r: any) => {
+        if (r?.success) { this.showPinDialog = false; this.executeSendTransaction(); }
+        else this.pinError = r?.message ?? 'Incorrect PIN.';
       });
     }
-  }
-
-  closePinDialog(): void {
-    this.showPinDialog = false;
-    this.pinInput = '';
-    this.pinConfirm = '';
-    this.pinError = '';
   }
 
   private executeSendTransaction(): void {
-    if (!this.selectedCustomer || !this.selectedReceiver || !this.selectedPartner) {
-      return;
-    }
-
-    this.submitting = true;
-
-    const selectedBank = this.selectedBankId
-      ? this.payoutBanks.find(b => b.id === this.selectedBankId)
-      : null;
-    const selectedLocation = this.selectedLocationId
-      ? this.payoutLocations.find(l => l.id === this.selectedLocationId)
-      : null;
-
-    let receiverBankName = this.selectedReceiver.bankName || '';
-    let receiverBankCode = '';
-    let receiverBranchName = '';
-    let receiverBranchCode = '';
-    let receiverBankId: number | undefined = undefined;
-    let receiverBranchId: number | undefined = undefined;
-
-    if (this.isBankTransfer() && selectedBank) {
-      receiverBankName = receiverBankName || selectedBank.bankName;
-      receiverBankCode = selectedBank.bankCode || '';
-      receiverBankId = selectedBank.id;
-      if (this.selectedBranch) {
-        receiverBranchName = this.selectedBranch.branchName;
-        receiverBranchCode = this.selectedBranch.branchCode || '';
-        receiverBranchId = this.selectedBranch.id;
-      }
-    } else if (this.isCashTransfer() && selectedLocation) {
-      receiverBankName = receiverBankName || selectedLocation.locationName;
-      receiverBankCode = selectedLocation.locationCode || '';
-      receiverBankId = selectedLocation.id;
-    } else if (this.isWalletTransfer() && selectedLocation) {
-      receiverBankName = receiverBankName || selectedLocation.locationName;
-      receiverBankCode = selectedLocation.locationCode || '';
-      receiverBankId = selectedLocation.id;
-    } else if (selectedBank) {
-      receiverBankName = receiverBankName || selectedBank.bankName;
-      receiverBankCode = selectedBank.bankCode || '';
-      receiverBankId = selectedBank.id;
-    }
-
-    if (!receiverBankId && this.selectedReceiver.bankId) {
-      receiverBankId = this.selectedReceiver.bankId;
-    }
-    if (!receiverBankCode && this.selectedReceiver.bankCode) {
-      receiverBankCode = this.selectedReceiver.bankCode;
-    }
-    if (!receiverBranchId && this.selectedReceiver.branchId) {
-      receiverBranchId = this.selectedReceiver.branchId;
-    }
-    if (!receiverBranchName && this.selectedReceiver.branchName) {
-      receiverBranchName = this.selectedReceiver.branchName;
-    }
-    if (!receiverBranchCode && this.selectedReceiver.branchCode) {
-      receiverBranchCode = this.selectedReceiver.branchCode;
-    }
-
-    const paymentMethodName = this.paymentMethods.find(pm => pm.id === this.selectedPaymentMethodId)?.name || '';
-    const payoutMethodName = this.paymentMethods.find(pm => pm.id === this.selectedPayoutModeId)?.name || '';
-
-    const model: SendTransactionModel = {
-      senderName: this.selectedCustomer.fullName,
-      senderPhone: this.selectedCustomer.phone || '',
-      senderEmail: this.selectedCustomer.email,
-      senderIdType: this.selectedCustomer.idDocumentType,
-      senderIdNumber: this.selectedCustomer.idDocumentNumber,
-      senderCountry: this.senderCountry,
-      receiverName: this.selectedReceiver.fullName,
-      receiverPhone: this.selectedReceiver.phone,
-      receiverEmail: this.selectedReceiver.email,
-      receiverCountry: this.receiverCountry,
-      receiverBankName: receiverBankName,
-      receiverBankCode: receiverBankCode,
-      receiverAccountNumber: this.selectedReceiver.accountNumber || '',
-      receiverBranchName: receiverBranchName,
-      receiverBranchCode: receiverBranchCode,
-      receiverBankId: receiverBankId,
-      receiverBranchId: receiverBranchId,
-      sendAmount: this.sendAmount,
-      sendCurrency: this.senderCurrency,
-      receiveCurrency: this.receiverCurrency,
-      paymentMethod: this.selectedPaymentMethodId || 0,
-      payoutMethod: this.selectedPayoutModeId || 0,
-      paymentMethodName: paymentMethodName,
-      payoutMethodName: payoutMethodName,
-      payoutPartnerId: this.selectedPartner?.payoutAgentId,
-      customerId: this.selectedCustomerId || undefined,
-      receiverId: this.selectedReceiverId || undefined,
-      purpose: this.purpose || undefined,
-      sourceOfFunds: this.sourceOfFunds || undefined,
+    this.store.setSubmitting(true);
+    const c = this.store.selectedCustomer()!;
+    const rv = this.store.selectedReceiver()!;
+    const partner = this.store.selectedPartner()!;
+    const sd = this.selectedSavedDetail;
+    const pd = this.transactionPayoutDetails;
+    const dto: any = {
+      senderName: c.fullName, senderPhone: c.phone, senderEmail: c.email,
+      senderIdType: (c as any).idDocumentType, senderIdNumber: (c as any).idDocumentNumber, senderCountry: c.country,
+      receiverName: rv.fullName, receiverPhone: rv.phone, receiverEmail: rv.email, receiverCountry: rv.country,
+      receiverBankName:      sd?.bankName      ?? pd.bankName      ?? rv.bankName,
+      receiverBankCode:      sd?.bankCode      ?? pd.bankCode      ?? rv.bankCode,
+      receiverAccountNumber: sd?.accountNumber ?? pd.accountNumber ?? rv.accountNumber,
+      receiverBranchName:    sd?.branchName    ?? pd.branchName    ?? rv.branchName,
+      receiverBranchCode:    sd?.branchCode    ?? pd.branchCode    ?? rv.branchCode,
+      receiverBankId:        sd?.bankId        ?? pd.bankId        ?? rv.bankId,
+      receiverBranchId:      sd?.branchId      ?? pd.branchId      ?? rv.branchId,
+      sendAmount: this.sendAmountInput, sendCurrency: this.senderCurrency, receiveCurrency: this.receiverCurrency,
+      paymentMethod: this.resolvePaymentMethodEnum(this.resolvedPaymentMethodName()),
+      paymentMethodName: this.paymentMethods.find(m => m.id === this.selectedPaymentMethodId)?.name ?? '',
+      payoutMethod: this.resolvePaymentMethodEnum(this.paymentMethods.find(m => m.id === this.selectedPayoutModeId)?.name ?? ''),
+      payoutMethodName: this.paymentMethods.find(m => m.id === this.selectedPayoutModeId)?.name ?? '',
+      payoutPartnerId: partner.payoutAgentId,
+      customerId: c.id, receiverId: rv.id, purpose: this.purpose, sourceOfFunds: this.sourceOfFunds, relationship: this.relationship,
+      quoteId: this.currentQuoteId,
     };
-
-    this.api.sendTransaction(model).subscribe({
-      next: res => {
-        if (res?.success && res.data) {
-          this.successResult = res.data;
-          this.store.setSuccessResult(res.data);
-        } else {
-          this.notify.error(res?.message || 'Failed to submit transaction.');
-        }
-        this.submitting = false;
+    this.api.sendTransaction(dto).subscribe({
+      next: (r: any) => {
+        this.store.setSubmitting(false);
+        if (r.success) this.store.setSuccessResult(r.data);
+        else this.notify.error(r.message ?? 'Transaction failed.');
       },
-      error: err => {
-        this.notify.error(`Error: ${err.message || 'Unknown error'}`);
-        this.submitting = false;
-      },
+      error: () => { this.store.setSubmitting(false); this.notify.error('Transaction submission failed.'); },
     });
   }
 
-  // ---------------------------------------------------------------------------
-  // PDF Receipt
-  // ---------------------------------------------------------------------------
-
+  // ── Receipt ───────────────────────────────────────────────────────────────
   downloadReceipt(): void {
-    if (!this.successResult) return;
-    const tx = this.successResult;
-
-    const content = `
-      <html><head><title>${this.appSettings.txnNumberPrefix} Receipt</title>
-      <style>
-        body { font-family: Arial, sans-serif; padding: 40px; color: #333; max-width: 600px; margin: 0 auto; }
-        h1 { text-align: center; color: #1a56db; font-size: 22px; margin-bottom: 4px; text-transform: uppercase; }
-        .subtitle { text-align: center; color: #666; font-size: 13px; margin-bottom: 30px; }
-        .ref { text-align: center; font-size: 16px; font-weight: bold; background: #f0f4ff; padding: 10px; border-radius: 8px; margin-bottom: 20px; }
-        table { width: 100%; border-collapse: collapse; margin: 16px 0; }
-        td { padding: 8px 12px; border-bottom: 1px solid #eee; font-size: 13px; }
-        td:first-child { font-weight: 600; color: #555; width: 40%; }
-        .section { font-size: 14px; font-weight: 700; color: #1a56db; padding: 12px 0 4px; border-bottom: 2px solid #1a56db; margin-top: 16px; }
-        .amount { font-size: 18px; font-weight: 700; color: #2e7d32; }
-        .footer { text-align: center; margin-top: 30px; font-size: 11px; color: #999; }
-      </style></head><body>
-      <h1>${this.appSettings.companyName || 'RemitAgent'}</h1>
-      <div class="subtitle">${this.appSettings.txnNumberPrefix} Receipt</div>
-      <div class="ref">Reference: ${tx.referenceNumber}</div>
-      <div class="section">Transaction Details</div>
-      <table>
-        <tr><td>Status</td><td>${this.getStatusLabel(tx.status)}</td></tr>
-        <tr><td>Date</td><td>${new Date(tx.createdAt).toLocaleString()}</td></tr>
-        <tr><td>Send Amount</td><td class="amount">${tx.sendAmount.toFixed(2)} ${tx.sendCurrency}</td></tr>
-        <tr><td>Exchange Rate</td><td>1 ${tx.sendCurrency} = ${tx.exchangeRateApplied.toFixed(4)} ${tx.receiveCurrency}</td></tr>
-        <tr><td>Receive Amount</td><td class="amount">${tx.receiveAmount.toFixed(2)} ${tx.receiveCurrency}</td></tr>
-        <tr><td>Commission</td><td>${tx.totalCommission.toFixed(2)} ${tx.sendCurrency}</td></tr>
-      </table>
-      <div class="section">Sender</div>
-      <table>
-        <tr><td>Name</td><td>${tx.senderName}</td></tr>
-      </table>
-      <div class="section">Receiver</div>
-      <table>
-        <tr><td>Name</td><td>${tx.receiverName}</td></tr>
-        <tr><td>Country</td><td>${tx.receiverCountry}</td></tr>
-      </table>
-      <div class="footer">This is a computer-generated receipt. No signature required.</div>
-      </body></html>
-    `;
-
-    const printWindow = window.open('', '_blank');
-    if (printWindow) {
-      printWindow.document.write(content);
-      printWindow.document.close();
-      printWindow.focus();
-      setTimeout(() => printWindow.print(), 500);
-    }
+    const result = this.store.successResult();
+    if (!result) return;
+    const prefix = this.appSettings.txnNumberPrefix ?? 'TXN';
+    const html = `<html><head><style>body{font-family:sans-serif;padding:32px}h2{color:#1e40af}.row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #e5e7eb}.label{color:#6b7280}.value{font-weight:600}</style></head><body>
+      <h2>${this.appSettings.companyName ?? 'Remittance'} — Transaction Receipt</h2>
+      <div class="row"><span class="label">Reference</span><span class="value">${prefix}${result.referenceNumber}</span></div>
+      <div class="row"><span class="label">Sender</span><span class="value">${result.senderName}</span></div>
+      <div class="row"><span class="label">Receiver</span><span class="value">${result.receiverName}</span></div>
+      <div class="row"><span class="label">Send Amount</span><span class="value">${result.sendAmount} ${result.sendCurrency}</span></div>
+      <div class="row"><span class="label">Receive Amount</span><span class="value">${result.receiveAmount} ${result.receiveCurrency}</span></div>
+      <div class="row"><span class="label">Exchange Rate</span><span class="value">${result.exchangeRateApplied}</span></div>
+      <div class="row"><span class="label">Status</span><span class="value">${result.status}</span></div>
+      <div class="row"><span class="label">Date</span><span class="value">${new Date(result.createdAt).toLocaleString()}</span></div>
+    </body></html>`;
+    const w = window.open('', '_blank');
+    if (w) { w.document.write(html); w.document.close(); w.print(); }
   }
 
   startNewTransaction(): void {
     this.store.reset();
-    this.successResult = null;
-    this.selectedCustomerId = null;
-    this.selectedCustomer = null;
-    this.selectedReceiverId = null;
-    this.selectedReceiver = null;
-    this.sendAmount = 0;
-    this.receiverCountry = '';
-    this.receiverCurrency = '';
-    this.matchedCorridor = null;
-    this.matchedPartners = [];
-    this.selectedPartnerId = null;
-    this.selectedPartner = null;
-    this.availablePayoutModes = [];
-    this.selectedPayoutModeId = null;
-    this.selectedPaymentMethodId = null;
-    this.routeError = '';
-    this.exchangeRate = 0;
-    this.serviceCharge = 0;
-    this.totalPayable = 0;
-    this.receiveAmount = 0;
-    this.calculationDone = false;
-    this.calcError = '';
-    this.selectedBranch = null;
-    this.showBranchPopup = false;
-    if (this.agentProfile) {
-      this.senderCountry = this.agentProfile.country;
-      this.senderCurrency = this.agentProfile.currency || '';
-    }
+    this.sendAmountInput = 0; this.receiveAmount = 0; this.exchangeRate = 0;
+    this.serviceCharge = 0; this.totalPayable = 0;
+    this.purpose = ''; this.sourceOfFunds = ''; this.relationship = '';
+    this.customerSearch = ''; this.receiverSearch = '';
+    this.customers = []; this.receivers = [];
+    this.complianceViolations = [];
+    this.currentQuoteId = null;
+    this.loadInitialData();
+    this.goToStep(0, 'backward');
   }
 
-  getStatusLabel(status: string): string {
-    switch (status) {
-      case 'OnHold': return 'On Hold';
-      case 'Compliance': return 'Under Review';
-      case 'PendingApproval': return 'Pending Approval';
-      default: return status;
-    }
+  // ── Helpers ───────────────────────────────────────────────────────────────
+  getInitials(name: string): string {
+    return (name ?? '').split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  }
+
+  get balancePercent(): number {
+    if (!this.agentBalance?.creditLimit) return 0;
+    return Math.min(100, ((this.agentBalance.creditLimit - this.agentBalance.availableBalance) / this.agentBalance.creditLimit) * 100);
+  }
+
+  isFieldShownCustomer(col: string): boolean {
+    if (this.store.apiType() !== 'thirdParty') return true;
+    return this.store.customerMappings().some(m => m.ourColumn === col);
+  }
+
+  isFieldShownReceiver(col: string): boolean {
+    if (this.store.apiType() !== 'thirdParty') return true;
+    return this.store.receiverMappings().some(m => m.ourColumn === col);
+  }
+
+  private resolvePaymentMethodEnum(name: string): number {
+    const n = name.toLowerCase();
+    if (n.includes('bank')) return 1;
+    if (n.includes('card')) return 2;
+    if (n.includes('wallet') || n.includes('mobile')) return 3;
+    return 0;
   }
 }
