@@ -1,8 +1,10 @@
-import { Component, OnInit, HostListener } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
+import { CommonModule, DatePipe } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
+import { Subject, takeUntil } from 'rxjs';
 import { AppSettingsService } from '../../core/services/app-settings.service';
 import { AuthStateService } from '../../core/services/auth-state.service';
+import { SignalRService, TransactionStatusUpdate } from '../../core/services/signalr.service';
 
 interface NavItem {
   label: string;
@@ -50,17 +52,33 @@ const NAV_ITEMS: NavItem[] = [
   },
 ];
 
+export interface NotificationItem {
+  id: number;
+  referenceNumber?: string;
+  status: string;
+  message: string;
+  time: Date;
+  read: boolean;
+}
+
 @Component({
   selector: 'app-agent-layout',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, DatePipe],
   templateUrl: './agent-layout.component.html',
   styleUrls: ['./agent-layout.component.scss']
 })
-export class AgentLayoutComponent implements OnInit {
+export class AgentLayoutComponent implements OnInit, OnDestroy {
   isDarkMode = false;
   sidenavOpened = true;
   showUserMenu = false;
+  showNotifications = false;
+  notifications: NotificationItem[] = [];
+  private destroy$ = new Subject<void>();
+
+  get unreadCount(): number {
+    return this.notifications.filter(n => !n.read).length;
+  }
 
   userName = 'Agent';
   userInitial = 'A';
@@ -75,6 +93,7 @@ export class AgentLayoutComponent implements OnInit {
     public appSettings: AppSettingsService,
     private auth: AuthStateService,
     private router: Router,
+    private signalR: SignalRService,
   ) {}
 
   ngOnInit(): void {
@@ -91,6 +110,25 @@ export class AgentLayoutComponent implements OnInit {
     this.userName = state.fullName || 'Agent';
     this.userInitial = this.userName.charAt(0).toUpperCase();
     this.userRoleName = state.roles[0] || 'Sending Agent';
+
+    this.signalR.startConnection();
+    this.signalR.transactionStatusUpdated$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((update: TransactionStatusUpdate) => {
+        const item: NotificationItem = {
+          id: update.id,
+          status: update.status,
+          message: `Transaction #${update.id} → ${update.status}${update.lastPartnerError ? ': ' + update.lastPartnerError : ''}`,
+          time: new Date(),
+          read: false,
+        };
+        this.notifications = [item, ...this.notifications].slice(0, 20);
+      });
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   // ── Section collapse/expand ──────────────────────────────────────────────
@@ -142,11 +180,26 @@ export class AgentLayoutComponent implements OnInit {
     this.showUserMenu = !this.showUserMenu;
   }
 
+  toggleNotifications(): void {
+    this.showNotifications = !this.showNotifications;
+    if (this.showNotifications) {
+      this.notifications = this.notifications.map(n => ({ ...n, read: true }));
+    }
+  }
+
+  clearNotifications(): void {
+    this.notifications = [];
+    this.showNotifications = false;
+  }
+
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: Event): void {
     const target = event.target as HTMLElement;
     if (!target.closest('.user-menu-wrapper')) {
       this.showUserMenu = false;
+    }
+    if (!target.closest('.notifications-wrapper')) {
+      this.showNotifications = false;
     }
   }
 

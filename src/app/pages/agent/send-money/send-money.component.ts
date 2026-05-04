@@ -146,6 +146,9 @@ export class SendMoneyComponent implements OnInit, OnDestroy {
   totalPayable = 0;
   loadingCalc = false;
   calcError = '';
+  calcTimestamp: number | null = null;
+  rateStale = false;
+  private readonly RATE_STALE_MS = 60_000;
   matchedPartners: CorridorPayoutPartnerModel[] = [];
   selectedPartnerLocal: CorridorPayoutPartnerModel | null = null;
   selectedPayoutModeId: number | null = null;
@@ -434,7 +437,7 @@ export class SendMoneyComponent implements OnInit, OnDestroy {
     }
   }
 
-  private calculateViaBackend(): void {
+  calculateViaBackend(): void {
     if (!this.store.selectedPartner() || !this.selectedPaymentMethodId || this.sendAmountInput <= 0) return;
     this.loadingCalc = true;
     this.complianceViolations = [];
@@ -460,6 +463,9 @@ export class SendMoneyComponent implements OnInit, OnDestroy {
           this.serviceCharge = r.data.serviceCharge;
           this.totalPayable = r.data.totalPayable;
           this.currentQuoteId = r.data.quoteId ?? null;
+          this.calcTimestamp = Date.now();
+          this.rateStale = false;
+          setTimeout(() => { this.rateStale = true; }, this.RATE_STALE_MS);
           this.complianceViolations = r.data.complianceViolations ?? [];
 
           const blocked = this.complianceViolations.some((v: ComplianceViolation) => v.action === 'Block');

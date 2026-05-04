@@ -23,6 +23,17 @@ export const authInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown>, ne
     authReq = addToken(req, authState.token);
   }
 
+  // Attach idempotency key to all state-mutating requests so the server can
+  // replay the original response on duplicate retries (network timeouts, etc.)
+  if ((req.method === 'POST' || req.method === 'PUT') && !isAuthEndpoint) {
+    const existing = authReq.headers.get('Idempotency-Key');
+    if (!existing) {
+      authReq = authReq.clone({
+        setHeaders: { 'Idempotency-Key': crypto.randomUUID() }
+      });
+    }
+  }
+
   return next(authReq).pipe(
     catchError((error) => {
       if (error instanceof HttpErrorResponse && error.status === 401 && !isAuthEndpoint) {

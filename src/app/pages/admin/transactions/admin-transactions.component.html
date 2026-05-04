@@ -98,7 +98,7 @@
       </thead>
       <tbody class="divide-y divide-surface-100 dark:divide-surface-700">
         <tr
-          *ngFor="let txn of transactions; let odd = odd"
+          *ngFor="let txn of transactions; let odd = odd; trackBy: trackById"
           class="hover:bg-brand-50/40 dark:hover:bg-surface-700/50 transition-colors"
           [ngClass]="{ 'bg-surface-50': odd }"
         >

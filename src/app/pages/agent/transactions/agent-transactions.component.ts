@@ -29,6 +29,8 @@ export class AgentTransactionsComponent implements OnInit, OnDestroy {
   search = '';
   statusFilter = 'All';
   selectedTransaction: TransactionResult | null = null;
+  cancelConfirmId: number | null = null;
+  actionLoadingId: number | null = null;
 
   // Server-side pagination
   pageIndex = 0;
@@ -132,12 +134,64 @@ export class AgentTransactionsComponent implements OnInit, OnDestroy {
     });
   }
 
+  cancelableStatuses = ['OnHold', 'Compliance', 'PendingApproval'];
+
+  detailTab: 'details' | 'logs' = 'details';
+  payoutLogs: any[] = [];
+  logsLoading = false;
+
+  requestCancel(tx: TransactionResult): void {
+    this.cancelConfirmId = tx.id;
+  }
+
+  confirmCancel(tx: TransactionResult): void {
+    this.cancelConfirmId = null;
+    this.actionLoadingId = tx.id;
+    this.api.rejectTransaction(tx.id).subscribe({
+      next: (res) => {
+        if (res?.success) {
+          tx.status = 'Cancelled';
+          this.notify.warn(`Transaction ${tx.referenceNumber} cancelled.`);
+        } else {
+          this.notify.error(res?.message || 'Failed to cancel transaction.');
+        }
+        this.actionLoadingId = null;
+      },
+      error: () => {
+        this.notify.error('Error cancelling transaction.');
+        this.actionLoadingId = null;
+      },
+    });
+  }
+
+  dismissCancel(): void {
+    this.cancelConfirmId = null;
+  }
+
   viewDetail(tx: TransactionResult): void {
     this.selectedTransaction = tx;
+    this.detailTab = 'details';
+    this.payoutLogs = [];
   }
 
   closeDetail(): void {
     this.selectedTransaction = null;
+    this.detailTab = 'details';
+    this.payoutLogs = [];
+  }
+
+  switchTab(tab: 'details' | 'logs'): void {
+    this.detailTab = tab;
+    if (tab === 'logs' && this.selectedTransaction && this.payoutLogs.length === 0) {
+      this.logsLoading = true;
+      this.api.getAgentTransactionPayoutLogs(this.selectedTransaction.id).subscribe({
+        next: (res) => {
+          this.payoutLogs = res?.data ?? [];
+          this.logsLoading = false;
+        },
+        error: () => { this.logsLoading = false; },
+      });
+    }
   }
 
   getStatusClass(status: string): string {

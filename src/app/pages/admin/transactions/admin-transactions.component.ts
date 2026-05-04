@@ -253,6 +253,10 @@ export class AdminTransactionsComponent implements OnInit, OnDestroy {
     }
   }
 
+  trackById(_index: number, item: TransactionResult): number {
+    return item.id;
+  }
+
   getStatusLabel(status: string): string {
     switch (status) {
       case 'OnHold': return 'On Hold';

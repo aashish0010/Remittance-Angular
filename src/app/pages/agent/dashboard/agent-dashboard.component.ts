@@ -39,6 +39,32 @@ export class AgentDashboardComponent implements OnInit {
       .reduce((sum, tx) => sum + (tx.agentCommission || 0), 0);
   }
 
+  get todayCount(): number {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return this.transactions.filter(tx => new Date(tx.createdAt) >= today).length;
+  }
+
+  get monthlyCommission(): number {
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    return this.transactions
+      .filter(tx => tx.status !== 'Cancelled' && tx.status !== 'Failed' && new Date(tx.createdAt) >= startOfMonth)
+      .reduce((sum, tx) => sum + (tx.agentCommission || 0), 0);
+  }
+
+  get completionRate(): number {
+    const eligible = this.transactions.filter(tx => tx.status !== 'Cancelled' && tx.status !== 'Failed');
+    if (eligible.length === 0) return 0;
+    return Math.round(eligible.filter(tx => tx.status === 'Completed').length / eligible.length * 100);
+  }
+
+  get pendingCount(): number {
+    return this.transactions.filter(tx =>
+      ['Pending', 'OnHold', 'Compliance', 'PendingApproval', 'PendingPayout', 'ProcessingAtPartner'].includes(tx.status)
+    ).length;
+  }
+
   transactionColumns: string[] = [
     'referenceNumber',
     'sender',

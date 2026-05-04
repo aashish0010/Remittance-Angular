@@ -985,6 +985,10 @@ export class ApiService {
     return this.get<PagedResult<any>>(this.buildPagedQuery('api/agent/transactions/paged', request));
   }
 
+  getAgentTransactionPayoutLogs(id: number): Observable<ApiResponse<any[]>> {
+    return this.get<any[]>(`api/agent/transactions/${id}/payout-logs`);
+  }
+
   // ---------------------------------------------------------------------------
   // Sanctions Management
   // ---------------------------------------------------------------------------

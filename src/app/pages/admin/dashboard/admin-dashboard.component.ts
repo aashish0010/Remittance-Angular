@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule, DecimalPipe, DatePipe } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { NgxEchartsDirective } from 'ngx-echarts';
@@ -28,6 +28,7 @@ const txnColumnHelper = createColumnHelper<RecentTransactionModel>();
 @Component({
   selector: 'app-admin-dashboard',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CommonModule,
     RouterModule,
@@ -116,6 +117,7 @@ export class AdminDashboardComponent implements OnInit {
     private auth: AuthStateService,
     private notify: NotificationService,
     private seo: SeoService,
+    private cdr: ChangeDetectorRef,
   ) {}
 
   ngOnInit(): void {
@@ -135,10 +137,12 @@ export class AdminDashboardComponent implements OnInit {
           this.notify.error(res?.message || 'Failed to load dashboard data.');
         }
         this.loading = false;
+        this.cdr.markForCheck();
       },
       error: (err) => {
         this.notify.error('Error loading dashboard.');
         this.loading = false;
+        this.cdr.markForCheck();
       },
     });
   }

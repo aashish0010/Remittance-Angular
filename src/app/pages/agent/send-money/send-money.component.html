@@ -261,6 +261,20 @@
         </div>
         }
 
+        <!-- Stale rate warning -->
+        @if (rateStale && store.calculationDone() && exchangeRate > 0) {
+        <div class="flex items-center justify-between gap-3 px-3 py-2.5 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/50 text-amber-700 dark:text-amber-300 text-xs">
+          <div class="flex items-center gap-2 min-w-0">
+            <svg class="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <span class="truncate">Rate may have changed. Recalculate for latest.</span>
+          </div>
+          <button type="button" (click)="calculateViaBackend()"
+            class="flex-shrink-0 px-2.5 py-1 rounded-lg bg-amber-100 dark:bg-amber-800/40 hover:bg-amber-200 dark:hover:bg-amber-700/50 font-medium transition-colors whitespace-nowrap">
+            Recalculate
+          </button>
+        </div>
+        }
+
         <!-- Fee breakdown -->
         @if (store.calculationDone()) {
         <div class="border-t border-surface-100 dark:border-surface-800 pt-4 space-y-2">
