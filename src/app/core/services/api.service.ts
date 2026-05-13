@@ -437,8 +437,8 @@ export class ApiService {
     return this.post<TransferCalculationResult>('api/agent/transactions/calculate', dto);
   }
 
-  createRateQuote(sourceCurrency: string, destinationCurrency: string, payoutPartnerId: number, country?: string): Observable<ApiResponse<{ quoteId: string; expiresAt: string; effectiveRate: number }>> {
-    return this.post('api/agent/rates/quote', { sourceCurrency, destinationCurrency, payoutPartnerId, country });
+  createRateQuote(sourceCurrency: string, destinationCurrency: string, payoutPartnerId: number, country?: string, countryIso3?: string): Observable<ApiResponse<{ quoteId: string; expiresAt: string; effectiveRate: number }>> {
+    return this.post('api/agent/rates/quote', { sourceCurrency, destinationCurrency, payoutPartnerId, country, countryIso3 });
   }
 
   sendTransaction(model: SendTransactionModel): Observable<ApiResponse<TransactionResult>> {
@@ -475,8 +475,12 @@ export class ApiService {
     return this.put<ReceiverModel>(`api/agent/receivers/${id}`, dto);
   }
 
-  getAgentFieldMappings(payoutAgentId: number): Observable<ApiResponse<AgentFieldMappingModel[]>> {
-    return this.get<AgentFieldMappingModel[]>(`api/agent/field-mappings/${payoutAgentId}`);
+  getAgentFieldMappings(payoutAgentId: number, paymentMethod?: string, country?: string): Observable<ApiResponse<AgentFieldMappingModel[]>> {
+    const parts: string[] = [];
+    if (paymentMethod) parts.push(`paymentMethod=${encodeURIComponent(paymentMethod)}`);
+    if (country) parts.push(`country=${encodeURIComponent(country)}`);
+    const params = parts.length ? `?${parts.join('&')}` : '';
+    return this.get<AgentFieldMappingModel[]>(`api/agent/field-mappings/${payoutAgentId}${params}`);
   }
 
   // Agent: Routing (corridors)

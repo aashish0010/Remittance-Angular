@@ -193,7 +193,9 @@ export interface AgentListItem {
 export interface AgentFieldMappingModel {
   id: number;
   partnerColumn: string;
-  tableName: 'Customer' | 'Receiver' | 'Transaction';
+  tableName: string;
   ourColumn: string;
   isRequired: boolean;
+  paymentMethod?: string;
+  country?: string;
 }

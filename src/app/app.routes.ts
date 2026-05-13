@@ -55,6 +55,7 @@ export const routes: Routes = [
     children: [
       { path: 'dashboard', loadComponent: () => import('./pages/agent/dashboard/agent-dashboard.component').then(m => m.AgentDashboardComponent) },
       { path: 'send', loadComponent: () => import('./pages/agent/send-money/send-money.component').then(m => m.SendMoneyComponent) },
+      { path: 'third-party-send', loadComponent: () => import('./pages/agent/third-party-send/third-party-send.component').then(m => m.ThirdPartySendComponent) },
       { path: 'transactions', loadComponent: () => import('./pages/agent/transactions/agent-transactions.component').then(m => m.AgentTransactionsComponent) },
       { path: 'reports/statement', loadComponent: () => import('./pages/agent/reports/my-statement/my-statement.component').then(m => m.MyStatementComponent) },
       { path: 'profile', loadComponent: () => import('./pages/agent/profile/agent-profile.component').then(m => m.AgentProfileComponent) },

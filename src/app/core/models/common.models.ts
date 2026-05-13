@@ -2,6 +2,8 @@ export interface CountryInfo {
   name: string;
   currency: string;
   code?: string;
+  iso2?: string;
+  iso3?: string;
 }
 
 export interface PagedRequest {

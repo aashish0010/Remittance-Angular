@@ -322,6 +322,18 @@ export class AgentManagementComponent implements OnInit, OnDestroy {
     this.newAgent = emptyCreateForm();
   }
 
+  onNewAgentTypeChange(): void {
+    if (this.newAgent.agentType !== 'PayoutAgent') {
+      this.newAgent.isThirdPartyApi = false;
+    }
+  }
+
+  onEditAgentTypeChange(): void {
+    if (this.editAgent.agentType !== 'PayoutAgent') {
+      this.editAgent.isThirdPartyApi = false;
+    }
+  }
+
   createAgent(): void {
     this.createError = '';
     const a = this.newAgent;

@@ -138,6 +138,8 @@ export class SendMoneyComponent implements OnInit, OnDestroy {
   senderCurrency = '';
   receiverCountry = '';
   receiverCountryCode = '';
+  receiverCountryIso2 = '';
+  receiverCountryIso3 = '';
   receiverCurrency = '';
   sendAmountInput = 0;
   receiveAmount = 0;
@@ -360,6 +362,8 @@ export class SendMoneyComponent implements OnInit, OnDestroy {
     const found = this.countries.find(c => c.name === this.receiverCountry);
     this.receiverCurrency = found?.currency ?? '';
     this.receiverCountryCode = found?.code ?? '';
+    this.receiverCountryIso2 = found?.iso2 ?? found?.code ?? '';
+    this.receiverCountryIso3 = found?.iso3 ?? '';
     this.findRoute();
     this.onAmountChange();
   }
@@ -449,6 +453,8 @@ export class SendMoneyComponent implements OnInit, OnDestroy {
       receiveCurrency: this.receiverCurrency,
       senderCountry: this.senderCountry,
       receiverCountry: this.receiverCountry,
+      receiverCountryIso2: this.receiverCountryIso2,
+      receiverCountryIso3: this.receiverCountryIso3,
       paymentMethodId: this.selectedPaymentMethodId ?? 0,
       paymentMethodName: this.paymentMethods.find(m => m.id === this.selectedPaymentMethodId)?.name ?? '',
       payoutPartnerId: this.store.selectedPartner()!.payoutAgentId,
@@ -507,6 +513,35 @@ export class SendMoneyComponent implements OnInit, OnDestroy {
 
   proceedFromCalculator(): void {
     if (!this.store.canProceedStep0()) return;
+
+    if (this.store.apiType() === 'thirdParty') {
+      const partner = this.store.selectedPartner()!;
+      const pmId = this.store.selectedPaymentMethodId();
+      const pmName = this.paymentMethods.find(m => m.id === pmId)?.name ?? '';
+      this.router.navigate(['/agent/third-party-send'], {
+        state: {
+          sendAmount: this.sendAmountInput,
+          receiveAmount: this.receiveAmount,
+          exchangeRate: this.exchangeRate,
+          serviceCharge: this.serviceCharge,
+          totalPayable: this.totalPayable,
+          sendCurrency: this.senderCurrency,
+          receiveCurrency: this.receiverCurrency,
+          receiverCountry: this.receiverCountry,
+          receiverCountryIso2: this.receiverCountryIso2,
+          receiverCountryIso3: this.receiverCountryIso3,
+          senderCountry: this.senderCountry,
+          quoteId: this.currentQuoteId,
+          partner,
+          paymentMethodId: pmId,
+          paymentMethodName: pmName,
+          payoutModeId: this.store.selectedPayoutModeId(),
+          fieldMappings: this.store.fieldMappings(),
+        }
+      });
+      return;
+    }
+
     this.api.getAgentCustomers().subscribe((r: any) => {
       if (r.success) {
         this.customers = r.data ?? [];
@@ -1016,7 +1051,8 @@ export class SendMoneyComponent implements OnInit, OnDestroy {
       this.senderCurrency,
       this.receiverCurrency,
       partner.payoutAgentId,
-      this.receiverCountry
+      this.receiverCountry,
+      this.receiverCountryIso3
     ).subscribe({
       next: (r: any) => {
         this.lockingRate = false;
@@ -1078,12 +1114,15 @@ export class SendMoneyComponent implements OnInit, OnDestroy {
       receiverBranchCode:    sd?.branchCode    ?? pd.branchCode    ?? rv.branchCode,
       receiverBankId:        sd?.bankId        ?? pd.bankId        ?? rv.bankId,
       receiverBranchId:      sd?.branchId      ?? pd.branchId      ?? rv.branchId,
-      sendAmount: this.sendAmountInput, sendCurrency: this.senderCurrency, receiveCurrency: this.receiverCurrency,
+      sendAmount: this.sendAmountInput, exchangeRate: this.exchangeRate, receiveAmount: this.receiveAmount,
+      sendCurrency: this.senderCurrency, receiveCurrency: this.receiverCurrency,
       paymentMethod: this.resolvePaymentMethodEnum(this.resolvedPaymentMethodName()),
       paymentMethodName: this.paymentMethods.find(m => m.id === this.selectedPaymentMethodId)?.name ?? '',
       payoutMethod: this.resolvePaymentMethodEnum(this.paymentMethods.find(m => m.id === this.selectedPayoutModeId)?.name ?? ''),
       payoutMethodName: this.paymentMethods.find(m => m.id === this.selectedPayoutModeId)?.name ?? '',
       payoutPartnerId: partner.payoutAgentId,
+      receiverCountryIso2: this.receiverCountryIso2,
+      receiverCountryIso3: this.receiverCountryIso3,
       customerId: c.id, receiverId: rv.id, purpose: this.purpose, sourceOfFunds: this.sourceOfFunds, relationship: this.relationship,
       quoteId: this.currentQuoteId,
     };

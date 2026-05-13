@@ -1,0 +1,850 @@
+<div class="min-h-screen bg-gray-50 dark:bg-gray-950 py-6 px-4">
+  <div class="max-w-2xl mx-auto">
+
+    <!-- Success overlay -->
+    @if (store.isComplete()) {
+      <div class="bg-white dark:bg-gray-900 rounded-3xl shadow-xl p-8 text-center" @slideDown>
+        <div class="w-16 h-16 bg-emerald-100 dark:bg-emerald-900/40 rounded-full flex items-center justify-center mx-auto mb-4">
+          <svg class="w-8 h-8 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+          </svg>
+        </div>
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-1">Transaction Submitted</h2>
+        <p class="text-gray-500 dark:text-gray-400 mb-6">
+          Reference: <span class="font-semibold text-indigo-600">{{ store.successResult()?.referenceNumber }}</span>
+        </p>
+        <div class="bg-gray-50 dark:bg-gray-800 rounded-2xl p-5 text-left space-y-2 mb-6 text-sm">
+          <div class="flex justify-between">
+            <span class="text-gray-500 dark:text-gray-400">Sender</span>
+            <span class="font-medium text-gray-900 dark:text-white">{{ store.successResult()?.senderName }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-gray-500 dark:text-gray-400">Receiver</span>
+            <span class="font-medium text-gray-900 dark:text-white">{{ store.successResult()?.receiverName }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-gray-500 dark:text-gray-400">Amount Sent</span>
+            <span class="font-semibold text-gray-900 dark:text-white">{{ store.successResult()?.sendAmount | number:'1.2-2' }} {{ store.successResult()?.sendCurrency }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-gray-500 dark:text-gray-400">Amount Received</span>
+            <span class="font-semibold text-emerald-600">{{ store.successResult()?.receiveAmount | number:'1.2-2' }} {{ store.successResult()?.receiveCurrency }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-gray-500 dark:text-gray-400">Status</span>
+            <span class="font-medium text-amber-600">{{ store.successResult()?.status }}</span>
+          </div>
+        </div>
+        <div class="flex gap-3">
+          <button (click)="downloadReceipt()" class="flex-1 py-3 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-sm">
+            Download Receipt
+          </button>
+          <button (click)="startNewTransaction()" class="flex-1 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold transition-colors text-sm">
+            New Transaction
+          </button>
+        </div>
+      </div>
+    }
+
+    @if (!store.isComplete()) {
+      <!-- Header -->
+      <div class="flex items-center gap-3 mb-6">
+        <button (click)="goBack()" class="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+          <svg class="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+          </svg>
+        </button>
+        <div>
+          <h1 class="text-xl font-bold text-gray-900 dark:text-white">Send Money</h1>
+        </div>
+      </div>
+
+      <!-- Step indicator -->
+      <div class="flex items-center mb-8 px-2">
+        @for (step of [0,1,2,3]; track step) {
+          <div class="flex items-center" [class.flex-1]="step < 3">
+            <div class="flex items-center justify-center w-8 h-8 rounded-full text-xs font-semibold transition-all"
+              [class]="store.currentStep() > step
+                ? 'bg-indigo-600 text-white'
+                : store.currentStep() === step
+                  ? 'bg-indigo-600 text-white ring-4 ring-indigo-100 dark:ring-indigo-900/40'
+                  : 'bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500'">
+              @if (store.currentStep() > step) {
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                </svg>
+              } @else {
+                {{ step + 1 }}
+              }
+            </div>
+            @if (step < 3) {
+              <div class="flex-1 h-0.5 mx-1 rounded transition-all"
+                [class]="store.currentStep() > step ? 'bg-indigo-600' : 'bg-gray-200 dark:bg-gray-700'"></div>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- ─── STEP 0: Calculation Summary ──────────────────────────────────── -->
+      @if (store.currentStep() === 0) {
+        <div class="bg-white dark:bg-gray-900 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-800 p-6" @slideDown>
+          <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-5">Transaction Summary</h2>
+
+          <div class="space-y-3 mb-6">
+            <div class="flex justify-between items-center py-2 border-b border-gray-100 dark:border-gray-800">
+              <span class="text-sm text-gray-500 dark:text-gray-400">You send</span>
+              <span class="font-bold text-gray-900 dark:text-white text-lg">
+                {{ store.sendAmount() | number:'1.2-2' }} {{ store.sendCurrency() }}
+              </span>
+            </div>
+            <div class="flex justify-between items-center py-2 border-b border-gray-100 dark:border-gray-800">
+              <span class="text-sm text-gray-500 dark:text-gray-400">Exchange rate</span>
+              <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                1 {{ store.sendCurrency() }} = {{ store.exchangeRate() | number:'1.4-4' }} {{ store.receiveCurrency() }}
+              </span>
+            </div>
+            <div class="flex justify-between items-center py-2 border-b border-gray-100 dark:border-gray-800">
+              <span class="text-sm text-gray-500 dark:text-gray-400">Service charge</span>
+              <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
+                {{ store.serviceCharge() | number:'1.2-2' }} {{ store.sendCurrency() }}
+              </span>
+            </div>
+            <div class="flex justify-between items-center py-2 border-b border-gray-100 dark:border-gray-800">
+              <span class="text-sm text-gray-500 dark:text-gray-400">Total payable</span>
+              <span class="font-semibold text-gray-900 dark:text-white">
+                {{ store.totalPayable() | number:'1.2-2' }} {{ store.sendCurrency() }}
+              </span>
+            </div>
+            <div class="flex justify-between items-center py-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl px-3">
+              <span class="text-sm font-medium text-emerald-700 dark:text-emerald-400">Receiver gets</span>
+              <span class="font-bold text-emerald-700 dark:text-emerald-400 text-lg">
+                {{ store.receiveAmount() | number:'1.2-2' }} {{ store.receiveCurrency() }}
+              </span>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2 mb-6 text-xs text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 rounded-xl px-3 py-2">
+            <svg class="w-3.5 h-3.5 text-indigo-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            {{ store.paymentMethodName() }}
+          </div>
+
+          <button (click)="store.nextStep()" class="w-full py-3.5 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm transition-colors">
+            Continue to Customer & Receiver →
+          </button>
+        </div>
+      }
+
+      <!-- ─── STEP 1: Customer + Receiver ──────────────────────────────────── -->
+      @if (store.currentStep() === 1) {
+        <div class="bg-white dark:bg-gray-900 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden" @slideDown>
+
+          <!-- Sub-step tabs -->
+          <div class="flex border-b border-gray-100 dark:border-gray-800">
+            <button class="flex-1 py-4 text-sm font-semibold transition-colors relative"
+              [class]="store.subStep() === 'customer'
+                ? 'text-indigo-600 dark:text-indigo-400'
+                : 'text-gray-400 dark:text-gray-500'">
+              <span class="flex items-center justify-center gap-2">
+                @if (store.selectedCustomer() && store.missingCustomerFields().length === 0) {
+                  <span class="w-5 h-5 rounded-full bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center">
+                    <svg class="w-3 h-3 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                    </svg>
+                  </span>
+                } @else {
+                  <span class="w-5 h-5 rounded-full flex items-center justify-center text-xs"
+                    [class]="store.subStep() === 'customer' ? 'bg-indigo-600 text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-500'">1</span>
+                }
+                Customer
+              </span>
+              @if (store.subStep() === 'customer') {
+                <div class="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-600"></div>
+              }
+            </button>
+            <button class="flex-1 py-4 text-sm font-semibold transition-colors relative"
+              [class]="store.subStep() === 'receiver'
+                ? 'text-indigo-600 dark:text-indigo-400'
+                : 'text-gray-400 dark:text-gray-500'">
+              <span class="flex items-center justify-center gap-2">
+                @if (store.selectedReceiver() && store.missingReceiverFields().length === 0) {
+                  <span class="w-5 h-5 rounded-full bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center">
+                    <svg class="w-3 h-3 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                    </svg>
+                  </span>
+                } @else {
+                  <span class="w-5 h-5 rounded-full flex items-center justify-center text-xs"
+                    [class]="store.subStep() === 'receiver' ? 'bg-indigo-600 text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-500'">2</span>
+                }
+                Receiver
+              </span>
+              @if (store.subStep() === 'receiver') {
+                <div class="absolute bottom-0 left-0 right-0 h-0.5 bg-indigo-600"></div>
+              }
+            </button>
+          </div>
+
+          <div class="p-6">
+
+            <!-- ── Customer sub-step ── -->
+            @if (store.subStep() === 'customer') {
+              <!-- KYC / DOB warnings -->
+              @if (store.kycWarning()) {
+                <div class="flex items-start gap-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-xl px-4 py-3 mb-4 text-sm text-amber-800 dark:text-amber-300" @slideDown>
+                  <svg class="w-4 h-4 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                  </svg>
+                  {{ store.kycWarning() }}
+                </div>
+              }
+
+              <!-- Selected customer card -->
+              @if (store.selectedCustomer()) {
+                <div class="flex items-center gap-3 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800 rounded-2xl px-4 py-3 mb-4">
+                  <div class="w-9 h-9 rounded-full bg-indigo-600 flex items-center justify-center text-white font-bold text-sm shrink-0">
+                    {{ store.selectedCustomer()!.fullName.charAt(0).toUpperCase() }}
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <p class="font-semibold text-gray-900 dark:text-white text-sm truncate">{{ store.selectedCustomer()!.fullName }}</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">{{ store.selectedCustomer()!.phone }} · {{ store.selectedCustomer()!.country }}</p>
+                  </div>
+                  <button (click)="clearCustomer()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 p-1">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                  </button>
+                </div>
+
+                <!-- Missing required fields card -->
+                @if (store.missingCustomerFields().length > 0 && showMissingCustomerForm) {
+                  <div class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-2xl p-5 mb-4" @slideDown>
+                    <div class="flex items-center gap-2 mb-4">
+                      <svg class="w-4 h-4 text-amber-500 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                      </svg>
+                      <p class="text-sm font-semibold text-amber-800 dark:text-amber-300">
+                        {{ store.partner()?.payoutAgentName }} requires {{ store.missingCustomerFields().length }} additional field(s)
+                      </p>
+                    </div>
+                    <div class="space-y-3">
+                      @if (isMissingCustomerField('address')) {
+                        <div>
+                          <label class="block text-xs font-medium text-amber-800 dark:text-amber-300 mb-1">Address <span class="text-rose-500">*</span></label>
+                          <input type="text" [(ngModel)]="missingCustomerData['address']" placeholder="Street address"
+                            class="w-full px-3 py-2 rounded-xl border border-amber-200 dark:border-amber-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 placeholder-gray-400"/>
+                        </div>
+                      }
+                      @if (isMissingCustomerField('city')) {
+                        <div>
+                          <label class="block text-xs font-medium text-amber-800 dark:text-amber-300 mb-1">City <span class="text-rose-500">*</span></label>
+                          <input type="text" [(ngModel)]="missingCustomerData['city']" placeholder="City"
+                            class="w-full px-3 py-2 rounded-xl border border-amber-200 dark:border-amber-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 placeholder-gray-400"/>
+                        </div>
+                      }
+                      @if (isMissingCustomerField('postalCode')) {
+                        <div>
+                          <label class="block text-xs font-medium text-amber-800 dark:text-amber-300 mb-1">Postal Code <span class="text-rose-500">*</span></label>
+                          <input type="text" [(ngModel)]="missingCustomerData['postalCode']" placeholder="Postal code"
+                            class="w-full px-3 py-2 rounded-xl border border-amber-200 dark:border-amber-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 placeholder-gray-400"/>
+                        </div>
+                      }
+                      @if (isMissingCustomerField('dateOfBirth')) {
+                        <div>
+                          <label class="block text-xs font-medium text-amber-800 dark:text-amber-300 mb-1">Date of Birth <span class="text-rose-500">*</span></label>
+                          <input type="date" [(ngModel)]="missingCustomerData['dateOfBirth']"
+                            class="w-full px-3 py-2 rounded-xl border border-amber-200 dark:border-amber-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"/>
+                        </div>
+                      }
+                      @if (isMissingCustomerField('nationality')) {
+                        <div>
+                          <label class="block text-xs font-medium text-amber-800 dark:text-amber-300 mb-1">Nationality <span class="text-rose-500">*</span></label>
+                          <select [(ngModel)]="missingCustomerData['nationality']"
+                            class="w-full px-3 py-2 rounded-xl border border-amber-200 dark:border-amber-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-amber-400">
+                            <option value="">Select nationality</option>
+                            @for (c of countries; track c.name) {
+                              <option [value]="c.name">{{ c.name }}</option>
+                            }
+                          </select>
+                        </div>
+                      }
+                      @if (isMissingCustomerField('gender')) {
+                        <div>
+                          <label class="block text-xs font-medium text-amber-800 dark:text-amber-300 mb-1">Gender <span class="text-rose-500">*</span></label>
+                          <select [(ngModel)]="missingCustomerData['gender']"
+                            class="w-full px-3 py-2 rounded-xl border border-amber-200 dark:border-amber-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-amber-400">
+                            <option value="">Select gender</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                          </select>
+                        </div>
+                      }
+                      @if (isMissingCustomerField('occupation')) {
+                        <div>
+                          <label class="block text-xs font-medium text-amber-800 dark:text-amber-300 mb-1">Occupation <span class="text-rose-500">*</span></label>
+                          <input type="text" [(ngModel)]="missingCustomerData['occupation']" placeholder="e.g. Engineer"
+                            class="w-full px-3 py-2 rounded-xl border border-amber-200 dark:border-amber-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 placeholder-gray-400"/>
+                        </div>
+                      }
+                    </div>
+                    <button (click)="saveMissingCustomerFields()" [disabled]="savingMissingCustomer"
+                      class="mt-4 w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-white font-semibold text-sm transition-colors">
+                      {{ savingMissingCustomer ? 'Saving...' : 'Save & Continue' }}
+                    </button>
+                  </div>
+                }
+              }
+
+              <!-- Customer search -->
+              @if (!store.selectedCustomer()) {
+                <div class="relative mb-4">
+                  <input type="text" [(ngModel)]="customerSearch"
+                    (input)="filterCustomers()" (focus)="filterCustomers()" (blur)="hideCustomerDropdown()"
+                    placeholder="Search customer by name or phone..."
+                    class="w-full pl-10 pr-4 py-3 rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 dark:focus:ring-indigo-600 placeholder-gray-400"/>
+                  <svg class="absolute left-3 top-3.5 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                  </svg>
+                  @if (showCustomerDropdown && filteredCustomers.length > 0) {
+                    <div class="absolute z-20 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-lg max-h-56 overflow-y-auto">
+                      @for (c of filteredCustomers; track c.id) {
+                        <button (mousedown)="selectCustomer(c)" class="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/60 transition-colors text-left">
+                          <div class="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900/40 flex items-center justify-center text-indigo-600 font-bold text-sm shrink-0">
+                            {{ c.fullName.charAt(0).toUpperCase() }}
+                          </div>
+                          <div>
+                            <p class="text-sm font-medium text-gray-900 dark:text-white">{{ c.fullName }}</p>
+                            <p class="text-xs text-gray-400">{{ c.phone }} · {{ c.country }}</p>
+                          </div>
+                        </button>
+                      }
+                    </div>
+                  }
+                </div>
+
+                <!-- Create new customer toggle -->
+                <button (click)="showCreateCustomer = !showCreateCustomer"
+                  class="w-full py-2.5 rounded-2xl border border-dashed border-gray-300 dark:border-gray-600 text-sm text-gray-500 dark:text-gray-400 hover:border-indigo-400 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors mb-4">
+                  + Create New Customer
+                </button>
+
+                @if (showCreateCustomer) {
+                  <div class="bg-gray-50 dark:bg-gray-800/60 rounded-2xl p-5 space-y-3" @slideDown>
+                    <p class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">New Customer</p>
+                    <div class="grid grid-cols-2 gap-3">
+                      <div class="col-span-2">
+                        <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Full Name <span class="text-rose-500">*</span></label>
+                        <input type="text" [formControl]="customerForm.controls.fullName" placeholder="John Smith"
+                          class="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400"/>
+                      </div>
+                      <div>
+                        <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Phone <span class="text-rose-500">*</span></label>
+                        <input type="tel" [formControl]="customerForm.controls.phone" placeholder="+44..."
+                          class="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400"/>
+                      </div>
+                      <div>
+                        <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Email</label>
+                        <input type="email" [formControl]="customerForm.controls.email" placeholder="john@email.com"
+                          class="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400"/>
+                      </div>
+                      <div>
+                        <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Country <span class="text-rose-500">*</span></label>
+                        <select [formControl]="customerForm.controls.country"
+                          class="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400">
+                          <option value="">Select country</option>
+                          @for (c of countries; track c.name) {
+                            <option [value]="c.name">{{ c.name }}</option>
+                          }
+                        </select>
+                      </div>
+                      <div>
+                        <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Nationality <span class="text-rose-500">*</span></label>
+                        <select [formControl]="customerForm.controls.nationality"
+                          class="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400">
+                          <option value="">Select nationality</option>
+                          @for (c of countries; track c.name) {
+                            <option [value]="c.name">{{ c.name }}</option>
+                          }
+                        </select>
+                      </div>
+                      <div>
+                        <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">ID Type <span class="text-rose-500">*</span></label>
+                        <select [formControl]="customerForm.controls.idDocumentType"
+                          class="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400">
+                          <option value="">Select ID type</option>
+                          @for (t of idTypes; track t.code) {
+                            <option [value]="t.code">{{ t.name }}</option>
+                          }
+                        </select>
+                      </div>
+                      <div>
+                        <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">ID Number <span class="text-rose-500">*</span></label>
+                        <input type="text" [formControl]="customerForm.controls.idDocumentNumber" placeholder="AB123456"
+                          class="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400"/>
+                      </div>
+                      <div class="col-span-2">
+                        <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                          Address @if (isCustomerFieldRequired('address')) { <span class="text-rose-500">*</span> }
+                        </label>
+                        <input type="text" [formControl]="customerForm.controls.address" placeholder="Street address"
+                          class="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400"/>
+                      </div>
+                      <div>
+                        <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                          City @if (isCustomerFieldRequired('city')) { <span class="text-rose-500">*</span> }
+                        </label>
+                        <input type="text" [formControl]="customerForm.controls.city" placeholder="City"
+                          class="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400"/>
+                      </div>
+                      <div>
+                        <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                          Postal Code @if (isCustomerFieldRequired('postalCode')) { <span class="text-rose-500">*</span> }
+                        </label>
+                        <input type="text" [formControl]="customerForm.controls.postalCode" placeholder="Postal code"
+                          class="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400"/>
+                      </div>
+                      <div>
+                        <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                          Date of Birth @if (isCustomerFieldRequired('dateOfBirth')) { <span class="text-rose-500">*</span> }
+                        </label>
+                        <input type="date" [formControl]="customerForm.controls.dateOfBirth"
+                          class="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400"/>
+                      </div>
+                      <div>
+                        <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                          Gender @if (isCustomerFieldRequired('gender')) { <span class="text-rose-500">*</span> }
+                        </label>
+                        <select [formControl]="customerForm.controls.gender"
+                          class="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400">
+                          <option value="">Select gender</option>
+                          <option value="Male">Male</option>
+                          <option value="Female">Female</option>
+                          <option value="Other">Other</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                          Occupation @if (isCustomerFieldRequired('occupation')) { <span class="text-rose-500">*</span> }
+                        </label>
+                        <input type="text" [formControl]="customerForm.controls.occupation" placeholder="e.g. Engineer"
+                          class="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400"/>
+                      </div>
+                    </div>
+                    <button (click)="saveNewCustomer()" [disabled]="savingCustomer"
+                      class="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-semibold text-sm transition-colors mt-2">
+                      {{ savingCustomer ? 'Creating...' : 'Create Customer' }}
+                    </button>
+                  </div>
+                }
+              }
+
+              <!-- Proceed to receiver -->
+              <button (click)="goToCustomerSubStep()"
+                [disabled]="!store.canProceedCustomer()"
+                class="w-full py-3.5 rounded-2xl font-semibold text-sm transition-all mt-2"
+                [class]="store.canProceedCustomer()
+                  ? 'bg-indigo-600 hover:bg-indigo-700 text-white'
+                  : 'bg-gray-100 dark:bg-gray-800 text-gray-400 cursor-not-allowed'">
+                Next: Select Receiver →
+              </button>
+            }
+
+            <!-- ── Receiver sub-step ── -->
+            @if (store.subStep() === 'receiver') {
+              <button (click)="store.setSubStep('customer', 'backward')" class="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400 hover:text-indigo-600 mb-4 transition-colors">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                </svg>
+                Back to customer
+              </button>
+
+              <!-- Selected receiver card -->
+              @if (store.selectedReceiver()) {
+                <div class="flex items-center gap-3 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800 rounded-2xl px-4 py-3 mb-4">
+                  <div class="w-9 h-9 rounded-full bg-indigo-600 flex items-center justify-center text-white font-bold text-sm shrink-0">
+                    {{ store.selectedReceiver()!.fullName.charAt(0).toUpperCase() }}
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <p class="font-semibold text-gray-900 dark:text-white text-sm truncate">{{ store.selectedReceiver()!.fullName }}</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">{{ store.selectedReceiver()!.phone }} · {{ store.selectedReceiver()!.country }}</p>
+                  </div>
+                  <button (click)="clearReceiver()" class="text-gray-400 hover:text-gray-600 p-1">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                  </button>
+                </div>
+
+                <!-- Missing receiver fields card -->
+                @if (store.missingReceiverFields().length > 0 && showMissingReceiverForm) {
+                  <div class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-2xl p-5 mb-4" @slideDown>
+                    <div class="flex items-center gap-2 mb-4">
+                      <svg class="w-4 h-4 text-amber-500 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                      </svg>
+                      <p class="text-sm font-semibold text-amber-800 dark:text-amber-300">
+                        {{ store.partner()?.payoutAgentName }} requires {{ store.missingReceiverFields().length }} additional field(s)
+                      </p>
+                    </div>
+                    <div class="space-y-3">
+                      @if (isMissingReceiverField('address')) {
+                        <div>
+                          <label class="block text-xs font-medium text-amber-800 dark:text-amber-300 mb-1">Address <span class="text-rose-500">*</span></label>
+                          <input type="text" [(ngModel)]="missingReceiverData['address']" placeholder="Street address"
+                            class="w-full px-3 py-2 rounded-xl border border-amber-200 dark:border-amber-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 placeholder-gray-400"/>
+                        </div>
+                      }
+                      @if (isMissingReceiverField('city')) {
+                        <div>
+                          <label class="block text-xs font-medium text-amber-800 dark:text-amber-300 mb-1">City <span class="text-rose-500">*</span></label>
+                          <input type="text" [(ngModel)]="missingReceiverData['city']" placeholder="City"
+                            class="w-full px-3 py-2 rounded-xl border border-amber-200 dark:border-amber-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 placeholder-gray-400"/>
+                        </div>
+                      }
+                      @if (isMissingReceiverField('postalCode')) {
+                        <div>
+                          <label class="block text-xs font-medium text-amber-800 dark:text-amber-300 mb-1">Postal Code <span class="text-rose-500">*</span></label>
+                          <input type="text" [(ngModel)]="missingReceiverData['postalCode']" placeholder="Postal code"
+                            class="w-full px-3 py-2 rounded-xl border border-amber-200 dark:border-amber-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 placeholder-gray-400"/>
+                        </div>
+                      }
+                      @if (isMissingReceiverField('gender')) {
+                        <div>
+                          <label class="block text-xs font-medium text-amber-800 dark:text-amber-300 mb-1">Gender <span class="text-rose-500">*</span></label>
+                          <select [(ngModel)]="missingReceiverData['gender']"
+                            class="w-full px-3 py-2 rounded-xl border border-amber-200 dark:border-amber-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-amber-400">
+                            <option value="">Select gender</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                          </select>
+                        </div>
+                      }
+                    </div>
+                    <button (click)="saveMissingReceiverFields()" [disabled]="savingMissingReceiver"
+                      class="mt-4 w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-white font-semibold text-sm transition-colors">
+                      {{ savingMissingReceiver ? 'Saving...' : 'Save & Continue' }}
+                    </button>
+                  </div>
+                }
+
+                <!-- Payout account (bank/cash/wallet) -->
+                @if (isBankTransfer()) {
+                  <div class="bg-gray-50 dark:bg-gray-800/60 rounded-2xl p-4 mb-4">
+                    <p class="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-3">Bank Details</p>
+                    @if (payoutBanks.length > 0) {
+                      <div class="mb-3">
+                        <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Bank <span class="text-rose-500">*</span></label>
+                        <select (change)="onPayoutBankSelectedTxn(payoutBanks[$any($event.target).selectedIndex - 1])"
+                          class="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400">
+                          <option value="">Select bank</option>
+                          @for (bank of payoutBanks; track bank.id) {
+                            <option [value]="bank.id">{{ bank.bankName }}</option>
+                          }
+                        </select>
+                      </div>
+                    } @else {
+                      <div class="grid grid-cols-2 gap-2 mb-3">
+                        <div>
+                          <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Bank Name</label>
+                          <input type="text" [(ngModel)]="transactionPayoutDetails.bankName" placeholder="Bank name"
+                            class="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400"/>
+                        </div>
+                        <div>
+                          <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Bank Code</label>
+                          <input type="text" [(ngModel)]="transactionPayoutDetails.bankCode" placeholder="SWIFT/Code"
+                            class="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400"/>
+                        </div>
+                      </div>
+                    }
+                    <div>
+                      <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Account Number <span class="text-rose-500">*</span></label>
+                      <input type="text" [(ngModel)]="transactionPayoutDetails.accountNumber" placeholder="Account number"
+                        class="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400"/>
+                    </div>
+                  </div>
+                }
+
+                @if (isCashTransfer()) {
+                  <div class="bg-gray-50 dark:bg-gray-800/60 rounded-2xl p-4 mb-4">
+                    <div class="flex items-center gap-2 mb-3">
+                      <svg class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                      </svg>
+                      <p class="text-xs font-semibold text-gray-600 dark:text-gray-400">Payout Location <span class="text-rose-500">*</span></p>
+                    </div>
+                    @if (payoutCashLocations.length > 0) {
+                      <select (change)="onCashLocationSelectedTxn(payoutCashLocations[$any($event.target).selectedIndex - 1])"
+                        class="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400">
+                        <option value="">Select cash location</option>
+                        @for (loc of payoutCashLocations; track loc.id) {
+                          <option [value]="loc.id">{{ loc.bankName }}</option>
+                        }
+                      </select>
+                    } @else {
+                      <p class="text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
+                        <svg class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M12 3a9 9 0 110 18A9 9 0 0112 3z"/>
+                        </svg>
+                        No cash locations configured for this payout route.
+                      </p>
+                    }
+                  </div>
+                }
+
+                @if (isWalletTransfer()) {
+                  <div class="bg-gray-50 dark:bg-gray-800/60 rounded-2xl p-4 mb-4">
+                    <p class="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-3">Mobile Wallet</p>
+                    @if (payoutLocations.length > 0) {
+                      <div class="mb-3">
+                        <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Provider <span class="text-rose-500">*</span></label>
+                        <select (change)="onLocationSelectedTxn(payoutLocations[$any($event.target).selectedIndex - 1])"
+                          class="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400">
+                          <option value="">Select wallet provider</option>
+                          @for (loc of payoutLocations; track loc.id) {
+                            <option [value]="loc.id">{{ loc.locationName }}</option>
+                          }
+                        </select>
+                      </div>
+                    } @else {
+                      <p class="text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1.5 mb-3">
+                        <svg class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M12 3a9 9 0 110 18A9 9 0 0112 3z"/>
+                        </svg>
+                        No wallet providers configured for this payout route.
+                      </p>
+                    }
+                    <div>
+                      <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Wallet Number <span class="text-rose-500">*</span></label>
+                      <input type="text" [(ngModel)]="transactionPayoutDetails.accountNumber" placeholder="Wallet number"
+                        class="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400"/>
+                    </div>
+                  </div>
+                }
+              }
+
+              <!-- Receiver search -->
+              @if (!store.selectedReceiver()) {
+                <div class="relative mb-4">
+                  <input type="text" [(ngModel)]="receiverSearch"
+                    (input)="filterReceivers()" (focus)="filterReceivers()" (blur)="hideReceiverDropdown()"
+                    placeholder="Search receiver by name or phone..."
+                    class="w-full pl-10 pr-4 py-3 rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 placeholder-gray-400"/>
+                  <svg class="absolute left-3 top-3.5 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                  </svg>
+                  @if (showReceiverDropdown && filteredReceivers.length > 0) {
+                    <div class="absolute z-20 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-lg max-h-56 overflow-y-auto">
+                      @for (r of filteredReceivers; track r.id) {
+                        <button (mousedown)="selectReceiver(r)" class="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/60 transition-colors text-left">
+                          <div class="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center text-emerald-600 font-bold text-sm shrink-0">
+                            {{ r.fullName.charAt(0).toUpperCase() }}
+                          </div>
+                          <div>
+                            <p class="text-sm font-medium text-gray-900 dark:text-white">{{ r.fullName }}</p>
+                            <p class="text-xs text-gray-400">{{ r.phone }} · {{ r.country }}</p>
+                          </div>
+                        </button>
+                      }
+                    </div>
+                  }
+                </div>
+
+                <button (click)="showCreateReceiver = !showCreateReceiver"
+                  class="w-full py-2.5 rounded-2xl border border-dashed border-gray-300 dark:border-gray-600 text-sm text-gray-500 dark:text-gray-400 hover:border-indigo-400 hover:text-indigo-600 transition-colors mb-4">
+                  + Create New Receiver
+                </button>
+
+                @if (showCreateReceiver) {
+                  <div class="bg-gray-50 dark:bg-gray-800/60 rounded-2xl p-5 space-y-3" @slideDown>
+                    <p class="text-sm font-semibold text-gray-700 dark:text-gray-300">New Receiver</p>
+                    <div class="grid grid-cols-2 gap-3">
+                      <div class="col-span-2">
+                        <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Full Name <span class="text-rose-500">*</span></label>
+                        <input type="text" [formControl]="receiverForm.controls.fullName" placeholder="Sara Ahmed"
+                          class="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400"/>
+                      </div>
+                      <div>
+                        <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Phone <span class="text-rose-500">*</span></label>
+                        <input type="tel" [formControl]="receiverForm.controls.phone" placeholder="+977..."
+                          class="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400"/>
+                      </div>
+                      <div>
+                        <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Country</label>
+                        <select [formControl]="receiverForm.controls.country"
+                          class="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400">
+                          <option value="">Select country</option>
+                          @for (c of countries; track c.name) {
+                            <option [value]="c.name">{{ c.name }}</option>
+                          }
+                        </select>
+                      </div>
+                      <div class="col-span-2">
+                        <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                          Address @if (isReceiverFieldRequired('address')) { <span class="text-rose-500">*</span> }
+                        </label>
+                        <input type="text" [formControl]="receiverForm.controls.address" placeholder="Street address"
+                          class="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400"/>
+                      </div>
+                      <div>
+                        <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                          City @if (isReceiverFieldRequired('city')) { <span class="text-rose-500">*</span> }
+                        </label>
+                        <input type="text" [formControl]="receiverForm.controls.city" placeholder="City"
+                          class="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400"/>
+                      </div>
+                      <div>
+                        <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                          Postal Code @if (isReceiverFieldRequired('postalCode')) { <span class="text-rose-500">*</span> }
+                        </label>
+                        <input type="text" [formControl]="receiverForm.controls.postalCode" placeholder="Postal code"
+                          class="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400"/>
+                      </div>
+                      <div>
+                        <label class="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                          Gender @if (isReceiverFieldRequired('gender')) { <span class="text-rose-500">*</span> }
+                        </label>
+                        <select [formControl]="receiverForm.controls.gender"
+                          class="w-full px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400">
+                          <option value="">Select gender</option>
+                          <option value="Male">Male</option>
+                          <option value="Female">Female</option>
+                          <option value="Other">Other</option>
+                        </select>
+                      </div>
+                    </div>
+                    <button (click)="saveNewReceiver()" [disabled]="savingReceiver"
+                      class="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-semibold text-sm transition-colors">
+                      {{ savingReceiver ? 'Creating...' : 'Create Receiver' }}
+                    </button>
+                  </div>
+                }
+              }
+
+              <button (click)="proceedToCompliance()"
+                [disabled]="!store.canProceedStep1()"
+                class="w-full py-3.5 rounded-2xl font-semibold text-sm transition-all mt-2"
+                [class]="store.canProceedStep1()
+                  ? 'bg-indigo-600 hover:bg-indigo-700 text-white'
+                  : 'bg-gray-100 dark:bg-gray-800 text-gray-400 cursor-not-allowed'">
+                Continue to Compliance →
+              </button>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- ─── STEP 2: Compliance ────────────────────────────────────────────── -->
+      @if (store.currentStep() === 2) {
+        <div class="bg-white dark:bg-gray-900 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-800 p-6" @slideDown>
+          <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-5">Compliance Details</h2>
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Purpose of Transfer <span class="text-rose-500">*</span></label>
+              <select [(ngModel)]="purpose" class="w-full px-3 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400">
+                <option value="">Select purpose...</option>
+                @for (opt of purposeOptions; track opt) {
+                  <option [value]="opt">{{ opt }}</option>
+                }
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Source of Funds <span class="text-rose-500">*</span></label>
+              <select [(ngModel)]="sourceOfFunds" class="w-full px-3 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400">
+                <option value="">Select source...</option>
+                @for (opt of sourceOptions; track opt) {
+                  <option [value]="opt">{{ opt }}</option>
+                }
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">Relationship to Receiver <span class="text-rose-500">*</span></label>
+              <select [(ngModel)]="relationship" class="w-full px-3 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400">
+                <option value="">Select relationship...</option>
+                @for (opt of relationshipOptions; track opt) {
+                  <option [value]="opt">{{ opt }}</option>
+                }
+              </select>
+            </div>
+          </div>
+          <button (click)="proceedToReview()" [disabled]="!purpose || !sourceOfFunds || !relationship"
+            class="w-full mt-6 py-3.5 rounded-2xl font-semibold text-sm transition-all"
+            [class]="purpose && sourceOfFunds && relationship
+              ? 'bg-indigo-600 hover:bg-indigo-700 text-white'
+              : 'bg-gray-100 dark:bg-gray-800 text-gray-400 cursor-not-allowed'">
+            Review & Confirm →
+          </button>
+        </div>
+      }
+
+      <!-- ─── STEP 3: Review + Submit ───────────────────────────────────────── -->
+      @if (store.currentStep() === 3 && !store.successResult()) {
+        <div class="bg-white dark:bg-gray-900 rounded-3xl shadow-sm border border-gray-100 dark:border-gray-800 p-6" @slideDown>
+          <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-5">Review Transaction</h2>
+
+          <div class="space-y-3 text-sm mb-6">
+            <div class="flex justify-between py-2 border-b border-gray-100 dark:border-gray-800">
+              <span class="text-gray-500 dark:text-gray-400">Sender</span>
+              <span class="font-medium text-gray-900 dark:text-white">{{ store.selectedCustomer()?.fullName }}</span>
+            </div>
+            <div class="flex justify-between py-2 border-b border-gray-100 dark:border-gray-800">
+              <span class="text-gray-500 dark:text-gray-400">Receiver</span>
+              <span class="font-medium text-gray-900 dark:text-white">{{ store.selectedReceiver()?.fullName }}</span>
+            </div>
+            <div class="flex justify-between py-2 border-b border-gray-100 dark:border-gray-800">
+              <span class="text-gray-500 dark:text-gray-400">Send Amount</span>
+              <span class="font-bold text-gray-900 dark:text-white">{{ store.sendAmount() | number:'1.2-2' }} {{ store.sendCurrency() }}</span>
+            </div>
+            <div class="flex justify-between py-2 border-b border-gray-100 dark:border-gray-800">
+              <span class="text-gray-500 dark:text-gray-400">Total Payable</span>
+              <span class="font-bold text-gray-900 dark:text-white">{{ store.totalPayable() | number:'1.2-2' }} {{ store.sendCurrency() }}</span>
+            </div>
+            <div class="flex justify-between py-2 border-b border-gray-100 dark:border-gray-800">
+              <span class="text-gray-500 dark:text-gray-400">Receiver Gets</span>
+              <span class="font-bold text-emerald-600">{{ store.receiveAmount() | number:'1.2-2' }} {{ store.receiveCurrency() }}</span>
+            </div>
+            <div class="flex justify-between py-2">
+              <span class="text-gray-500 dark:text-gray-400">Purpose</span>
+              <span class="font-medium text-gray-900 dark:text-white">{{ purpose }}</span>
+            </div>
+          </div>
+
+          <button (click)="openPinDialog()" [disabled]="store.submitting()"
+            class="w-full py-3.5 rounded-2xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-60 text-white font-bold text-sm transition-colors">
+            {{ store.submitting() ? 'Submitting...' : 'Confirm & Send' }}
+          </button>
+        </div>
+      }
+    }
+  </div>
+</div>
+
+<!-- PIN Dialog -->
+@if (showPinDialog) {
+  <div class="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+    <div class="w-full max-w-sm bg-white dark:bg-gray-900 rounded-3xl p-6 shadow-2xl" @slideDown>
+      <h3 class="text-base font-bold text-gray-900 dark:text-white mb-1">
+        {{ hasPin ? 'Enter Transaction PIN' : 'Set Transaction PIN' }}
+      </h3>
+      <p class="text-xs text-gray-500 dark:text-gray-400 mb-5">
+        {{ hasPin ? 'Enter your 4-digit transaction PIN to confirm.' : 'Set a PIN to secure your transactions.' }}
+      </p>
+      <input type="password" [(ngModel)]="pinInput" maxlength="6" placeholder="••••"
+        class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-center text-xl tracking-widest font-bold text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400 mb-3"/>
+      @if (!hasPin) {
+        <input type="password" [(ngModel)]="pinConfirm" maxlength="6" placeholder="Confirm PIN ••••"
+          class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-center text-xl tracking-widest font-bold text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400 mb-3"/>
+      }
+      @if (pinError) {
+        <p class="text-xs text-rose-500 mb-3">{{ pinError }}</p>
+      }
+      <div class="flex gap-3">
+        <button (click)="showPinDialog = false" class="flex-1 py-3 rounded-xl border border-gray-200 dark:border-gray-700 text-sm text-gray-600 dark:text-gray-400 font-medium hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">Cancel</button>
+        <button (click)="submitPin()" class="flex-1 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm transition-colors">Confirm</button>
+      </div>
+    </div>
+  </div>
+}

@@ -188,13 +188,14 @@
     "noTransactions": "कुनै लेनदेन भेटिएन",
     "statuses": {
       "OnHold": "रोकिएको",
+      "Compliance": "समीक्षामा",
       "PendingApproval": "स्वीकृति पर्खिरहेको",
-      "Processing": "प्रक्रियामा",
+      "Pending": "पर्खिरहेको",
+      "PendingPayout": "भुक्तानी पर्खिरहेको",
+      "ProcessingAtPartner": "साझेदारमा प्रक्रियामा",
       "Completed": "सम्पन्न",
-      "Cancelled": "रद्द भएको",
       "Failed": "असफल",
-      "Refunded": "फिर्ता भएको",
-      "Reversed": "उल्टाइएको"
+      "Cancelled": "रद्द भएको"
     }
   },
   "sendMoney": {
