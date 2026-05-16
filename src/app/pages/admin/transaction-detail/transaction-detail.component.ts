@@ -35,6 +35,7 @@ export class TransactionDetailComponent implements OnInit, OnDestroy {
   integrationLogs: PayoutIntegrationLog[] = [];
   logsLoading = false;
   showLogs = false;
+  expandedGroups: { [key: string]: boolean } = {};
 
   private destroy$ = new Subject<void>();
 
@@ -91,11 +92,59 @@ export class TransactionDetailComponent implements OnInit, OnDestroy {
         if (res?.success && res.data) {
           this.integrationLogs = res.data;
           this.showLogs = true;
+          this.initExpandedGroups();
         }
         this.logsLoading = false;
       },
       error: () => { this.logsLoading = false; },
     });
+  }
+
+  private initExpandedGroups(): void {
+    const groups = new Set(this.integrationLogs.map(l => this.normalizeEvent(l.event)));
+    this.expandedGroups = {};
+    for (const g of groups) {
+      // CHECK_STATUS collapsed by default (many entries); everything else expanded
+      this.expandedGroups[g] = g !== 'CHECK_STATUS';
+    }
+  }
+
+  private normalizeEvent(event: string): string {
+    if (event === 'SUBMIT') return 'SEND';
+    if (event === 'POLL') return 'CHECK_STATUS';
+    return event;
+  }
+
+  get logGroups(): { event: string; label: string; logs: PayoutIntegrationLog[] }[] {
+    const order = ['SEND', 'COMMIT', 'CHECK_STATUS', 'WEBHOOK', 'MANUAL_OVERRIDE'];
+    const labels: Record<string, string> = {
+      'SEND': 'Send',
+      'COMMIT': 'Commit',
+      'CHECK_STATUS': 'Check Status',
+      'WEBHOOK': 'Webhook',
+      'MANUAL_OVERRIDE': 'Manual Override',
+    };
+
+    const groupMap = new Map<string, PayoutIntegrationLog[]>();
+    for (const log of this.integrationLogs) {
+      const key = this.normalizeEvent(log.event);
+      if (!groupMap.has(key)) groupMap.set(key, []);
+      groupMap.get(key)!.push(log);
+    }
+
+    const result: { event: string; label: string; logs: PayoutIntegrationLog[] }[] = [];
+    for (const key of order) {
+      const logs = groupMap.get(key);
+      if (logs?.length) { result.push({ event: key, label: labels[key] ?? key, logs }); groupMap.delete(key); }
+    }
+    for (const [key, logs] of groupMap) {
+      if (logs.length) result.push({ event: key, label: key, logs });
+    }
+    return result;
+  }
+
+  toggleGroup(event: string): void {
+    this.expandedGroups[event] = !this.expandedGroups[event];
   }
 
   toggleLogs(): void {
@@ -243,12 +292,24 @@ export class TransactionDetailComponent implements OnInit, OnDestroy {
   }
 
   getLogEventClass(event: string): string {
-    switch (event) {
-      case 'SUBMIT': return 'bg-brand-100 text-brand-700 dark:bg-brand-900/30 dark:text-brand-400';
+    switch (this.normalizeEvent(event)) {
+      case 'SEND': return 'bg-brand-100 text-brand-700 dark:bg-brand-900/30 dark:text-brand-400';
+      case 'COMMIT': return 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400';
+      case 'CHECK_STATUS': return 'bg-surface-100 text-surface-600 dark:bg-surface-700 dark:text-surface-300';
       case 'WEBHOOK': return 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400';
-      case 'POLL': return 'bg-surface-100 text-surface-600 dark:bg-surface-700 dark:text-surface-300';
       case 'MANUAL_OVERRIDE': return 'bg-warning-100 text-warning-700 dark:bg-warning-900/30 dark:text-warning-400';
       default: return 'bg-surface-100 text-surface-600 dark:bg-surface-700 dark:text-surface-300';
+    }
+  }
+
+  getGroupHeaderClass(event: string): string {
+    switch (event) {
+      case 'SEND': return 'bg-brand-50 dark:bg-brand-900/10';
+      case 'COMMIT': return 'bg-indigo-50 dark:bg-indigo-900/10';
+      case 'CHECK_STATUS': return 'bg-surface-50 dark:bg-surface-700/20';
+      case 'WEBHOOK': return 'bg-purple-50 dark:bg-purple-900/10';
+      case 'MANUAL_OVERRIDE': return 'bg-warning-50 dark:bg-warning-900/10';
+      default: return 'bg-surface-50 dark:bg-surface-700/20';
     }
   }
 

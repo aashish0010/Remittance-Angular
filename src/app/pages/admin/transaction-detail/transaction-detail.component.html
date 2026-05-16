@@ -377,33 +377,67 @@
           No integration logs yet.
         </div>
 
-        <!-- Log list -->
-        <div *ngIf="!logsLoading && integrationLogs.length > 0" class="divide-y divide-surface-100 dark:divide-surface-700">
-          <div *ngFor="let log of integrationLogs" class="p-4">
-            <div class="flex items-start gap-3">
-              <!-- Status dot -->
-              <div
-                class="mt-1 h-2.5 w-2.5 rounded-full shrink-0"
-                [ngClass]="log.isSuccess ? 'bg-success-500' : 'bg-danger-500'"
-              ></div>
-              <div class="flex-1 min-w-0">
-                <div class="flex items-center gap-2 flex-wrap mb-1">
-                  <span class="px-2 py-0.5 text-xs font-semibold rounded-full" [ngClass]="getLogEventClass(log.event)">{{ log.event }}</span>
-                  <span class="text-xs text-surface-500 dark:text-surface-400 font-mono">{{ log.providerKey }}</span>
-                  <span class="ml-auto text-xs text-surface-400 dark:text-surface-500 whitespace-nowrap">{{ log.createdAt | date:'MMM dd, HH:mm:ss' }}</span>
+        <!-- Grouped logs -->
+        <div *ngIf="!logsLoading && integrationLogs.length > 0">
+          <div *ngFor="let group of logGroups; let isLast = last"
+               [class.border-b]="!isLast"
+               class="border-surface-100 dark:border-surface-700">
+
+            <!-- Group header -->
+            <button
+              (click)="toggleGroup(group.event)"
+              class="w-full flex items-center gap-2 px-4 py-3 transition-colors hover:brightness-95"
+              [ngClass]="getGroupHeaderClass(group.event)"
+            >
+              <span class="px-2 py-0.5 text-xs font-semibold rounded-full" [ngClass]="getLogEventClass(group.event)">
+                {{ group.label }}
+              </span>
+              <span class="text-xs text-surface-500 dark:text-surface-400">
+                {{ group.logs.length }} {{ group.logs.length === 1 ? 'entry' : 'entries' }}
+              </span>
+              <span class="flex items-center gap-1 text-xs ml-1"
+                    [ngClass]="group.logs[0].isSuccess ? 'text-success-600 dark:text-success-400' : 'text-danger-600 dark:text-danger-400'">
+                <span class="inline-block h-2 w-2 rounded-full"
+                      [ngClass]="group.logs[0].isSuccess ? 'bg-success-500' : 'bg-danger-500'"></span>
+                {{ group.logs[0].isSuccess ? 'OK' : 'Failed' }}
+              </span>
+              <svg class="h-4 w-4 text-surface-400 transition-transform ml-auto"
+                   [ngClass]="{ 'rotate-180': expandedGroups[group.event] }"
+                   xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+              </svg>
+            </button>
+
+            <!-- Group entries -->
+            <div *ngIf="expandedGroups[group.event]"
+                 class="divide-y divide-surface-50 dark:divide-surface-700/50 bg-white dark:bg-surface-800">
+              <div *ngFor="let log of group.logs" class="px-4 py-3 pl-8">
+                <div class="flex items-start gap-3">
+                  <div class="mt-1 h-2 w-2 rounded-full shrink-0"
+                       [ngClass]="log.isSuccess ? 'bg-success-400' : 'bg-danger-400'"></div>
+                  <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-2 flex-wrap mb-1">
+                      <span class="text-xs font-mono text-surface-500 dark:text-surface-400">{{ log.providerKey }}</span>
+                      <span class="ml-auto text-xs text-surface-400 dark:text-surface-500 whitespace-nowrap">
+                        {{ log.createdAt | date:'MMM dd, HH:mm:ss' }}
+                      </span>
+                    </div>
+                    <p *ngIf="log.errorMessage" class="text-xs text-danger-600 dark:text-danger-400 mt-1 break-words">
+                      {{ log.errorMessage }}
+                    </p>
+                    <details *ngIf="log.requestPayload" class="mt-2">
+                      <summary class="text-xs text-surface-400 dark:text-surface-500 cursor-pointer hover:text-surface-600 dark:hover:text-surface-300 select-none">View request</summary>
+                      <pre class="mt-1 text-xs bg-surface-50 dark:bg-surface-900 p-2 rounded-lg overflow-x-auto text-surface-700 dark:text-surface-300 whitespace-pre-wrap">{{ log.requestPayload }}</pre>
+                    </details>
+                    <details *ngIf="log.responsePayload" class="mt-2">
+                      <summary class="text-xs text-surface-400 dark:text-surface-500 cursor-pointer hover:text-surface-600 dark:hover:text-surface-300 select-none">View response</summary>
+                      <pre class="mt-1 text-xs bg-surface-50 dark:bg-surface-900 p-2 rounded-lg overflow-x-auto text-surface-700 dark:text-surface-300 whitespace-pre-wrap">{{ log.responsePayload }}</pre>
+                    </details>
+                  </div>
                 </div>
-                <p *ngIf="log.errorMessage" class="text-xs text-danger-600 dark:text-danger-400 mt-1 break-words">{{ log.errorMessage }}</p>
-                <!-- Expandable raw payloads -->
-                <details *ngIf="log.requestPayload" class="mt-2">
-                  <summary class="text-xs text-surface-400 dark:text-surface-500 cursor-pointer hover:text-surface-600 dark:hover:text-surface-300">View request</summary>
-                  <pre class="mt-1 text-xs bg-surface-50 dark:bg-surface-900 p-2 rounded-lg overflow-x-auto text-surface-700 dark:text-surface-300 whitespace-pre-wrap">{{ log.requestPayload }}</pre>
-                </details>
-                <details *ngIf="log.responsePayload" class="mt-2">
-                  <summary class="text-xs text-surface-400 dark:text-surface-500 cursor-pointer hover:text-surface-600 dark:hover:text-surface-300">View response</summary>
-                  <pre class="mt-1 text-xs bg-surface-50 dark:bg-surface-900 p-2 rounded-lg overflow-x-auto text-surface-700 dark:text-surface-300 whitespace-pre-wrap">{{ log.responsePayload }}</pre>
-                </details>
               </div>
             </div>
+
           </div>
         </div>
       </div>
