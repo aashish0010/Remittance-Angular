@@ -1,6 +1,35 @@
 <div class="min-h-screen bg-gray-50 dark:bg-gray-950 py-6 px-4">
   <div class="max-w-2xl mx-auto">
 
+  <!-- Branch popup -->
+  @if (showBranchPopup) {
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+      <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl p-6 w-full max-w-md shadow-2xl">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="font-semibold text-gray-900 dark:text-gray-100">Select Branch — {{ branchBankName }}</h3>
+          <button (click)="showBranchPopup = false" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+        <input [(ngModel)]="branchSearch" (ngModelChange)="filterBranches()" placeholder="Search branch..."
+          class="w-full px-3 py-2.5 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-600 text-gray-900 dark:text-gray-100 text-sm mb-3 focus:outline-none focus:ring-1 focus:ring-indigo-500/40" />
+        <div class="max-h-64 overflow-y-auto space-y-1">
+          @for (branch of filteredBranches; track branch.id) {
+            <button (click)="branchContext === 'txn' ? selectBranchTxn(branch) : selectBranch(branch)"
+              class="w-full text-left px-3 py-2.5 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors text-sm">
+              <span class="text-gray-800 dark:text-gray-200 font-medium">{{ branch.branchName }}</span>
+              @if (branch.branchCode) { <span class="text-gray-400 dark:text-gray-500 ml-2 font-mono">{{ branch.branchCode }}</span> }
+              @if (branch.address) { <div class="text-gray-400 dark:text-gray-500 text-xs mt-0.5">{{ branch.address }}</div> }
+            </button>
+          }
+          @empty {
+            <p class="text-gray-400 dark:text-gray-500 text-sm text-center py-4">No branches found</p>
+          }
+        </div>
+      </div>
+    </div>
+  }
+
     <!-- Success overlay -->
     @if (store.isComplete()) {
       <div class="bg-white dark:bg-gray-900 rounded-3xl shadow-xl p-8 text-center" @slideDown>
@@ -531,70 +560,401 @@
                 }
 
                 <!-- Payout account (bank/cash/wallet) -->
+
+                <!-- Bank Transfer: saved account summary + swap panel + new form -->
                 @if (isBankTransfer()) {
-                  <div class="bg-gray-50 dark:bg-gray-800/60 rounded-2xl p-4 mb-4">
-                    <p class="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-3">Bank Details</p>
-                    @if (payoutBanks.length > 0) {
-                      <div class="mb-3">
-                        <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Bank <span class="text-rose-500">*</span></label>
-                        <select (change)="onPayoutBankSelectedTxn(payoutBanks[$any($event.target).selectedIndex - 1])"
-                          class="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400">
-                          <option value="">Select bank</option>
-                          @for (bank of payoutBanks; track bank.id) {
-                            <option [value]="bank.id">{{ bank.bankName }}</option>
-                          }
-                        </select>
-                      </div>
-                    } @else {
-                      <div class="grid grid-cols-2 gap-2 mb-3">
-                        <div>
-                          <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Bank Name</label>
-                          <input type="text" [(ngModel)]="transactionPayoutDetails.bankName" placeholder="Bank name"
-                            class="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400"/>
-                        </div>
-                        <div>
-                          <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Bank Code</label>
-                          <input type="text" [(ngModel)]="transactionPayoutDetails.bankCode" placeholder="SWIFT/Code"
-                            class="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400"/>
-                        </div>
-                      </div>
-                    }
-                    <div>
-                      <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Account Number <span class="text-rose-500">*</span></label>
-                      <input type="text" [(ngModel)]="transactionPayoutDetails.accountNumber" placeholder="Account number"
-                        class="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400"/>
-                    </div>
-                  </div>
-                }
+                  @let bkRawName = selectedSavedDetail?.bankName   || transactionPayoutDetails.bankName;
+                  @let bkName   = bkRawName || resolveDisplayBankName(transactionPayoutDetails.bankId ?? selectedSavedDetail?.bankId, null);
+                  @let bkCode   = selectedSavedDetail?.bankCode   || transactionPayoutDetails.bankCode;
+                  @let bkAcc    = selectedSavedDetail?.accountNumber || transactionPayoutDetails.accountNumber;
+                  @let bkBranch = selectedSavedDetail?.branchName || transactionPayoutDetails.branchName;
 
-                @if (isCashTransfer()) {
-                  <div class="bg-gray-50 dark:bg-gray-800/60 rounded-2xl p-4 mb-4">
-                    <div class="flex items-center gap-2 mb-3">
-                      <svg class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-                      </svg>
-                      <p class="text-xs font-semibold text-gray-600 dark:text-gray-400">Payout Location <span class="text-rose-500">*</span></p>
-                    </div>
-                    @if (payoutCashLocations.length > 0) {
-                      <select (change)="onCashLocationSelectedTxn(payoutCashLocations[$any($event.target).selectedIndex - 1])"
-                        class="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400">
-                        <option value="">Select cash location</option>
-                        @for (loc of payoutCashLocations; track loc.id) {
-                          <option [value]="loc.id">{{ loc.bankName }}</option>
+                  @if (hasSavedPayoutData()) {
+                    <!-- Summary card -->
+                    <div class="rounded-xl border border-indigo-200 dark:border-indigo-800/50 overflow-hidden mb-3">
+                      <div class="flex items-center justify-between px-3 py-2 bg-indigo-50 dark:bg-indigo-950/50 border-b border-indigo-200 dark:border-indigo-800/50">
+                        <div class="flex items-center gap-1.5">
+                          <svg class="w-3.5 h-3.5 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+                          </svg>
+                          <span class="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider">Payout Account</span>
+                        </div>
+                        <button (click)="togglePayoutSwapPanel()"
+                          class="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold text-indigo-600 dark:text-indigo-400 bg-white dark:bg-gray-800 border border-indigo-200 dark:border-indigo-700 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-colors">
+                          <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"/>
+                          </svg>
+                          Change
+                        </button>
+                      </div>
+                      <div class="px-3 py-2.5 bg-white dark:bg-gray-900 grid grid-cols-2 gap-x-4 gap-y-1.5">
+                        @if (bkName) {
+                          <div>
+                            <p class="text-[10px] text-gray-400 uppercase tracking-wide font-medium">Bank</p>
+                            <p class="text-xs font-semibold text-gray-800 dark:text-gray-200 truncate">{{ bkName }}</p>
+                          </div>
                         }
-                      </select>
-                    } @else {
-                      <p class="text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1.5">
-                        <svg class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M12 3a9 9 0 110 18A9 9 0 0112 3z"/>
-                        </svg>
-                        No cash locations configured for this payout route.
-                      </p>
-                    }
-                  </div>
+                        @if (bkCode) {
+                          <div>
+                            <p class="text-[10px] text-gray-400 uppercase tracking-wide font-medium">Code</p>
+                            <p class="text-xs font-semibold text-gray-800 dark:text-gray-200 font-mono">{{ bkCode }}</p>
+                          </div>
+                        }
+                        @if (bkAcc) {
+                          <div>
+                            <p class="text-[10px] text-gray-400 uppercase tracking-wide font-medium">Account</p>
+                            <p class="text-xs font-semibold text-gray-800 dark:text-gray-200 font-mono">···· {{ bkAcc | slice:-4 }}</p>
+                          </div>
+                        }
+                        @if (bkBranch) {
+                          <div>
+                            <p class="text-[10px] text-gray-400 uppercase tracking-wide font-medium">Branch</p>
+                            <p class="text-xs font-semibold text-gray-800 dark:text-gray-200 truncate">{{ bkBranch }}</p>
+                          </div>
+                        }
+                      </div>
+                    </div>
+                  }
+
+                  <!-- Swap panel: saved accounts list -->
+                  @if (showPayoutSwapPanel) {
+                    <div class="mb-3 rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow-sm overflow-hidden">
+                      <div class="px-4 pt-3 pb-2 border-b border-gray-100 dark:border-gray-800">
+                        <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Saved Accounts</p>
+                      </div>
+                      <div class="p-2 space-y-0.5">
+                        @for (d of savedPayoutDetails; track d.id) {
+                          <button (click)="selectSavedDetail(d)"
+                            class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-left"
+                            [class]="selectedSavedDetail?.id === d.id
+                              ? 'bg-indigo-50 dark:bg-indigo-900/25'
+                              : 'hover:bg-gray-50 dark:hover:bg-gray-800/60'">
+                            <div class="w-4 h-4 rounded-full border-2 flex-shrink-0 flex items-center justify-center"
+                              [class]="selectedSavedDetail?.id === d.id ? 'border-indigo-500' : 'border-gray-300 dark:border-gray-600'">
+                              @if (selectedSavedDetail?.id === d.id) {
+                                <div class="w-2 h-2 rounded-full bg-indigo-500"></div>
+                              }
+                            </div>
+                            <div class="flex-1 min-w-0">
+                              <p class="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{{ d.bankName }}</p>
+                              @if (d.accountNumber) {
+                                <p class="text-xs text-gray-400 font-mono">{{ d.accountNumber }}</p>
+                              }
+                            </div>
+                          </button>
+                        }
+                      </div>
+                      <div class="px-2 pb-2">
+                        <button (click)="useNewPayoutDetail()"
+                          class="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm font-medium text-indigo-600 dark:text-indigo-400 border border-dashed border-indigo-300 dark:border-indigo-700 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors">
+                          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
+                          </svg>
+                          Add new account
+                        </button>
+                      </div>
+                    </div>
+                  }
+
+                  <!-- New account form (shown when no saved detail or agent clicked "add new") -->
+                  @if (showNewAccountForm || (!selectedSavedDetail && savedPayoutDetails.length === 0)) {
+                    <div class="bg-gray-50 dark:bg-gray-800/60 rounded-2xl p-4 mb-4 space-y-3">
+                      <p class="text-xs font-semibold text-gray-600 dark:text-gray-400">Bank Details</p>
+                      @if (payoutBanks.length > 0) {
+                        <div>
+                          <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Bank <span class="text-rose-500">*</span></label>
+                          <select (change)="onPayoutBankSelectedTxn(payoutBanks[$any($event.target).selectedIndex - 1])"
+                            class="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400">
+                            <option value="">Select bank</option>
+                            @for (bank of payoutBanks; track bank.id) {
+                              <option [value]="bank.id">{{ bank.bankName }}</option>
+                            }
+                          </select>
+                        </div>
+                      } @else {
+                        <div class="grid grid-cols-2 gap-2">
+                          <div>
+                            <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Bank Name</label>
+                            <input type="text" [(ngModel)]="transactionPayoutDetails.bankName" placeholder="Bank name"
+                              class="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400"/>
+                          </div>
+                          <div>
+                            <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Bank Code</label>
+                            <input type="text" [(ngModel)]="transactionPayoutDetails.bankCode" placeholder="SWIFT/Code"
+                              class="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400"/>
+                          </div>
+                        </div>
+                      }
+                      <!-- Branch (auto-opens popup; shown after a bank with branches is selected) -->
+                      @if (allBranches.length > 0 && branchContext === 'txn') {
+                        <div>
+                          <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Branch <span class="text-rose-500">*</span></label>
+                          @if (transactionPayoutDetails.branchName) {
+                            <div class="flex items-center gap-2">
+                              <span class="flex-1 px-3 py-2 rounded-xl border border-indigo-200 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-950/50 text-sm font-medium text-indigo-700 dark:text-indigo-300 truncate">
+                                {{ transactionPayoutDetails.branchName }}
+                              </span>
+                              <button type="button" (click)="branchContext = 'txn'; showBranchPopup = true"
+                                class="px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 text-xs font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors shrink-0">
+                                Change
+                              </button>
+                            </div>
+                          } @else {
+                            <button type="button" (click)="branchContext = 'txn'; showBranchPopup = true"
+                              class="w-full px-3 py-2 rounded-xl border-2 border-dashed border-indigo-300 dark:border-indigo-700 text-sm text-indigo-600 dark:text-indigo-400 font-medium hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors flex items-center justify-center gap-2">
+                              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                              </svg>
+                              Select Branch
+                            </button>
+                          }
+                        </div>
+                      }
+                      <div>
+                        <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">Account Number <span class="text-rose-500">*</span></label>
+                        <input type="text" [(ngModel)]="transactionPayoutDetails.accountNumber" placeholder="Account number"
+                          class="w-full px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-400"/>
+                      </div>
+                    </div>
+                  }
                 }
 
+                <!-- Cash Pickup: pro-max location selector -->
+                @if (isCashTransfer()) {
+
+                  <!-- MoneyGram cash: location already selected on step 0, just show static summary -->
+                  @if (isMgCashTransfer()) {
+                    <div class="rounded-xl border border-emerald-200 dark:border-emerald-800/50 overflow-hidden mb-3">
+                      <div class="flex items-center gap-2 px-3 py-2 bg-emerald-50 dark:bg-emerald-950/50 border-b border-emerald-200 dark:border-emerald-800/50">
+                        <svg class="w-3.5 h-3.5 text-emerald-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
+                        <span class="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">Cash Pickup via MoneyGram</span>
+                      </div>
+                      <div class="px-3 py-2.5 bg-white dark:bg-surface-900">
+                        <p class="text-sm font-semibold text-surface-800 dark:text-surface-100">{{ store.paymentMethodName() || store.serviceOptionCode() }}</p>
+                        @if (store.serviceOptionCode()) {
+                          <p class="text-[10px] text-surface-400 dark:text-surface-500 uppercase tracking-wider mt-0.5">{{ store.serviceOptionCode() }}</p>
+                        }
+                      </div>
+                    </div>
+                  } @else {
+
+                  @let csName = transactionPayoutDetails.bankName || selectedSavedDetail?.bankName;
+                  @let csCode = transactionPayoutDetails.bankCode || selectedSavedDetail?.bankCode;
+
+                  <!-- Selected location summary card -->
+                  @if (csName && !showCashSwapPanel) {
+                    <div class="rounded-xl border border-emerald-200 dark:border-emerald-800/50 overflow-hidden mb-3">
+                      <div class="flex items-center justify-between px-3 py-2 bg-emerald-50 dark:bg-emerald-950/50 border-b border-emerald-200 dark:border-emerald-800/50">
+                        <div class="flex items-center gap-1.5">
+                          <svg class="w-3.5 h-3.5 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                          </svg>
+                          <span class="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">Cash Pickup Location</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                          <!-- Swap: previously used locations for same partner+country+method -->
+                          @if (savedPayoutDetails.length > 0) {
+                            <button (click)="toggleCashSavedPanel()"
+                              [class]="showCashSavedPanel
+                                ? 'flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30 border border-indigo-300 dark:border-indigo-600 transition-colors'
+                                : 'flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold text-indigo-600 dark:text-indigo-400 bg-white dark:bg-gray-800 border border-indigo-200 dark:border-indigo-700 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-colors'">
+                              <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+                              </svg>
+                              Swap
+                            </button>
+                          }
+                          <button (click)="toggleCashSwapPanel()"
+                            class="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 bg-white dark:bg-gray-800 border border-emerald-200 dark:border-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 transition-colors">
+                            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4M17 8v12m0 0l4-4m-4 4l-4-4"/>
+                            </svg>
+                            Change
+                          </button>
+                        </div>
+                      </div>
+                      <div class="px-3 py-2.5 bg-white dark:bg-gray-900 flex items-center gap-3">
+                        <div class="w-7 h-7 rounded-full bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center shrink-0">
+                          <svg class="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                          </svg>
+                        </div>
+                        <div class="min-w-0">
+                          <p class="text-xs font-semibold text-gray-800 dark:text-gray-200 truncate">{{ csName }}</p>
+                          @if (csCode) {
+                            <p class="text-[10px] text-gray-400 font-mono mt-0.5">{{ csCode }}</p>
+                          }
+                        </div>
+                        <div class="ml-auto shrink-0">
+                          <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300">
+                            <svg class="w-2.5 h-2.5" fill="currentColor" viewBox="0 0 20 20">
+                              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                            </svg>
+                            Selected
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  }
+
+                  <!-- Swap panel: previously used locations (same partner + country + payment method) -->
+                  @if (showCashSavedPanel && savedPayoutDetails.length > 0) {
+                    <div class="mb-3 rounded-2xl border border-indigo-200 dark:border-indigo-700/60 bg-white dark:bg-gray-900 shadow-sm overflow-hidden" @slideDown>
+                      <div class="px-4 pt-3 pb-2 border-b border-indigo-100 dark:border-indigo-800/60 flex items-center justify-between">
+                        <div class="flex items-center gap-1.5">
+                          <svg class="w-3.5 h-3.5 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                          </svg>
+                          <p class="text-xs font-semibold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider">Previously Used</p>
+                        </div>
+                        <p class="text-[10px] text-gray-400">{{ store.receiverCountry() }} · {{ store.paymentMethodName() }}</p>
+                      </div>
+                      <div class="p-2 space-y-0.5">
+                        @for (d of savedPayoutDetails; track d.id) {
+                          @let isSavedActive = selectedSavedDetail?.id === d.id && !transactionPayoutDetails.bankId;
+                          <button (click)="selectCashSavedDetail(d)"
+                            class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-left relative overflow-hidden"
+                            [class]="isSavedActive ? 'bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/25 dark:to-purple-900/20' : 'hover:bg-gray-50 dark:hover:bg-gray-800/60'">
+                            @if (isSavedActive) {
+                              <div class="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-6 rounded-r-full bg-indigo-500"></div>
+                            }
+                            <div class="w-4 h-4 rounded-full border-2 flex-shrink-0 flex items-center justify-center"
+                              [class]="isSavedActive ? 'border-indigo-500' : 'border-gray-300 dark:border-gray-600'">
+                              @if (isSavedActive) { <div class="w-2 h-2 rounded-full bg-indigo-500"></div> }
+                            </div>
+                            <div class="flex-1 min-w-0">
+                              <p class="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{{ d.bankName }}</p>
+                              @if (d.bankCode) {
+                                <p class="text-xs text-gray-400 font-mono">{{ d.bankCode }}</p>
+                              }
+                            </div>
+                            @if (isSavedActive) {
+                              <svg class="w-4 h-4 text-indigo-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                              </svg>
+                            }
+                          </button>
+                        }
+                      </div>
+                    </div>
+                  }
+
+                  <!-- Not selected state -->
+                  @if (!csName && !showCashSwapPanel && payoutCashLocations.length > 0) {
+                    <button (click)="showCashSwapPanel = true"
+                      class="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl border-2 border-dashed border-rose-300 dark:border-rose-700 bg-rose-50/50 dark:bg-rose-950/20 hover:border-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-all mb-3">
+                      <div class="w-8 h-8 rounded-full bg-rose-100 dark:bg-rose-900/40 flex items-center justify-center shrink-0">
+                        <svg class="w-4 h-4 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
+                      </div>
+                      <div class="flex-1 text-left">
+                        <p class="text-sm font-semibold text-rose-600 dark:text-rose-400">Select Cash Pickup Location</p>
+                        <p class="text-xs text-rose-400 dark:text-rose-500">Required — tap to choose a payout location</p>
+                      </div>
+                      <svg class="w-4 h-4 text-rose-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                      </svg>
+                    </button>
+                  }
+
+                  <!-- Location picker panel -->
+                  @if (showCashSwapPanel || (!csName && payoutCashLocations.length > 0)) {
+                    <div class="mb-3 rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow-sm overflow-hidden" @slideDown>
+                      <div class="px-4 pt-3 pb-2 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
+                        <p class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                          <svg class="w-3 h-3 inline mr-1 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                          </svg>
+                          Available Locations
+                        </p>
+                        @if (showCashSwapPanel) {
+                          <button (click)="showCashSwapPanel = false" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                          </button>
+                        }
+                      </div>
+                      @if (payoutCashLocations.length > 0) {
+                        <div class="p-2 space-y-0.5 max-h-52 overflow-y-auto">
+                          @for (loc of payoutCashLocations; track loc.id) {
+                            @let isSelected = transactionPayoutDetails.bankId === loc.id;
+                            <button (click)="onCashLocationSelectedTxn(loc)"
+                              class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-left"
+                              [class]="isSelected ? 'bg-emerald-50 dark:bg-emerald-900/25' : 'hover:bg-gray-50 dark:hover:bg-gray-800/60'">
+                              <div class="w-4 h-4 rounded-full border-2 flex-shrink-0 flex items-center justify-center"
+                                [class]="isSelected ? 'border-emerald-500' : 'border-gray-300 dark:border-gray-600'">
+                                @if (isSelected) {
+                                  <div class="w-2 h-2 rounded-full bg-emerald-500"></div>
+                                }
+                              </div>
+                              <div class="flex-1 min-w-0">
+                                <p class="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{{ loc.bankName }}</p>
+                                @if (loc.bankCode) {
+                                  <p class="text-xs text-gray-400 font-mono">{{ loc.bankCode }}</p>
+                                }
+                              </div>
+                              @if (isSelected) {
+                                <svg class="w-4 h-4 text-emerald-500 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                </svg>
+                              }
+                            </button>
+                          }
+                        </div>
+                        <!-- Saved locations from prior transactions -->
+                        @if (savedPayoutDetails.length > 0) {
+                          <div class="border-t border-gray-100 dark:border-gray-800 px-4 pt-2 pb-1">
+                            <p class="text-[10px] text-gray-400 uppercase tracking-wider font-semibold mb-1">Previously Used</p>
+                          </div>
+                          <div class="px-2 pb-2 space-y-0.5">
+                            @for (d of savedPayoutDetails; track d.id) {
+                              @let isSaved = selectedSavedDetail?.id === d.id;
+                              <button (click)="selectCashSavedDetail(d)"
+                                class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-left"
+                                [class]="isSaved ? 'bg-emerald-50 dark:bg-emerald-900/25' : 'hover:bg-gray-50 dark:hover:bg-gray-800/60'">
+                                <div class="w-4 h-4 rounded-full border-2 flex-shrink-0 flex items-center justify-center"
+                                  [class]="isSaved ? 'border-emerald-500' : 'border-gray-300 dark:border-gray-600'">
+                                  @if (isSaved) { <div class="w-2 h-2 rounded-full bg-emerald-500"></div> }
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                  <p class="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{{ d.bankName }}</p>
+                                </div>
+                              </button>
+                            }
+                          </div>
+                        }
+                      } @else {
+                        <div class="p-4 flex items-center gap-2 text-xs text-amber-600 dark:text-amber-400">
+                          <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M12 3a9 9 0 110 18A9 9 0 0112 3z"/>
+                          </svg>
+                          No cash locations configured. Use Admin → MoneyGram → Seed Cash Locations.
+                        </div>
+                      }
+                    </div>
+                  }
+
+                  <!-- No locations at all -->
+                  @if (!csName && payoutCashLocations.length === 0 && savedPayoutDetails.length === 0) {
+                    <div class="flex items-center gap-2.5 px-4 py-3 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 mb-3">
+                      <svg class="w-4 h-4 text-amber-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M12 3a9 9 0 110 18A9 9 0 0112 3z"/>
+                      </svg>
+                      <p class="text-xs text-amber-700 dark:text-amber-300">No cash pickup locations configured. Contact admin to seed locations via MoneyGram.</p>
+                    </div>
+                  }
+                  } <!-- end @else for non-MG cash -->
+                }
+
+                <!-- Wallet Transfer -->
                 @if (isWalletTransfer()) {
                   <div class="bg-gray-50 dark:bg-gray-800/60 rounded-2xl p-4 mb-4">
                     <p class="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-3">Mobile Wallet</p>
@@ -624,6 +984,20 @@
                     </div>
                   </div>
                 }
+              }
+
+              <!-- Payment method selector (fallback if not passed from calculator) -->
+              @if (!store.paymentMethodName()) {
+                <div class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-2xl p-4 mb-4">
+                  <p class="text-xs font-semibold text-amber-700 dark:text-amber-300 mb-2">Select Payment Method <span class="text-rose-500">*</span></p>
+                  <select [(ngModel)]="selectedPaymentMethodId" (ngModelChange)="onPaymentMethodChange()"
+                    class="w-full px-3 py-2.5 rounded-xl border border-amber-300 dark:border-amber-600 bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-400">
+                    <option [value]="null">Select method</option>
+                    @for (m of paymentMethods; track m.id) {
+                      <option [value]="m.id">{{ m.name }}</option>
+                    }
+                  </select>
+                </div>
               }
 
               <!-- Receiver search -->
@@ -715,6 +1089,7 @@
                           <option value="Other">Other</option>
                         </select>
                       </div>
+
                     </div>
                     <button (click)="saveNewReceiver()" [disabled]="savingReceiver"
                       class="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-semibold text-sm transition-colors">
@@ -724,10 +1099,22 @@
                 }
               }
 
+              <!-- Payout account required hint -->
+              @if (store.selectedReceiver() && store.missingReceiverFields().length === 0 && !hasValidPayoutAccount()) {
+                <div class="flex items-center gap-2 px-3 py-2 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 text-xs text-amber-700 dark:text-amber-300">
+                  <svg class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M12 3a9 9 0 110 18A9 9 0 0112 3z"/>
+                  </svg>
+                  @if (isBankTransfer()) { Payout account required — select a saved account or enter bank details. }
+                  @else if (isCashTransfer()) { Cash pickup location required — select a payout location. }
+                  @else if (isWalletTransfer()) { Wallet number required — select a saved account or enter wallet number. }
+                </div>
+              }
+
               <button (click)="proceedToCompliance()"
-                [disabled]="!store.canProceedStep1()"
+                [disabled]="!canProceed()"
                 class="w-full py-3.5 rounded-2xl font-semibold text-sm transition-all mt-2"
-                [class]="store.canProceedStep1()
+                [class]="canProceed()
                   ? 'bg-indigo-600 hover:bg-indigo-700 text-white'
                   : 'bg-gray-100 dark:bg-gray-800 text-gray-400 cursor-not-allowed'">
                 Continue to Compliance →

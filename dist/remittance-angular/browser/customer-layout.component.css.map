@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["src/app/layouts/customer-layout/customer-layout.component.scss"],
+  "sourcesContent": [":host {\r\n  display: block;\r\n}\r\n\r\n// Active nav link indicator\r\n.active-link {\r\n  background-color: var(--tw-brand-50, #eff6ff) !important;\r\n  color: var(--tw-brand-700, #1d4ed8) !important;\r\n\r\n  svg {\r\n    color: var(--tw-brand-600, #2563eb) !important;\r\n  }\r\n\r\n  &::before {\r\n    content: '';\r\n    position: absolute;\r\n    left: 0;\r\n    top: 50%;\r\n    transform: translateY(-50%);\r\n    width: 3px;\r\n    height: 20px;\r\n    background: var(--tw-brand-600, #2563eb);\r\n    border-radius: 0 3px 3px 0;\r\n  }\r\n}\r\n\r\n// Dark mode active link override\r\n.dark .active-link {\r\n  background-color: rgba(59, 130, 246, 0.15) !important;\r\n  color: var(--tw-brand-400, #60a5fa) !important;\r\n\r\n  svg {\r\n    color: var(--tw-brand-400, #60a5fa) !important;\r\n  }\r\n}\r\n"],
+  "mappings": ";AAAA;AACE,WAAA;;AAIF,CAAA;AACE,oBAAA,IAAA,aAAA,EAAA;AACA,SAAA,IAAA,cAAA,EAAA;;AAEA,CAJF,YAIE;AACE,SAAA,IAAA,cAAA,EAAA;;AAGF,CARF,WAQE;AACE,WAAA;AACA,YAAA;AACA,QAAA;AACA,OAAA;AACA,aAAA,WAAA;AACA,SAAA;AACA,UAAA;AACA,cAAA,IAAA,cAAA,EAAA;AACA,iBAAA,EAAA,IAAA,IAAA;;AAKJ,CAAA,KAAA,CAtBA;AAuBE,oBAAA,KAAA,EAAA,EAAA,GAAA,EAAA,GAAA,EAAA;AACA,SAAA,IAAA,cAAA,EAAA;;AAEA,CAJF,KAIE,CA1BF,YA0BE;AACE,SAAA,IAAA,cAAA,EAAA;;",
+  "names": []
+}

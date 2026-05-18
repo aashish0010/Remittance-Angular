@@ -30,6 +30,9 @@ export type ThirdPartySendState = {
   paymentMethodId: number | null;
   paymentMethodName: string;
   payoutModeId: number | null;
+  serviceOptionCode: string | null;
+  serviceOptionRoutingCode: string | null;
+  payoutType: 'bank' | 'cash' | 'wallet' | null;
 
   // Dynamic field mappings
   fieldMappings: AgentFieldMappingModel[];
@@ -67,6 +70,9 @@ const initialState: ThirdPartySendState = {
   paymentMethodId: null,
   paymentMethodName: '',
   payoutModeId: null,
+  serviceOptionCode: null,
+  serviceOptionRoutingCode: null,
+  payoutType: null,
   fieldMappings: [],
   missingCustomerFields: [],
   missingReceiverFields: [],

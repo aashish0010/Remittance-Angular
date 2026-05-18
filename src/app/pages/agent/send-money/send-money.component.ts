@@ -158,6 +158,8 @@ export class SendMoneyComponent implements OnInit, OnDestroy {
   payoutLocations: AgentLocationModel[] = [];
   payoutCashLocations: AgentBankModel[] = [];
   selectedPaymentMethodId: number | null = null;
+  mgServiceOptions: any[] = [];
+  selectedMgOption: any | null = null;
   transactionPayoutDetails: {
     bankName: string | null; bankCode: string | null; bankId: number | null;
     accountNumber: string | null; branchName: string | null;
@@ -353,9 +355,11 @@ export class SendMoneyComponent implements OnInit, OnDestroy {
   // ── Calculator ────────────────────────────────────────────────────────────
   onAmountChange(): void {
     this.store.setSendAmount(this.sendAmountInput);
-    if (this.sendAmountInput > 0 && this.senderCurrency && this.receiverCurrency && this.selectedPaymentMethodId) {
-      this.calcSubject.next();
-    }
+    const isMg = this.isMoneyGramPartner();
+    const readyToCalc = isMg
+      ? !!this.store.selectedPartner() && this.sendAmountInput > 0 && !!this.senderCurrency && !!this.receiverCurrency
+      : this.sendAmountInput > 0 && !!this.senderCurrency && !!this.receiverCurrency && !!this.selectedPaymentMethodId;
+    if (readyToCalc) this.calcSubject.next();
   }
 
   onReceiverCountryChange(): void {
@@ -413,11 +417,67 @@ export class SendMoneyComponent implements OnInit, OnDestroy {
     this.store.setSelectedPaymentMethodId(this.selectedPaymentMethodId);
     this.calcError = '';
 
+    // Reset MG selection on corridor change
+    this.mgServiceOptions = [];
+    this.selectedMgOption = null;
+
+    if (partner?.apiProviderKey === 'moneygram' && this.receiverCountryIso3) {
+      this.loadMoneyGramServiceOptions(this.receiverCountryIso3);
+    }
+
     if (partner) {
       this.loadPayoutInfrastructure(partner.payoutAgentId);
     } else if ((this.isCashTransfer() || this.isWalletTransfer()) && this.agentProfile?.id) {
       this.loadPayoutInfrastructure(this.agentProfile.id);
     }
+  }
+
+  private loadMoneyGramServiceOptions(iso3: string): void {
+    this.api.getMoneyGramServiceOptions(iso3)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((r: any) => {
+        if (r.success) {
+          this.mgServiceOptions = r.data ?? [];
+          // Auto-select first option if only one, or if previously selected code still valid
+          if (this.mgServiceOptions.length === 1) {
+            this.onMgOptionSelected(this.mgServiceOptions[0]);
+          } else if (this.selectedMgOption) {
+            const still = this.mgServiceOptions.find(o => o.serviceOptionCode === this.selectedMgOption.serviceOptionCode
+              && o.serviceOptionRoutingCode === this.selectedMgOption.serviceOptionRoutingCode);
+            this.selectedMgOption = still ?? null;
+          }
+        }
+      });
+  }
+
+  onMgOptionSelected(option: any): void {
+    if (!option) return;
+    this.selectedMgOption = option;
+    this.calcSubject.next();
+  }
+
+  getMgOptionByIndex(i: number): any {
+    return this.mgServiceOptions[i] ?? null;
+  }
+
+  get mgCashOptions(): any[] { return this.mgServiceOptions.filter(o => o.payoutType === 'cash'); }
+  get mgBankOptions(): any[] { return this.mgServiceOptions.filter(o => o.payoutType === 'bank'); }
+  get mgWalletOptions(): any[] { return this.mgServiceOptions.filter(o => o.payoutType === 'wallet'); }
+
+  isMoneyGramPartner(): boolean {
+    return this.store.selectedPartner()?.apiProviderKey === 'moneygram';
+  }
+
+  canProceedCalc(): boolean {
+    if (this.isMoneyGramPartner()) {
+      return this.store.calculationDone()
+        && !this.store.complianceBlocked()
+        && this.store.sendAmount() > 0
+        && !!this.store.selectedPartner()
+        && !!this.selectedMgOption
+        && !this.store.agentBalanceZero();
+    }
+    return this.store.canProceedStep0();
   }
 
   private loadPayoutInfrastructure(agentId: number): void {
@@ -442,7 +502,10 @@ export class SendMoneyComponent implements OnInit, OnDestroy {
   }
 
   calculateViaBackend(): void {
-    if (!this.store.selectedPartner() || !this.selectedPaymentMethodId || this.sendAmountInput <= 0) return;
+    const partner = this.store.selectedPartner();
+    if (!partner || this.sendAmountInput <= 0) return;
+    const isMg = partner.apiProviderKey === 'moneygram';
+    if (!isMg && !this.selectedPaymentMethodId) return;
     this.loadingCalc = true;
     this.complianceViolations = [];
     this.store.setCalculationDone(false);
@@ -457,6 +520,8 @@ export class SendMoneyComponent implements OnInit, OnDestroy {
       receiverCountryIso3: this.receiverCountryIso3,
       paymentMethodId: this.selectedPaymentMethodId ?? 0,
       paymentMethodName: this.paymentMethods.find(m => m.id === this.selectedPaymentMethodId)?.name ?? '',
+      serviceOptionCode: this.selectedMgOption?.serviceOptionCode ?? null,
+      serviceOptionRoutingCode: this.selectedMgOption?.serviceOptionRoutingCode ?? null,
       payoutPartnerId: this.store.selectedPartner()!.payoutAgentId,
     };
 
@@ -512,12 +577,24 @@ export class SendMoneyComponent implements OnInit, OnDestroy {
   }
 
   proceedFromCalculator(): void {
-    if (!this.store.canProceedStep0()) return;
+    if (!this.canProceedCalc()) return;
 
     if (this.store.apiType() === 'thirdParty') {
       const partner = this.store.selectedPartner()!;
       const pmId = this.store.selectedPaymentMethodId();
-      const pmName = this.paymentMethods.find(m => m.id === pmId)?.name ?? '';
+      const isMg = partner.apiProviderKey === 'moneygram';
+      if (!isMg && !pmId) {
+        this.notify.error('Please select a payment method before proceeding.');
+        return;
+      }
+      if (isMg && !this.selectedMgOption) {
+        this.notify.error('Please select a service option before proceeding.');
+        return;
+      }
+      const mgOpt = this.selectedMgOption;
+      const pmName = mgOpt
+        ? mgOpt.serviceOptionName
+        : (this.paymentMethods.find(m => Number(m.id) === Number(pmId))?.name ?? '');
       this.router.navigate(['/agent/third-party-send'], {
         state: {
           sendAmount: this.sendAmountInput,
@@ -535,6 +612,9 @@ export class SendMoneyComponent implements OnInit, OnDestroy {
           partner,
           paymentMethodId: pmId,
           paymentMethodName: pmName,
+          serviceOptionCode: mgOpt?.serviceOptionCode ?? null,
+          serviceOptionRoutingCode: mgOpt?.serviceOptionRoutingCode ?? null,
+          payoutType: mgOpt?.payoutType ?? null,
           payoutModeId: this.store.selectedPayoutModeId(),
           fieldMappings: this.store.fieldMappings(),
         }

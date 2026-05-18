@@ -62,6 +62,8 @@ export class ThirdPartySendComponent implements OnInit, OnDestroy {
   // ── Reference data ────────────────────────────────────────────────────────
   countries: any[] = [];
   idTypes: any[] = [];
+  paymentMethods: any[] = [];
+  selectedPaymentMethodId: number | null = null;
 
   // ── Payout location infrastructure ───────────────────────────────────────
   payoutBanks: AgentBankModel[] = [];
@@ -76,6 +78,18 @@ export class ThirdPartySendComponent implements OnInit, OnDestroy {
   } = { bankName: null, bankCode: null, bankId: null, accountNumber: null, branchName: null, branchCode: null, branchId: null };
   selectedSavedDetail: any = null;
   savedPayoutDetails: any[] = [];
+  showPayoutSwapPanel = false;
+  showCashSwapPanel = false;
+  showCashSavedPanel = false;
+  showNewAccountForm = false;
+
+  // ── Branch popup ──────────────────────────────────────────────────────────
+  showBranchPopup = false;
+  allBranches: any[] = [];
+  filteredBranches: any[] = [];
+  branchSearch = '';
+  branchBankName = '';
+  branchContext: 'form' | 'txn' = 'form';
 
   // ── Compliance ────────────────────────────────────────────────────────────
   purpose = '';
@@ -111,6 +125,7 @@ export class ThirdPartySendComponent implements OnInit, OnDestroy {
     country: new FormControl(''), city: new FormControl(''), relationship: new FormControl(''),
     bankName: new FormControl(''), bankCode: new FormControl(''), accountNumber: new FormControl(''),
     branchName: new FormControl(''), branchCode: new FormControl(''),
+    bankId: new FormControl<number | null>(null), branchId: new FormControl<number | null>(null),
     gender: new FormControl(''), address: new FormControl(''), postalCode: new FormControl(''),
   });
   receiverFormErrors: Record<string, string> = {};
@@ -142,6 +157,9 @@ export class ThirdPartySendComponent implements OnInit, OnDestroy {
       paymentMethodId: nav.paymentMethodId,
       paymentMethodName: nav.paymentMethodName,
       payoutModeId: nav.payoutModeId,
+      serviceOptionCode: nav.serviceOptionCode ?? null,
+      serviceOptionRoutingCode: nav.serviceOptionRoutingCode ?? null,
+      payoutType: nav.payoutType ?? null,
       fieldMappings: nav.fieldMappings ?? [],
     });
 
@@ -170,6 +188,9 @@ export class ThirdPartySendComponent implements OnInit, OnDestroy {
     this.api.getReferenceSetupFields('IdType')
       .pipe(takeUntil(this.destroy$))
       .subscribe((r: any) => { if (r.success) this.idTypes = r.data ?? []; });
+    this.api.getAgentPaymentMethods()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((r: any) => { if (r.success) this.paymentMethods = r.data ?? []; });
 
     // 3. Load customers
     this.api.getAgentCustomers()
@@ -185,28 +206,32 @@ export class ThirdPartySendComponent implements OnInit, OnDestroy {
     this.loadPayoutInfrastructure(payoutPartnerId, paymentMethod ?? '');
   }
 
-  private loadPayoutInfrastructure(agentId: number, methodName: string): void {
-    const m = methodName.toLowerCase();
+  onPaymentMethodChange(): void {
+    const pm = this.paymentMethods.find(m => m.id === Number(this.selectedPaymentMethodId));
+    if (!pm) return;
+    this.store.initFromNavState({ paymentMethodId: pm.id, paymentMethodName: pm.name });
+    const agentId = this.store.partner()?.payoutAgentId;
+    if (agentId) this.loadPayoutInfrastructure(agentId, pm.name);
+  }
+
+  private loadPayoutInfrastructure(agentId: number, _methodName: string): void {
     this.payoutBanks = [];
     this.payoutCashLocations = [];
     this.payoutLocations = [];
 
-    if (m.includes('bank')) {
-      this.api.getAgentBanksForPayout(agentId, this.store.receiverCountry() || undefined)
-        .pipe(takeUntil(this.destroy$))
-        .subscribe((r: any) => { if (r.success) this.payoutBanks = r.data ?? []; });
-    } else if (m.includes('cash') || m.includes('pickup')) {
+    if (this.isCashTransfer() && !this.isMgCashTransfer()) {
       this.api.getAgentCashLocations(agentId)
         .pipe(takeUntil(this.destroy$))
         .subscribe((r: any) => { if (r.success) this.payoutCashLocations = r.data ?? []; });
-    } else if (m.includes('wallet') || m.includes('mobile')) {
+    } else if (this.isWalletTransfer()) {
       this.api.getAgentWalletLocations(agentId)
         .pipe(takeUntil(this.destroy$))
         .subscribe((r: any) => { if (r.success) this.payoutLocations = r.data ?? []; });
     } else {
-      this.api.getAgentLocationsForPayout(agentId)
+      // Default: bank transfer (covers bank, deposit, direct, wire, eft, unknown)
+      this.api.getAgentBanksForPayout(agentId, this.store.receiverCountry() || undefined)
         .pipe(takeUntil(this.destroy$))
-        .subscribe((r: any) => { if (r.success) this.payoutLocations = r.data ?? []; });
+        .subscribe((r: any) => { if (r.success) this.payoutBanks = r.data ?? []; });
     }
   }
 
@@ -285,17 +310,71 @@ export class ThirdPartySendComponent implements OnInit, OnDestroy {
     this.store.setSelectedReceiver(null);
     this.receiverSearch = '';
     this.showMissingReceiverForm = false;
+    this.savedPayoutDetails = [];
+    this.selectedSavedDetail = null;
+    this.showPayoutSwapPanel = false;
+    this.showCashSwapPanel = false;
+    this.showCashSavedPanel = false;
+    this.showNewAccountForm = false;
+    this.transactionPayoutDetails = { bankName: null, bankCode: null, bankId: null, accountNumber: null, branchName: null, branchCode: null, branchId: null };
   }
 
   private loadReceiverPayoutDetails(r: ReceiverModel): void {
-    const methodName = this.store.paymentMethodName().toLowerCase();
-    const type = methodName.includes('bank') ? 'bank'
-      : methodName.includes('cash') ? 'cash' : 'wallet';
-    this.api.getReceiverPaymentDetails(r.id, type, this.store.receiverCountry())
+    const isCash = this.isCashTransfer();
+    const type = this.isBankTransfer() ? 'bank' : isCash ? 'cash' : 'wallet';
+    const agentId = this.store.partner()?.payoutAgentId ?? undefined;
+
+    const fallback = () => {
+      this.savedPayoutDetails = [];
+      this.selectedSavedDetail = null;
+      this.transactionPayoutDetails = { bankName: null, bankCode: null, bankId: null, accountNumber: null, branchName: null, branchCode: null, branchId: null };
+      if (isCash && !this.isMgCashTransfer()) { this.showCashSwapPanel = true; this.showNewAccountForm = false; }
+      else { this.showNewAccountForm = true; }
+    };
+
+    this.api.getReceiverPaymentDetails(r.id, type, this.store.receiverCountry(), agentId)
       .pipe(takeUntil(this.destroy$))
-      .subscribe((res: any) => {
-        if (res.success) this.savedPayoutDetails = res.data ?? [];
+      .subscribe({
+        next: (res: any) => {
+          if (!res?.success) { fallback(); return; }
+          this.savedPayoutDetails = res.data ?? [];
+          if (this.savedPayoutDetails.length > 0) {
+            const first = this.savedPayoutDetails[0];
+            this.selectedSavedDetail = first;
+            this.transactionPayoutDetails = {
+              bankName: first.bankName ?? null,
+              bankCode: first.bankCode ?? null,
+              bankId: first.bankId ?? null,
+              accountNumber: first.accountNumber ?? null,
+              branchName: first.branchName ?? null,
+              branchCode: first.branchCode ?? null,
+              branchId: first.branchId ?? null,
+            };
+            this.showNewAccountForm = false;
+            this.showCashSwapPanel = false;
+          } else {
+            fallback();
+          }
+        },
+        error: () => fallback(),
       });
+  }
+
+  selectSavedDetail(d: any): void {
+    this.selectedSavedDetail = d;
+    this.showPayoutSwapPanel = false;
+    this.showNewAccountForm = false;
+  }
+
+  useNewPayoutDetail(): void {
+    this.selectedSavedDetail = null;
+    this.showPayoutSwapPanel = false;
+    this.showNewAccountForm = true;
+    this.transactionPayoutDetails = { bankName: null, bankCode: null, bankId: null, accountNumber: null, branchName: null, branchCode: null, branchId: null };
+  }
+
+  togglePayoutSwapPanel(): void {
+    this.showPayoutSwapPanel = !this.showPayoutSwapPanel;
   }
 
   // ── Missing fields ────────────────────────────────────────────────────────
@@ -421,6 +500,24 @@ export class ThirdPartySendComponent implements OnInit, OnDestroy {
     });
   }
 
+  // ── Branch popup ──────────────────────────────────────────────────────────
+  selectBranchTxn(branch: any): void {
+    this.transactionPayoutDetails = { ...this.transactionPayoutDetails, branchName: branch.branchName, branchCode: branch.branchCode ?? null, branchId: branch.id };
+    this.showBranchPopup = false;
+  }
+
+  selectBranch(branch: any): void {
+    this.receiverForm.patchValue({ branchName: branch.branchName, branchCode: branch.branchCode ?? '', branchId: branch.id });
+    this.showBranchPopup = false;
+  }
+
+  filterBranches(): void {
+    const q = this.branchSearch.toLowerCase();
+    this.filteredBranches = q
+      ? this.allBranches.filter(b => b.branchName.toLowerCase().includes(q) || (b.branchCode ?? '').toLowerCase().includes(q))
+      : this.allBranches;
+  }
+
   // ── Step navigation ───────────────────────────────────────────────────────
   goToCustomerSubStep(): void {
     this.store.setSubStep('receiver');
@@ -428,6 +525,10 @@ export class ThirdPartySendComponent implements OnInit, OnDestroy {
 
   proceedToCompliance(): void {
     if (!this.store.canProceedStep1()) return;
+    if (!this.hasValidPayoutAccount()) {
+      this.notify.error('Please select or add a payout account before continuing.');
+      return;
+    }
     this.store.nextStep(); // step 2
   }
 
@@ -478,13 +579,13 @@ export class ThirdPartySendComponent implements OnInit, OnDestroy {
       senderName: c.fullName, senderPhone: c.phone, senderEmail: c.email,
       senderIdType: (c as any).idDocumentType, senderIdNumber: (c as any).idDocumentNumber, senderCountry: c.country,
       receiverName: rv.fullName, receiverPhone: rv.phone, receiverEmail: rv.email, receiverCountry: rv.country,
-      receiverBankName:      sd?.bankName      ?? pd.bankName      ?? rv.bankName,
-      receiverBankCode:      sd?.bankCode      ?? pd.bankCode      ?? rv.bankCode,
+      receiverBankName: sd?.bankName ?? pd.bankName ?? rv.bankName,
+      receiverBankCode: sd?.bankCode ?? pd.bankCode ?? rv.bankCode,
       receiverAccountNumber: sd?.accountNumber ?? pd.accountNumber ?? rv.accountNumber,
-      receiverBranchName:    sd?.branchName    ?? pd.branchName    ?? rv.branchName,
-      receiverBranchCode:    sd?.branchCode    ?? pd.branchCode    ?? rv.branchCode,
-      receiverBankId:        sd?.bankId        ?? pd.bankId        ?? rv.bankId,
-      receiverBranchId:      sd?.branchId      ?? pd.branchId      ?? rv.branchId,
+      receiverBranchName: sd?.branchName ?? pd.branchName ?? rv.branchName,
+      receiverBranchCode: sd?.branchCode ?? pd.branchCode ?? rv.branchCode,
+      receiverBankId: sd?.bankId ?? pd.bankId ?? rv.bankId,
+      receiverBranchId: sd?.branchId ?? pd.branchId ?? rv.branchId,
       sendAmount: this.store.sendAmount(),
       exchangeRate: this.store.exchangeRate(),
       receiveAmount: this.store.receiveAmount(),
@@ -500,6 +601,8 @@ export class ThirdPartySendComponent implements OnInit, OnDestroy {
       customerId: c.id, receiverId: rv.id,
       purpose: this.purpose, sourceOfFunds: this.sourceOfFunds, relationship: this.relationship,
       quoteId: this.store.quoteId(),
+      serviceOptionCode: this.store.serviceOptionCode() ?? null,
+      serviceOptionRoutingCode: this.store.serviceOptionRoutingCode() ?? null,
     };
 
     this.api.sendTransaction(dto).subscribe({
@@ -528,7 +631,15 @@ export class ThirdPartySendComponent implements OnInit, OnDestroy {
       bankName: bank.bankName,
       bankCode: bank.bankCode ?? null,
       bankId: bank.id,
+      branchName: null, branchCode: null, branchId: null,
     };
+    this.allBranches = bank.branches ?? [];
+    this.filteredBranches = bank.branches ?? [];
+    if (bank.branches?.length) {
+      this.branchBankName = bank.bankName;
+      this.branchContext = 'txn';
+      this.showBranchPopup = true;
+    }
   }
 
   onCashLocationSelectedTxn(loc: AgentBankModel): void {
@@ -542,6 +653,29 @@ export class ThirdPartySendComponent implements OnInit, OnDestroy {
       branchCode: null,
       branchId: null,
     };
+    this.selectedSavedDetail = null;
+    this.showCashSwapPanel = false;
+    this.showCashSavedPanel = false;
+  }
+
+  toggleCashSwapPanel(): void {
+    this.showCashSwapPanel = !this.showCashSwapPanel;
+    this.showCashSavedPanel = false;
+  }
+
+  toggleCashSavedPanel(): void {
+    this.showCashSavedPanel = !this.showCashSavedPanel;
+    this.showCashSwapPanel = false;
+  }
+
+  selectCashSavedDetail(d: any): void {
+    this.selectedSavedDetail = d;
+    this.transactionPayoutDetails = {
+      bankName: d.bankName ?? null, bankCode: d.bankCode ?? null, bankId: d.bankId ?? d.id ?? null,
+      accountNumber: null, branchName: null, branchCode: null, branchId: null,
+    };
+    this.showCashSwapPanel = false;
+    this.showCashSavedPanel = false;
   }
 
   onLocationSelectedTxn(loc: AgentLocationModel): void {
@@ -554,14 +688,55 @@ export class ThirdPartySendComponent implements OnInit, OnDestroy {
     };
   }
 
-  isBankTransfer(): boolean { return this.store.paymentMethodName().toLowerCase().includes('bank'); }
-  isCashTransfer(): boolean {
+  private resolvedPayoutType(): 'bank' | 'cash' | 'wallet' {
+    // Prefer explicit payoutType from MoneyGram service option selection
+    const explicit = this.store.payoutType();
+    if (explicit) return explicit;
+    // Fallback: name-based heuristic for non-MG corridors
     const n = this.store.paymentMethodName().toLowerCase();
-    return n.includes('cash') || n.includes('pickup');
+    if (n.includes('cash') || n.includes('pickup') || n.includes('will_call') || n.includes('willcall')) return 'cash';
+    if (n.includes('wallet') || n.includes('mobile') || n.includes('phone')) return 'wallet';
+    return 'bank';
   }
-  isWalletTransfer(): boolean {
-    const n = this.store.paymentMethodName().toLowerCase();
-    return n.includes('wallet') || n.includes('mobile');
+  isBankTransfer(): boolean { return this.resolvedPayoutType() === 'bank'; }
+  isCashTransfer(): boolean { return this.resolvedPayoutType() === 'cash'; }
+  isWalletTransfer(): boolean { return this.resolvedPayoutType() === 'wallet'; }
+  isMgPartner(): boolean { return this.store.partner()?.apiProviderKey === 'moneygram'; }
+  isMgCashTransfer(): boolean { return this.isMgPartner() && this.isCashTransfer(); }
+
+  resolveDisplayBankName(bankId: number | null, bankName: string | null): string | null {
+    if (bankName) return bankName;
+    if (bankId) return this.payoutBanks.find(b => b.id === bankId)?.bankName ?? null;
+    return null;
+  }
+
+  hasSavedPayoutData(): boolean {
+    if (this.selectedSavedDetail) return true;
+    const pd = this.transactionPayoutDetails;
+    return !!(pd.bankId || pd.bankName || pd.accountNumber);
+  }
+
+  hasValidPayoutAccount(): boolean {
+    if (this.isBankTransfer()) {
+      if (this.selectedSavedDetail) return true;
+      const pd = this.transactionPayoutDetails;
+      const effectiveBankName = this.resolveDisplayBankName(pd.bankId, pd.bankName);
+      const bankOk = !!(pd.accountNumber && (pd.bankId || effectiveBankName));
+      const branchOk = this.allBranches.length === 0 || !!pd.branchId;
+      return bankOk && branchOk;
+    }
+    if (this.isCashTransfer()) {
+      if (this.isMgCashTransfer()) return true; // MG cash: location pre-selected on step 0
+      return !!(this.transactionPayoutDetails.bankId || this.transactionPayoutDetails.bankName);
+    }
+    if (this.isWalletTransfer()) {
+      return !!(this.transactionPayoutDetails.accountNumber || this.selectedSavedDetail?.accountNumber);
+    }
+    return true; // unknown method — don't block
+  }
+
+  canProceed(): boolean {
+    return this.store.canProceedStep1() && this.hasValidPayoutAccount();
   }
 
   // ── Receipt ───────────────────────────────────────────────────────────────

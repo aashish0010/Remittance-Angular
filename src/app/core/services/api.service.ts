@@ -519,9 +519,16 @@ export class ApiService {
     return this.get<AgentLocationModel[]>(`api/agent/locations/wallet-locations/${agentId}`);
   }
 
-  getReceiverPaymentDetails(receiverId: number, methodType: string, country?: string): Observable<ApiResponse<any>> {
-    const params = country ? `?country=${encodeURIComponent(country)}` : '';
-    return this.get<any>(`api/agent/receivers/${receiverId}/payment-details/${methodType}${params}`);
+  getReceiverPaymentDetails(receiverId: number, methodType: string, country?: string, payoutPartnerId?: number): Observable<ApiResponse<any>> {
+    const qs = new URLSearchParams();
+    if (country) qs.set('country', country);
+    if (payoutPartnerId) qs.set('payoutPartnerId', payoutPartnerId.toString());
+    const q = qs.toString() ? `?${qs.toString()}` : '';
+    return this.get<any>(`api/agent/receivers/${receiverId}/payment-details/${methodType}${q}`);
+  }
+
+  getMoneyGramServiceOptions(country: string): Observable<ApiResponse<any[]>> {
+    return this.get<any[]>(`api/agent/moneygram/service-options?country=${encodeURIComponent(country)}`);
   }
 
   // Agent: Locations for a payout agent

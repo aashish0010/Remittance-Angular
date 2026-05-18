@@ -16,6 +16,7 @@ export interface CorridorPayoutPartnerModel {
   paymentCorridorId: number;
   payoutAgentId: number;
   payoutAgentName: string;
+  apiProviderKey?: string;
   paymentModeIds: number[];
   paymentModeNames: string[];
   isActive: boolean;

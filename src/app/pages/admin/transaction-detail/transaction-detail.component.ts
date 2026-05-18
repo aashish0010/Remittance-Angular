@@ -36,6 +36,7 @@ export class TransactionDetailComponent implements OnInit, OnDestroy {
   logsLoading = false;
   showLogs = false;
   expandedGroups: { [key: string]: boolean } = {};
+  expandedPayloads = new Set<string>();
 
   private destroy$ = new Subject<void>();
 
@@ -145,6 +146,21 @@ export class TransactionDetailComponent implements OnInit, OnDestroy {
 
   toggleGroup(event: string): void {
     this.expandedGroups[event] = !this.expandedGroups[event];
+  }
+
+  togglePayload(key: string): void {
+    if (this.expandedPayloads.has(key)) this.expandedPayloads.delete(key);
+    else this.expandedPayloads.add(key);
+  }
+
+  isPayloadOpen(key: string): boolean { return this.expandedPayloads.has(key); }
+
+  copyPayload(text: string): void {
+    navigator.clipboard.writeText(text).then(() => {
+      this.notify.success('Copied to clipboard');
+    }).catch(() => {
+      this.notify.error('Copy failed');
+    });
   }
 
   toggleLogs(): void {
