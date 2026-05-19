@@ -726,7 +726,9 @@ export class ThirdPartySendComponent implements OnInit, OnDestroy {
   hasValidPayoutAccount(): boolean {
     if (this.isBankTransfer()) {
       const sd = this.selectedSavedDetail;
-      if (sd) return !!(sd.accountNumber && sd.bankCode);
+      // Saved detail: already validated when created — just needs account + bank identity
+      if (sd) return !!(sd.accountNumber && (sd.bankId || sd.bankName));
+      // New manual entry: bankCode required
       const pd = this.transactionPayoutDetails;
       const effectiveBankName = this.resolveDisplayBankName(pd.bankId, pd.bankName);
       const bankOk = !!(pd.accountNumber && pd.bankCode && (pd.bankId || effectiveBankName));
@@ -741,7 +743,9 @@ export class ThirdPartySendComponent implements OnInit, OnDestroy {
     }
     if (this.isWalletTransfer()) {
       const sd = this.selectedSavedDetail;
-      if (sd) return !!(sd.accountNumber && sd.bankCode);
+      // Saved detail: just needs wallet number
+      if (sd) return !!(sd.accountNumber);
+      // New manual entry: wallet number + code required
       const pd = this.transactionPayoutDetails;
       return !!(pd.accountNumber && pd.bankCode);
     }
