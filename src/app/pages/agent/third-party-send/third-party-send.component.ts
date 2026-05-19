@@ -582,12 +582,16 @@ export class ThirdPartySendComponent implements OnInit, OnDestroy {
     const sd = this.selectedSavedDetail;
     const pd = this.transactionPayoutDetails;
 
+    const effectiveBankId = sd?.bankId ?? pd.bankId ?? rv.bankId ?? null;
+    const resolvedBankCode = sd?.bankCode ?? pd.bankCode ?? rv.bankCode
+      ?? (effectiveBankId ? (this.payoutBanks.find(b => b.id === effectiveBankId)?.bankCode ?? null) : null);
+
     const dto: any = {
       senderName: c.fullName, senderPhone: c.phone, senderEmail: c.email,
       senderIdType: (c as any).idDocumentType, senderIdNumber: (c as any).idDocumentNumber, senderCountry: c.country,
       receiverName: rv.fullName, receiverPhone: rv.phone, receiverEmail: rv.email, receiverCountry: rv.country,
       receiverBankName: sd?.bankName ?? pd.bankName ?? rv.bankName,
-      receiverBankCode: sd?.bankCode ?? pd.bankCode ?? rv.bankCode,
+      receiverBankCode: resolvedBankCode,
       receiverAccountNumber: sd?.accountNumber ?? pd.accountNumber ?? rv.accountNumber,
       receiverBranchName: sd?.branchName ?? pd.branchName ?? rv.branchName,
       receiverBranchCode: sd?.branchCode ?? pd.branchCode ?? rv.branchCode,
