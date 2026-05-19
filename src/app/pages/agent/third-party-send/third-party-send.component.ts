@@ -212,6 +212,9 @@ export class ThirdPartySendComponent implements OnInit, OnDestroy {
     this.store.initFromNavState({ paymentMethodId: pm.id, paymentMethodName: pm.name });
     const agentId = this.store.partner()?.payoutAgentId;
     if (agentId) this.loadPayoutInfrastructure(agentId, pm.name);
+    // Reload saved payout details for new method type
+    const rv = this.store.selectedReceiver();
+    if (rv) this.loadReceiverPayoutDetails(rv);
   }
 
   private loadPayoutInfrastructure(agentId: number, _methodName: string): void {
@@ -722,21 +725,27 @@ export class ThirdPartySendComponent implements OnInit, OnDestroy {
 
   hasValidPayoutAccount(): boolean {
     if (this.isBankTransfer()) {
-      if (this.selectedSavedDetail) return true;
+      const sd = this.selectedSavedDetail;
+      if (sd) return !!(sd.accountNumber && sd.bankCode);
       const pd = this.transactionPayoutDetails;
       const effectiveBankName = this.resolveDisplayBankName(pd.bankId, pd.bankName);
-      const bankOk = !!(pd.accountNumber && (pd.bankId || effectiveBankName));
+      const bankOk = !!(pd.accountNumber && pd.bankCode && (pd.bankId || effectiveBankName));
       const branchOk = this.allBranches.length === 0 || !!pd.branchId;
       return bankOk && branchOk;
     }
     if (this.isCashTransfer()) {
-      if (this.isMgCashTransfer()) return true; // MG cash: location pre-selected on step 0
+      if (this.isMgCashTransfer()) return true;
+      const sd = this.selectedSavedDetail;
+      if (sd) return !!(sd.bankId || sd.bankName);
       return !!(this.transactionPayoutDetails.bankId || this.transactionPayoutDetails.bankName);
     }
     if (this.isWalletTransfer()) {
-      return !!(this.transactionPayoutDetails.accountNumber || this.selectedSavedDetail?.accountNumber);
+      const sd = this.selectedSavedDetail;
+      if (sd) return !!(sd.accountNumber && sd.bankCode);
+      const pd = this.transactionPayoutDetails;
+      return !!(pd.accountNumber && pd.bankCode);
     }
-    return true; // unknown method — don't block
+    return true;
   }
 
   canProceed(): boolean {
