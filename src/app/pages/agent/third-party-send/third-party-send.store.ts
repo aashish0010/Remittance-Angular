@@ -113,6 +113,10 @@ export const ThirdPartySendStore = signalStore(
       if (store.currentStep() > 0)
         patchState(store, { currentStep: store.currentStep() - 1, stepDir: 'backward' });
     },
+    goToStep(step: number): void {
+      if (step >= 0 && step < store.currentStep())
+        patchState(store, { currentStep: step, stepDir: 'backward' });
+    },
     setSubStep(sub: TpSubStep, dir: StepDir = 'forward'): void {
       patchState(store, { subStep: sub, stepDir: dir });
     },

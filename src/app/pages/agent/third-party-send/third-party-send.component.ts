@@ -9,7 +9,6 @@ import { ApiService } from '../../../core/services/api.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { AuthStateService } from '../../../core/services/auth-state.service';
 import { AppSettingsService } from '../../../core/services/app-settings.service';
-import { patchState } from '@ngrx/signals';
 import { ThirdPartySendStore } from './third-party-send.store';
 import { CustomerModel, ReceiverModel } from '../../../core/models/customer.models';
 import { AgentFieldMappingModel, AgentBankModel, AgentLocationModel } from '../../../core/models/agent.models';
@@ -543,9 +542,7 @@ export class ThirdPartySendComponent implements OnInit, OnDestroy {
   }
 
   goToStep(step: number): void {
-    if (step < this.store.currentStep()) {
-      patchState(this.store, { currentStep: step, stepDir: 'backward' });
-    }
+    this.store.goToStep(step);
   }
 
   // ── PIN + Submit ──────────────────────────────────────────────────────────
