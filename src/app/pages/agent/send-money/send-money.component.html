@@ -335,10 +335,10 @@
           <div>
             <label class="block text-xs font-medium text-surface-500 dark:text-surface-400 mb-1.5">They receive</label>
             <div class="relative">
-              <span class="absolute left-3 top-1/2 -translate-y-1/2 text-surface-400 dark:text-surface-500 text-sm font-semibold">{{ receiverCurrency || '···' }}</span>
-              <div class="w-full pl-14 pr-3 py-3 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/50 text-emerald-700 dark:text-emerald-400 text-lg font-bold">
-                {{ receiveAmount > 0 ? (receiveAmount | number:'1.2-2') : '—' }}
-              </div>
+              <span class="absolute left-3 top-1/2 -translate-y-1/2 text-emerald-500 dark:text-emerald-400 text-sm font-semibold">{{ receiverCurrency || '···' }}</span>
+              <input type="number" [(ngModel)]="receiveAmountInput" (ngModelChange)="onReceiveAmountChange()" min="0"
+                class="w-full pl-14 pr-3 py-3 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/50 text-emerald-700 dark:text-emerald-400 text-lg font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
+                placeholder="0.00" />
             </div>
           </div>
         </div>

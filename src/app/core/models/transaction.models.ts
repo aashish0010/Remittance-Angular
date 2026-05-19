@@ -65,6 +65,8 @@ export interface TransactionResult {
 
 export interface CalculateTransferRequest {
   sendAmount: number;
+  receiveAmount?: number;
+  calculationDirection?: 'send' | 'receive';
   sendCurrency: string;
   receiveCurrency: string;
   senderCountry: string;

@@ -92,22 +92,32 @@
       <div class="flex items-center mb-8 px-2">
         @for (step of [0,1,2,3]; track step) {
           <div class="flex items-center" [class.flex-1]="step < 3">
-            <div class="flex items-center justify-center w-8 h-8 rounded-full text-xs font-semibold transition-all"
-              [class]="store.currentStep() > step
-                ? 'bg-indigo-600 text-white'
-                : store.currentStep() === step
-                  ? 'bg-indigo-600 text-white ring-4 ring-indigo-100 dark:ring-indigo-900/40'
-                  : 'bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500'">
-              @if (store.currentStep() > step) {
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
-                </svg>
-              } @else {
-                {{ step + 1 }}
-              }
+            <div class="flex flex-col items-center gap-1">
+              <button
+                [disabled]="step >= store.currentStep()"
+                (click)="goToStep(step)"
+                [title]="['Summary','Sender & Receiver','Payout Details','Review'][step]"
+                class="flex items-center justify-center w-8 h-8 rounded-full text-xs font-semibold transition-all"
+                [class]="store.currentStep() > step
+                  ? 'bg-indigo-600 text-white hover:bg-indigo-700 cursor-pointer ring-0 hover:ring-4 hover:ring-indigo-100 dark:hover:ring-indigo-900/40'
+                  : store.currentStep() === step
+                    ? 'bg-indigo-600 text-white ring-4 ring-indigo-100 dark:ring-indigo-900/40 cursor-default'
+                    : 'bg-gray-100 dark:bg-gray-800 text-gray-400 dark:text-gray-500 cursor-not-allowed'">
+                @if (store.currentStep() > step) {
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                  </svg>
+                } @else {
+                  {{ step + 1 }}
+                }
+              </button>
+              <span class="text-[10px] font-medium hidden sm:block whitespace-nowrap"
+                [class]="store.currentStep() >= step ? 'text-indigo-600 dark:text-indigo-400' : 'text-gray-400 dark:text-gray-500'">
+                {{ ['Summary','Sender & Receiver','Payout','Review'][step] }}
+              </span>
             </div>
             @if (step < 3) {
-              <div class="flex-1 h-0.5 mx-1 rounded transition-all"
+              <div class="flex-1 h-0.5 mx-1 rounded transition-all mb-4"
                 [class]="store.currentStep() > step ? 'bg-indigo-600' : 'bg-gray-200 dark:bg-gray-700'"></div>
             }
           </div>

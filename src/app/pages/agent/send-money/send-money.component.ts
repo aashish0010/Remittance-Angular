@@ -142,10 +142,12 @@ export class SendMoneyComponent implements OnInit, OnDestroy {
   receiverCountryIso3 = '';
   receiverCurrency = '';
   sendAmountInput = 0;
+  receiveAmountInput = 0;
   receiveAmount = 0;
   exchangeRate = 0;
   serviceCharge = 0;
   totalPayable = 0;
+  calculationDirection: 'send' | 'receive' = 'send';
   loadingCalc = false;
   calcError = '';
   calcTimestamp: number | null = null;
@@ -354,11 +356,21 @@ export class SendMoneyComponent implements OnInit, OnDestroy {
 
   // ── Calculator ────────────────────────────────────────────────────────────
   onAmountChange(): void {
+    this.calculationDirection = 'send';
     this.store.setSendAmount(this.sendAmountInput);
     const isMg = this.isMoneyGramPartner();
     const readyToCalc = isMg
       ? !!this.store.selectedPartner() && this.sendAmountInput > 0 && !!this.senderCurrency && !!this.receiverCurrency
       : this.sendAmountInput > 0 && !!this.senderCurrency && !!this.receiverCurrency && !!this.selectedPaymentMethodId;
+    if (readyToCalc) this.calcSubject.next();
+  }
+
+  onReceiveAmountChange(): void {
+    this.calculationDirection = 'receive';
+    const isMg = this.isMoneyGramPartner();
+    const readyToCalc = isMg
+      ? !!this.store.selectedPartner() && this.receiveAmountInput > 0 && !!this.senderCurrency && !!this.receiverCurrency
+      : this.receiveAmountInput > 0 && !!this.senderCurrency && !!this.receiverCurrency && !!this.selectedPaymentMethodId;
     if (readyToCalc) this.calcSubject.next();
   }
 
@@ -503,7 +515,10 @@ export class SendMoneyComponent implements OnInit, OnDestroy {
 
   calculateViaBackend(): void {
     const partner = this.store.selectedPartner();
-    if (!partner || this.sendAmountInput <= 0) return;
+    const isSend = this.calculationDirection === 'send';
+    if (!partner) return;
+    if (isSend && this.sendAmountInput <= 0) return;
+    if (!isSend && this.receiveAmountInput <= 0) return;
     const isMg = partner.apiProviderKey === 'moneygram';
     if (!isMg && !this.selectedPaymentMethodId) return;
     this.loadingCalc = true;
@@ -511,7 +526,9 @@ export class SendMoneyComponent implements OnInit, OnDestroy {
     this.store.setCalculationDone(false);
 
     const dto: any = {
-      sendAmount: this.sendAmountInput,
+      sendAmount: isSend ? this.sendAmountInput : 0,
+      receiveAmount: isSend ? undefined : this.receiveAmountInput,
+      calculationDirection: this.calculationDirection,
       sendCurrency: this.senderCurrency,
       receiveCurrency: this.receiverCurrency,
       senderCountry: this.senderCountry,
@@ -529,7 +546,12 @@ export class SendMoneyComponent implements OnInit, OnDestroy {
       next: (r: any) => {
         this.loadingCalc = false;
         if (r.success && r.data) {
+          if (this.calculationDirection === 'receive') {
+            this.sendAmountInput = r.data.sendAmount;
+            this.store.setSendAmount(r.data.sendAmount);
+          }
           this.receiveAmount = r.data.receiveAmount;
+          this.receiveAmountInput = r.data.receiveAmount;
           this.exchangeRate = r.data.exchangeRate;
           this.serviceCharge = r.data.serviceCharge;
           this.totalPayable = r.data.totalPayable;
@@ -554,6 +576,7 @@ export class SendMoneyComponent implements OnInit, OnDestroy {
           this.calcError = r.message ?? 'Calculation failed.';
           this.complianceViolations = [];
           this.receiveAmount = 0;
+          this.receiveAmountInput = 0;
           this.exchangeRate = 0;
           this.serviceCharge = 0;
           this.totalPayable = 0;
@@ -567,6 +590,7 @@ export class SendMoneyComponent implements OnInit, OnDestroy {
         this.calcError = 'Calculation error. Please try again.';
         this.complianceViolations = [];
         this.receiveAmount = 0;
+        this.receiveAmountInput = 0;
         this.exchangeRate = 0;
         this.serviceCharge = 0;
         this.totalPayable = 0;
