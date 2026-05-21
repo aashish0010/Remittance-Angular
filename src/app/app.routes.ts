@@ -21,6 +21,7 @@ export const routes: Routes = [
     children: [
       { path: 'dashboard', loadComponent: () => import('./pages/admin/dashboard/admin-dashboard.component').then(m => m.AdminDashboardComponent) },
       { path: 'agents', loadComponent: () => import('./pages/admin/agent-management/agent-management.component').then(m => m.AgentManagementComponent) },
+      { path: 'agent-banks', loadComponent: () => import('./pages/admin/agent-banks/agent-banks.component').then(m => m.AgentBanksComponent) },
       { path: 'static-values', loadComponent: () => import('./pages/admin/setup-fields/setup-fields.component').then(m => m.SetupFieldsComponent) },
       { path: 'transactions', loadComponent: () => import('./pages/admin/transactions/admin-transactions.component').then(m => m.AdminTransactionsComponent) },
       { path: 'transactions/:id', loadComponent: () => import('./pages/admin/transaction-detail/transaction-detail.component').then(m => m.TransactionDetailComponent) },

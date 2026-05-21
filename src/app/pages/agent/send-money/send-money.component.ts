@@ -153,8 +153,8 @@ export class SendMoneyComponent implements OnInit, OnDestroy {
   receiverCountryIso2 = '';
   receiverCountryIso3 = '';
   receiverCurrency = '';
-  sendAmountInput = 0;
-  receiveAmountInput = 0;
+  sendAmountInput = '';
+  receiveAmountInput = '';
   receiveAmount = 0;
   exchangeRate = 0;
   serviceCharge = 0;
@@ -375,13 +375,32 @@ export class SendMoneyComponent implements OnInit, OnDestroy {
   }
 
   // ── Calculator ────────────────────────────────────────────────────────────
+  private toNum(v: string | number): number {
+    return typeof v === 'number' ? v : (parseFloat(String(v)) || 0);
+  }
+
+  onAmountKeyDown(e: KeyboardEvent): void {
+    const ctrl = e.ctrlKey || e.metaKey;
+    if (ctrl) return;
+    const nav = ['Backspace','Delete','Tab','ArrowLeft','ArrowRight','Home','End'];
+    if (nav.includes(e.key)) return;
+    if (/^\d$/.test(e.key)) return;
+    if (e.key === '.' && !(e.target as HTMLInputElement).value.includes('.')) return;
+    e.preventDefault();
+  }
+
+  onAmountPaste(e: ClipboardEvent): void {
+    const text = e.clipboardData?.getData('text') ?? '';
+    if (!/^\d*\.?\d*$/.test(text.trim())) e.preventDefault();
+  }
+
   onAmountChange(): void {
     this.calculationDirection = 'send';
-    this.store.setSendAmount(this.sendAmountInput);
+    this.store.setSendAmount(this.toNum(this.sendAmountInput));
     const isMg = this.isMoneyGramPartner();
     const readyToCalc = isMg
-      ? !!this.store.selectedPartner() && this.sendAmountInput > 0 && !!this.senderCurrency && !!this.receiverCurrency
-      : this.sendAmountInput > 0 && !!this.senderCurrency && !!this.receiverCurrency && !!this.selectedPaymentMethodId;
+      ? !!this.store.selectedPartner() && this.toNum(this.sendAmountInput) > 0 && !!this.senderCurrency && !!this.receiverCurrency
+      : this.toNum(this.sendAmountInput) > 0 && !!this.senderCurrency && !!this.receiverCurrency && !!this.selectedPaymentMethodId;
     if (readyToCalc) this.calcSubject.next();
   }
 
@@ -389,8 +408,8 @@ export class SendMoneyComponent implements OnInit, OnDestroy {
     this.calculationDirection = 'receive';
     const isMg = this.isMoneyGramPartner();
     const readyToCalc = isMg
-      ? !!this.store.selectedPartner() && this.receiveAmountInput > 0 && !!this.senderCurrency && !!this.receiverCurrency
-      : this.receiveAmountInput > 0 && !!this.senderCurrency && !!this.receiverCurrency && !!this.selectedPaymentMethodId;
+      ? !!this.store.selectedPartner() && this.toNum(this.receiveAmountInput) > 0 && !!this.senderCurrency && !!this.receiverCurrency
+      : this.toNum(this.receiveAmountInput) > 0 && !!this.senderCurrency && !!this.receiverCurrency && !!this.selectedPaymentMethodId;
     if (readyToCalc) this.calcSubject.next();
   }
 
@@ -537,8 +556,8 @@ export class SendMoneyComponent implements OnInit, OnDestroy {
     const partner = this.store.selectedPartner();
     const isSend = this.calculationDirection === 'send';
     if (!partner) return;
-    if (isSend && this.sendAmountInput <= 0) return;
-    if (!isSend && this.receiveAmountInput <= 0) return;
+    if (isSend && this.toNum(this.sendAmountInput) <= 0) return;
+    if (!isSend && this.toNum(this.receiveAmountInput) <= 0) return;
     const isMg = partner.apiProviderKey === 'moneygram';
     if (!isMg && !this.selectedPaymentMethodId) return;
     this.loadingCalc = true;
@@ -546,8 +565,8 @@ export class SendMoneyComponent implements OnInit, OnDestroy {
     this.store.setCalculationDone(false);
 
     const dto: any = {
-      sendAmount: isSend ? this.sendAmountInput : 0,
-      receiveAmount: isSend ? undefined : this.receiveAmountInput,
+      sendAmount: isSend ? this.toNum(this.sendAmountInput) : 0,
+      receiveAmount: isSend ? undefined : this.toNum(this.receiveAmountInput),
       calculationDirection: this.calculationDirection,
       sendCurrency: this.senderCurrency,
       receiveCurrency: this.receiverCurrency,
@@ -567,11 +586,11 @@ export class SendMoneyComponent implements OnInit, OnDestroy {
         this.loadingCalc = false;
         if (r.success && r.data) {
           if (this.calculationDirection === 'receive') {
-            this.sendAmountInput = r.data.sendAmount;
+            this.sendAmountInput = String(r.data.sendAmount ?? '');
             this.store.setSendAmount(r.data.sendAmount);
           }
           this.receiveAmount = r.data.receiveAmount;
-          this.receiveAmountInput = r.data.receiveAmount;
+          this.receiveAmountInput = String(r.data.receiveAmount ?? '');
           this.exchangeRate = r.data.exchangeRate;
           this.serviceCharge = r.data.serviceCharge;
           this.totalPayable = r.data.totalPayable;
@@ -596,7 +615,7 @@ export class SendMoneyComponent implements OnInit, OnDestroy {
           this.calcError = r.message ?? 'Calculation failed.';
           this.complianceViolations = [];
           this.receiveAmount = 0;
-          this.receiveAmountInput = 0;
+          this.receiveAmountInput = '';
           this.exchangeRate = 0;
           this.serviceCharge = 0;
           this.totalPayable = 0;
@@ -610,7 +629,7 @@ export class SendMoneyComponent implements OnInit, OnDestroy {
         this.calcError = 'Calculation error. Please try again.';
         this.complianceViolations = [];
         this.receiveAmount = 0;
-        this.receiveAmountInput = 0;
+        this.receiveAmountInput = '';
         this.exchangeRate = 0;
         this.serviceCharge = 0;
         this.totalPayable = 0;
@@ -641,7 +660,7 @@ export class SendMoneyComponent implements OnInit, OnDestroy {
         : (this.paymentMethods.find(m => Number(m.id) === Number(pmId))?.name ?? '');
       this.router.navigate(['/agent/third-party-send'], {
         state: {
-          sendAmount: this.sendAmountInput,
+          sendAmount: this.toNum(this.sendAmountInput),
           receiveAmount: this.receiveAmount,
           exchangeRate: this.exchangeRate,
           serviceCharge: this.serviceCharge,
@@ -1248,7 +1267,7 @@ export class SendMoneyComponent implements OnInit, OnDestroy {
       receiverBranchCode:    sd?.branchCode    ?? pd.branchCode    ?? rv.branchCode,
       receiverBankId:        sd?.bankId        ?? pd.bankId        ?? rv.bankId,
       receiverBranchId:      sd?.branchId      ?? pd.branchId      ?? rv.branchId,
-      sendAmount: this.sendAmountInput, exchangeRate: this.exchangeRate, receiveAmount: this.receiveAmount,
+      sendAmount: this.toNum(this.sendAmountInput), exchangeRate: this.exchangeRate, receiveAmount: this.receiveAmount,
       sendCurrency: this.senderCurrency, receiveCurrency: this.receiverCurrency,
       paymentMethod: this.resolvePaymentMethodEnum(this.resolvedPaymentMethodName()),
       paymentMethodName: this.paymentMethods.find(m => m.id === this.selectedPaymentMethodId)?.name ?? '',
@@ -1292,7 +1311,7 @@ export class SendMoneyComponent implements OnInit, OnDestroy {
 
   startNewTransaction(): void {
     this.store.reset();
-    this.sendAmountInput = 0; this.receiveAmount = 0; this.exchangeRate = 0;
+    this.sendAmountInput = ''; this.receiveAmountInput = ''; this.receiveAmount = 0; this.exchangeRate = 0;
     this.serviceCharge = 0; this.totalPayable = 0;
     this.purpose = ''; this.sourceOfFunds = ''; this.relationship = '';
     this.customerSearch = ''; this.receiverSearch = '';

@@ -26,8 +26,9 @@ const ALL_NAV_ITEMS: NavItem[] = [
   { label: 'All Transactions', icon: 'receipt_long', route: '/admin/transactions', section: 'Transactions' },
 
   // Agent Management
-  { label: 'Agents',      icon: 'people_outline', route: '/admin/agents',     section: 'Agent Management' },
-  { label: 'Agent Accounting', icon: 'tune',       route: '/admin/setup',      section: 'Agent Management' },
+  { label: 'Agents',        icon: 'people_outline', route: '/admin/agents',      section: 'Agent Management' },
+  { label: 'Agent Banks',   icon: 'account_balance', route: '/admin/agent-banks', section: 'Agent Management' },
+  { label: 'Agent Accounting', icon: 'tune',       route: '/admin/setup',       section: 'Agent Management' },
 
   // Customers
   { label: 'Register Customer', icon: 'person_add_alt', route: '/admin/customer-register', section: 'Customers' },
