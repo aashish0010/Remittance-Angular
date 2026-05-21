@@ -75,6 +75,13 @@ export class AgentBanksComponent implements OnInit, OnDestroy {
   totalCount = 0;
   loading = false;
 
+  // All banks (unfiltered) — used for country dropdown + stats
+  private allBanksCache: AgentBankModel[] = [];
+  get uniqueCountries(): string[] {
+    const set = new Set(this.allBanksCache.map(b => b.country).filter(Boolean) as string[]);
+    return Array.from(set).sort();
+  }
+
   // Filters
   searchString = '';
   filterCountry = '';
@@ -159,6 +166,7 @@ export class AgentBanksComponent implements OnInit, OnDestroy {
     this.totalActive = 0;
     this.totalInactive = 0;
     this.totalBranches = 0;
+    this.allBanksCache = [];
     if (this.selectedAgentId) {
       this.loadBanks();
       this.loadAllBanksForStats();
@@ -170,6 +178,7 @@ export class AgentBanksComponent implements OnInit, OnDestroy {
     this.api.getAgentBanksPaged(this.selectedAgentId, { page: 1, pageSize: 1000 }).subscribe(r => {
       if (r?.success && r.data) {
         const all = r.data.items;
+        this.allBanksCache = all;
         this.totalActive = all.filter(b => b.isActive).length;
         this.totalInactive = all.filter(b => !b.isActive).length;
         this.totalBranches = all.reduce((acc, b) => acc + (b.branches?.length ?? 0), 0);
