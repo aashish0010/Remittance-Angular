@@ -19,9 +19,12 @@ import { PaymentCorridorModel, CorridorPayoutPartnerModel } from '../../../core/
 import { TransactionResult, ComplianceViolation, CalculateTransferRequest } from '../../../core/models/transaction.models';
 import { CountryInfo } from '../../../core/models/common.models';
 
+const PHONE_REGEX = /^\+?[\d\s\-().]+$/;
+
 const CustomerFormSchema = z.object({
   fullName: z.string().min(1, 'Full name is required').max(100),
-  phone: z.string().min(1, 'Phone is required').max(20),
+  phone: z.string().min(7, 'Phone must be at least 7 digits').max(20)
+    .regex(PHONE_REGEX, 'Phone must contain only digits, +, spaces, - or ()'),
   email: z.union([z.string().email('Invalid email'), z.literal(''), z.null(), z.undefined()]).optional(),
   dateOfBirth: z.union([z.date(), z.string(), z.null()]).optional(),
   gender: z.string().nullish(),
@@ -30,7 +33,7 @@ const CustomerFormSchema = z.object({
   city: z.string().nullish(),
   state: z.string().nullish(),
   postalCode: z.string().nullish(),
-  address: z.string().nullish(),
+  address: z.union([z.string().min(6, 'Address must be more than 5 characters'), z.literal(''), z.null(), z.undefined()]).optional(),
   idDocumentType: z.string().min(1, 'Document type is required'),
   idDocumentNumber: z.string().min(1, 'Document number is required'),
   docIssueDate: z.union([z.date(), z.string(), z.null()]).optional(),
@@ -40,7 +43,8 @@ const CustomerFormSchema = z.object({
 
 const ReceiverFormSchema = z.object({
   fullName: z.string().min(1, 'Full name is required').max(100),
-  phone: z.string().min(1, 'Phone is required').max(20),
+  phone: z.string().min(7, 'Phone must be at least 7 digits').max(20)
+    .regex(PHONE_REGEX, 'Phone must contain only digits, +, spaces, - or ()'),
   email: z.union([z.string().email('Invalid email'), z.literal(''), z.null(), z.undefined()]).optional(),
   country: z.string().nullish(),
   city: z.string().nullish(),
@@ -56,7 +60,7 @@ const ReceiverFormSchema = z.object({
   dateOfBirth: z.union([z.date(), z.string(), z.null()]).optional(),
   nationality: z.string().nullish(),
   occupation: z.string().nullish(),
-  address: z.string().nullish(),
+  address: z.union([z.string().min(6, 'Address must be more than 5 characters'), z.literal(''), z.null(), z.undefined()]).optional(),
   postalCode: z.string().nullish(),
   idDocumentType: z.string().nullish(),
   idDocumentNumber: z.string().nullish(),

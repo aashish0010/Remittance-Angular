@@ -478,11 +478,19 @@ export class ThirdPartySendComponent implements OnInit, OnDestroy {
     });
   }
 
+  private static readonly PHONE_REGEX = /^\+?[\d\s\-().]+$/;
+
   // ── New customer create ───────────────────────────────────────────────────
   saveNewCustomer(): void {
     const v = this.customerForm.value;
     if (!v.fullName || !v.phone || !v.nationality || !v.country || !v.idDocumentType || !v.idDocumentNumber) {
       this.notify.error('Please fill all required fields.'); return;
+    }
+    if (v.phone.trim().length < 7) {
+      this.notify.error('Phone must be at least 7 digits.'); return;
+    }
+    if (!ThirdPartySendComponent.PHONE_REGEX.test(v.phone.trim())) {
+      this.notify.error('Phone must contain only digits, +, spaces, - or ().'); return;
     }
     if (v.address && v.address.trim().length <= 5) {
       this.notify.error('Address must be more than 5 characters.'); return;
@@ -517,6 +525,12 @@ export class ThirdPartySendComponent implements OnInit, OnDestroy {
     const c = this.store.selectedCustomer();
     if (!v.fullName || !v.phone || !c) {
       this.notify.error('Please fill all required fields.'); return;
+    }
+    if (v.phone.trim().length < 7) {
+      this.notify.error('Phone must be at least 7 digits.'); return;
+    }
+    if (!ThirdPartySendComponent.PHONE_REGEX.test(v.phone.trim())) {
+      this.notify.error('Phone must contain only digits, +, spaces, - or ().'); return;
     }
     this.savingReceiver = true;
     this.api.createAgentReceiver({ ...v, customerId: c.id }).subscribe({
@@ -761,12 +775,15 @@ export class ThirdPartySendComponent implements OnInit, OnDestroy {
   hasValidPayoutAccount(): boolean {
     if (this.isBankTransfer()) {
       const sd = this.selectedSavedDetail;
-      // Saved detail: already validated when created — just needs account + bank identity
-      if (sd) return !!(sd.accountNumber && (sd.bankId || sd.bankName));
-      // New manual entry: bankCode required
+      // Saved detail: needs account number + any bank identity (id OR name OR code)
+      if (sd) return !!(sd.accountNumber && (sd.bankId || sd.bankName || sd.bankCode));
+      // New entry:
+      //   - dropdown path: bankId set → bank fully identified, only accountNumber needed
+      //   - text-box path: no bankId → need bankCode + bankName both
       const pd = this.transactionPayoutDetails;
       const effectiveBankName = this.resolveDisplayBankName(pd.bankId, pd.bankName);
-      const bankOk = !!(pd.accountNumber && pd.bankCode && (pd.bankId || effectiveBankName));
+      const bankIdentified = !!(pd.bankId || (pd.bankCode && effectiveBankName));
+      const bankOk = !!(pd.accountNumber && bankIdentified);
       const branchOk = this.allBranches.length === 0 || !!pd.branchId;
       return bankOk && branchOk;
     }
