@@ -232,9 +232,10 @@ export class CustomerRegisterComponent implements OnInit, OnDestroy {
   openEditPopup(customer: CustomerModel): void {
     this.isEditing = true;
     this.editingId = customer.id;
+    this.activeTab = 'Personal';
     this.form = {
       fullName: customer.fullName,
-      dateOfBirth: customer.dateOfBirth ? new Date(customer.dateOfBirth) : null,
+      dateOfBirth: customer.dateOfBirth ? this.parseDateLocal(customer.dateOfBirth) : null,
       gender: customer.gender || 'Male',
       nationality: customer.nationality || '',
       email: customer.email || '',
@@ -290,6 +291,12 @@ export class CustomerRegisterComponent implements OnInit, OnDestroy {
     const mm = String(d.getMonth() + 1).padStart(2, '0');
     const dd = String(d.getDate()).padStart(2, '0');
     return `${yyyy}-${mm}-${dd}`;
+  }
+
+  /** Parse a date-only string (YYYY-MM-DD) as local time to avoid UTC midnight timezone shift. */
+  private parseDateLocal(dateStr: string): Date {
+    const parts = dateStr.split('T')[0].split('-').map(Number);
+    return new Date(parts[0], parts[1] - 1, parts[2]);
   }
 
   validateSpecialChars(value: string, pattern: RegExp, fieldName: string): string | null {

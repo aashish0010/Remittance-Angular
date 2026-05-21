@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormGroup, FormControl } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { z } from 'zod';
 import { TranslocoModule } from '@jsverse/transloco';
 import { ApiService } from '../../../core/services/api.service';
@@ -90,14 +90,18 @@ export class LoginComponent implements OnInit, OnDestroy {
   // Login attempt lockout
   failedAttempts = 0;
   isLockedOut = false;
+  lockoutRemainingSeconds = 0;
   private lockoutTimer?: ReturnType<typeof setTimeout>;
+  private lockoutCountdown?: ReturnType<typeof setInterval>;
 
   private storedLoginData: any = null;
+  private returnUrl = '';
 
   constructor(
     private api: ApiService,
     private auth: AuthStateService,
     private router: Router,
+    private route: ActivatedRoute,
     private appSettings: AppSettingsService,
     public publicSettings: PublicSettingsService,
     private seo: SeoService,
@@ -105,10 +109,19 @@ export class LoginComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     if (this.lockoutTimer) clearTimeout(this.lockoutTimer);
+    if (this.lockoutCountdown) clearInterval(this.lockoutCountdown);
   }
 
   ngOnInit(): void {
     this.seo.setPage('Sign In', 'Sign in to RemitAdmin to manage money transfers, agents, compliance, and more.');
+    // Read returnUrl for post-login redirect
+    this.returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') || '';
+    // Pre-fill email if Remember Me was set
+    const savedEmail = localStorage.getItem('rememberMe_email');
+    if (savedEmail) {
+      this.loginForm.patchValue({ email: savedEmail });
+      this.rememberMe = true;
+    }
     // Clear field errors on value change
     this.loginForm.valueChanges.subscribe(() => {
       this.fieldErrors = {};
@@ -152,12 +165,22 @@ export class LoginComponent implements OnInit, OnDestroy {
           const remaining = maxAttempts - this.failedAttempts;
           if (this.failedAttempts >= maxAttempts) {
             this.isLockedOut = true;
-            this.errorMessage = `Account locked after ${maxAttempts} failed attempts. Please try again in 5 minutes.`;
+            const lockoutMs = (this.appSettings.lockoutDurationMinutes || 5) * 60 * 1000;
+            this.lockoutRemainingSeconds = Math.floor(lockoutMs / 1000);
+            this.errorMessage = 'Maximum login attempted, Account has been locked. Please try again after 5 minutes.';
+            this.lockoutCountdown = setInterval(() => {
+              this.lockoutRemainingSeconds--;
+              if (this.lockoutRemainingSeconds <= 0) {
+                clearInterval(this.lockoutCountdown);
+                this.lockoutCountdown = undefined;
+              }
+            }, 1000);
             this.lockoutTimer = setTimeout(() => {
               this.isLockedOut = false;
               this.failedAttempts = 0;
               this.errorMessage = '';
-            }, 5 * 60 * 1000);
+              this.lockoutRemainingSeconds = 0;
+            }, lockoutMs);
           } else {
             this.errorMessage = `${res?.message || 'Invalid credentials.'} ${remaining} attempt${remaining === 1 ? '' : 's'} remaining.`;
           }
@@ -166,6 +189,13 @@ export class LoginComponent implements OnInit, OnDestroy {
 
         // Successful login — reset failure counter
         this.failedAttempts = 0;
+
+        // Remember Me — persist or clear email
+        if (this.rememberMe) {
+          localStorage.setItem('rememberMe_email', data.email);
+        } else {
+          localStorage.removeItem('rememberMe_email');
+        }
 
         const d = res.data;
         this.storedLoginData = d;
@@ -227,6 +257,8 @@ export class LoginComponent implements OnInit, OnDestroy {
       }
     });
 
-    this.router.navigate([route]);
+    // If came from a protected URL (e.g. shared link in another browser), go there
+    const target = this.returnUrl || route;
+    this.router.navigateByUrl(target);
   }
 }

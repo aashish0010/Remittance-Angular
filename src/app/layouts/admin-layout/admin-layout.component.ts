@@ -102,6 +102,7 @@ export class AdminLayoutComponent implements OnInit, OnDestroy {
   sidenavOpened = true;
   searchQuery = '';
   showUserMenu = false;
+  hasLogoAsset = true;
 
   navItems: NavItem[] = [];
   filteredNavItems: NavItem[] = [];

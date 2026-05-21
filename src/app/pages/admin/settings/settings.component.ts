@@ -7,7 +7,7 @@ import { AppSettingsService } from '../../../core/services/app-settings.service'
 
 // ── Type Definitions ────────────────────────────────────────────────────────
 
-type FieldType = 'text' | 'number' | 'toggle' | 'select' | 'multiselect' | 'date' | 'email' | 'url' | 'textarea';
+type FieldType = 'text' | 'number' | 'toggle' | 'select' | 'multiselect' | 'date' | 'email' | 'url' | 'textarea' | 'image';
 
 interface SettingField {
   key: string;
@@ -36,6 +36,8 @@ const DEFAULTS: Record<string, string> = {
   'general.companyName': '',
   'general.supportEmail': '',
   'general.defaultCurrency': 'USD',
+  'general.companyLogo': '',
+  'general.noticeAlertImage': '',
   // KYC
   'kyc.enabled': 'true',
   'kyc.requireEmailVerification': 'false',
@@ -118,6 +120,8 @@ export class SettingsComponent implements OnInit {
         { key: 'general.companyName',    label: 'Company Name',    description: 'Legal registered name shown in the admin header and on receipts.', type: 'text',  placeholder: 'e.g. Remit Global Pty Ltd' },
         { key: 'general.supportEmail',   label: 'Support Email',   description: 'Contact email address shown on receipts and error pages.', type: 'email', placeholder: 'support@example.com' },
         { key: 'general.defaultCurrency', label: 'Default Currency', description: 'Base currency code used when no corridor-specific currency is configured (e.g. USD, EUR, AUD).', type: 'text', placeholder: 'e.g. USD' },
+        { key: 'general.companyLogo',    label: 'Company Logo',    description: 'Logo shown on the login page and admin header. Recommended: transparent PNG, max 200×80px.', type: 'image' },
+        { key: 'general.noticeAlertImage', label: 'Notice Alert Image', description: 'Image displayed in system-wide notice or alert banners. Recommended: PNG/JPG, 16:9 or wide format.', type: 'image' },
       ],
     },
 
@@ -245,6 +249,22 @@ export class SettingsComponent implements OnInit {
 
   toggleSection(section: SettingSection): void {
     section.expanded = !section.expanded;
+  }
+
+  onImageSelected(key: string, event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (!input.files?.length) return;
+    const file = input.files[0];
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      this.values[key] = (e.target?.result as string) || '';
+    };
+    reader.readAsDataURL(file);
+    input.value = '';
+  }
+
+  clearImage(key: string): void {
+    this.values[key] = '';
   }
 
   // ── Toggle helpers ────────────────────────────────────────────────────────

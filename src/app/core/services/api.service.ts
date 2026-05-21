@@ -94,6 +94,12 @@ export class ApiService {
     );
   }
 
+  private patch<T>(path: string, body?: any): Observable<ApiResponse<T>> {
+    return this.http.patch<ApiResponse<T>>(this.url(path), body ?? null).pipe(
+      catchError(err => this.handleError<T>(err))
+    );
+  }
+
   // ---------------------------------------------------------------------------
   // Auth
   // ---------------------------------------------------------------------------
@@ -462,6 +468,10 @@ export class ApiService {
     return this.put<CustomerModel>(`api/agent/customers/${id}`, dto);
   }
 
+  patchCustomerFields(id: number, fields: Record<string, string>): Observable<ApiResponse<CustomerModel>> {
+    return this.patch<CustomerModel>(`api/agent/customers/${id}/fields`, fields);
+  }
+
   // Agent: Receivers
   getAgentReceiversByCustomer(customerId: number): Observable<ApiResponse<ReceiverModel[]>> {
     return this.get<ReceiverModel[]>(`api/agent/receivers/by-customer/${customerId}`);
@@ -473,6 +483,10 @@ export class ApiService {
 
   updateAgentReceiver(id: number, dto: any): Observable<ApiResponse<ReceiverModel>> {
     return this.put<ReceiverModel>(`api/agent/receivers/${id}`, dto);
+  }
+
+  patchReceiverFields(id: number, fields: Record<string, string>): Observable<ApiResponse<ReceiverModel>> {
+    return this.patch<ReceiverModel>(`api/agent/receivers/${id}/fields`, fields);
   }
 
   getAgentFieldMappings(payoutAgentId: number, paymentMethod?: string, country?: string): Observable<ApiResponse<AgentFieldMappingModel[]>> {
@@ -895,6 +909,18 @@ export class ApiService {
 
   deleteAdminUser(id: string): Observable<ApiResponse<any>> {
     return this.delete<any>(`api/admin/user-management/users/${id}`);
+  }
+
+  getUserIpWhitelist(userId: string): Observable<ApiResponse<string[]>> {
+    return this.get<string[]>(`api/admin/user-management/users/${userId}/ip-whitelist`);
+  }
+
+  addUserIpWhitelist(userId: string, ipAddress: string): Observable<ApiResponse<any>> {
+    return this.post<any>(`api/admin/user-management/users/${userId}/ip-whitelist`, { ipAddress });
+  }
+
+  removeUserIpWhitelist(userId: string, ipAddress: string): Observable<ApiResponse<any>> {
+    return this.delete<any>(`api/admin/user-management/users/${userId}/ip-whitelist/${encodeURIComponent(ipAddress)}`);
   }
 
   getPrivileges(): Observable<ApiResponse<any[]>> {

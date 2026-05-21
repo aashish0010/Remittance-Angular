@@ -6,14 +6,14 @@
     <div class="flex flex-wrap items-end gap-4">
       <!-- Start Date -->
       <div class="flex-1 min-w-[160px]">
-        <label class="block text-xs font-medium text-surface-600 dark:text-surface-400 mb-1">Start Date</label>
-        <p-datepicker appendTo="body" [(ngModel)]="startDate" dateFormat="dd/mm/yy" [showIcon]="true" [showClear]="true" placeholder="DD/MM/YYYY" styleClass="w-full" inputStyleClass="w-full px-4 py-2.5 rounded-xl border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-700 text-surface-900 dark:text-surface-100 focus:ring-2 focus:ring-brand-500 transition-colors text-sm" />
+        <label class="block text-xs font-medium text-surface-600 dark:text-surface-400 mb-1">From Date <span class="text-danger-500">*</span></label>
+        <p-datepicker appendTo="body" [(ngModel)]="startDate" (ngModelChange)="onStartDateChange()" dateFormat="dd/mm/yy" [showIcon]="true" [showClear]="true" placeholder="DD/MM/YYYY" styleClass="w-full" inputStyleClass="w-full px-4 py-2.5 rounded-xl border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-700 text-surface-900 dark:text-surface-100 focus:ring-2 focus:ring-brand-500 transition-colors text-sm" />
       </div>
 
       <!-- End Date -->
       <div class="flex-1 min-w-[160px]">
-        <label class="block text-xs font-medium text-surface-600 dark:text-surface-400 mb-1">End Date</label>
-        <p-datepicker appendTo="body" [(ngModel)]="endDate" dateFormat="dd/mm/yy" [showIcon]="true" [showClear]="true" placeholder="DD/MM/YYYY" styleClass="w-full" inputStyleClass="w-full px-4 py-2.5 rounded-xl border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-700 text-surface-900 dark:text-surface-100 focus:ring-2 focus:ring-brand-500 transition-colors text-sm" />
+        <label class="block text-xs font-medium text-surface-600 dark:text-surface-400 mb-1">To Date <span class="text-danger-500">*</span></label>
+        <p-datepicker appendTo="body" [(ngModel)]="endDate" [minDate]="startDate" dateFormat="dd/mm/yy" [showIcon]="true" [showClear]="true" placeholder="DD/MM/YYYY" styleClass="w-full" inputStyleClass="w-full px-4 py-2.5 rounded-xl border border-surface-300 dark:border-surface-600 bg-white dark:bg-surface-700 text-surface-900 dark:text-surface-100 focus:ring-2 focus:ring-brand-500 transition-colors text-sm" />
       </div>
 
       <!-- Generate Button -->
@@ -46,6 +46,15 @@
         CSV
       </button>
     </div>
+  </div>
+
+  <!-- Date Validation Error -->
+  <div *ngIf="dateError"
+       class="mb-6 flex items-center gap-2 rounded-xl bg-danger-50 dark:bg-danger-500/10 px-4 py-3 text-sm text-danger-600 dark:text-danger-400">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+      <path fill-rule="evenodd" d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0Zm-8-5a.75.75 0 0 1 .75.75v4.5a.75.75 0 0 1-1.5 0v-4.5A.75.75 0 0 1 10 5Zm0 10a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z" clip-rule="evenodd" />
+    </svg>
+    <span>{{ dateError }}</span>
   </div>
 
   <!-- Summary Cards -->

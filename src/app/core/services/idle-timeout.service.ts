@@ -47,9 +47,8 @@ export class IdleTimeoutService implements OnDestroy {
     // a zero/missing setting value doesn't fire timer(0) and instantly log out
     const timeoutMinutes = Math.max(this.appSettings.sessionTimeoutMinutes || 15, 1);
     this._idleTimeoutMs = timeoutMinutes * 60 * 1000;
-    // Warning shown 3 minutes before logout; at least 1 minute of warning time
-    const warningLeadMs = Math.min(3 * 60 * 1000, Math.floor(this._idleTimeoutMs * 0.2));
-    this._warningAtMs = Math.max(this._idleTimeoutMs - warningLeadMs, 60 * 1000);
+    // Logout fires at full idle timeout — no warning phase
+    this._warningAtMs = this._idleTimeoutMs;
 
     // Run outside Angular zone to avoid triggering change detection on every mouse move
     this.zone.runOutsideAngular(() => {
@@ -80,24 +79,8 @@ export class IdleTimeoutService implements OnDestroy {
   }
 
   private showTimeoutWarning(): void {
-    // Guard: prevent double-calling which would lose the old countdownInterval reference
-    // causing a ghost interval to keep ticking after dismissWarning() clears the new one
-    if (this._showWarning) return;
-
-    this._remainingSeconds = Math.floor((this._idleTimeoutMs - this._warningAtMs) / 1000);
-    // If remaining time is zero or negative (e.g. settings misconfiguration), force logout directly
-    if (this._remainingSeconds <= 0) {
-      this.forceLogout();
-      return;
-    }
-
-    this._showWarning = true;
-    this.countdownInterval = setInterval(() => {
-      this._remainingSeconds--;
-      if (this._remainingSeconds <= 0) {
-        this.forceLogout();
-      }
-    }, 1000);
+    // Auto-logout immediately on idle timeout — no warning dialog shown
+    this.forceLogout();
   }
 
   dismissWarning(): void {

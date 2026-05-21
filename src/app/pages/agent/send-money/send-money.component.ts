@@ -52,6 +52,14 @@ const ReceiverFormSchema = z.object({
   bankId: z.number().nullish(),
   branchId: z.number().nullish(),
   relationship: z.string().nullish(),
+  gender: z.string().nullish(),
+  dateOfBirth: z.union([z.date(), z.string(), z.null()]).optional(),
+  nationality: z.string().nullish(),
+  occupation: z.string().nullish(),
+  address: z.string().nullish(),
+  postalCode: z.string().nullish(),
+  idDocumentType: z.string().nullish(),
+  idDocumentNumber: z.string().nullish(),
 });
 
 @Component({
@@ -214,6 +222,14 @@ export class SendMoneyComponent implements OnInit, OnDestroy {
     bankId: new FormControl<number | null>(null),
     branchId: new FormControl<number | null>(null),
     relationship: new FormControl(''),
+    gender: new FormControl(''),
+    dateOfBirth: new FormControl<Date | null>(null),
+    nationality: new FormControl(''),
+    occupation: new FormControl(''),
+    address: new FormControl(''),
+    postalCode: new FormControl(''),
+    idDocumentType: new FormControl(''),
+    idDocumentNumber: new FormControl(''),
   });
   receiverFormErrors: Record<string, string> = {};
   savingReceiver = false;
@@ -821,11 +837,12 @@ export class SendMoneyComponent implements OnInit, OnDestroy {
     const v = this.customerForm.value;
     let schema: z.ZodTypeAny = CustomerFormSchema;
     if (this.store.apiType() === 'thirdParty') {
-      const shape: Record<string, z.ZodTypeAny> = {};
-      this.store.customerMappings().forEach(m => {
-        shape[m.ourColumn] = m.isRequired ? z.string().min(1, `${m.ourColumn} is required`) : z.string().optional();
+      // Start with company base rules, then upgrade optionals to required per MG field mappings
+      const overrides: Record<string, z.ZodTypeAny> = {};
+      this.store.customerMappings().filter(m => m.isRequired).forEach(m => {
+        overrides[m.ourColumn] = z.string().min(1, `${m.ourColumn} is required`);
       });
-      schema = z.object(shape);
+      schema = CustomerFormSchema.extend(overrides);
     }
     const result = schema.safeParse(v);
     if (!result.success) {
@@ -947,11 +964,12 @@ export class SendMoneyComponent implements OnInit, OnDestroy {
     const v = this.receiverForm.value;
     let schema: z.ZodTypeAny = ReceiverFormSchema;
     if (this.store.apiType() === 'thirdParty') {
-      const shape: Record<string, z.ZodTypeAny> = {};
-      this.store.receiverMappings().forEach(m => {
-        shape[m.ourColumn] = m.isRequired ? z.string().min(1, `${m.ourColumn} is required`) : z.string().optional();
+      // Start with company base rules, then upgrade optionals to required per MG field mappings
+      const overrides: Record<string, z.ZodTypeAny> = {};
+      this.store.receiverMappings().filter(m => m.isRequired).forEach(m => {
+        overrides[m.ourColumn] = z.string().min(1, `${m.ourColumn} is required`);
       });
-      schema = z.object(shape);
+      schema = ReceiverFormSchema.extend(overrides);
     }
     const result = schema.safeParse(v);
     if (!result.success) {
@@ -979,6 +997,14 @@ export class SendMoneyComponent implements OnInit, OnDestroy {
       accountNumber: v.accountNumber || null, branchName: v.branchName || null,
       branchCode: v.branchCode || null, bankId: v.bankId || null,
       branchId: v.branchId || null, relationship: v.relationship || null,
+      gender: v.gender || null,
+      dateOfBirth: v.dateOfBirth || null,
+      nationality: v.nationality || null,
+      occupation: v.occupation || null,
+      address: v.address || null,
+      postalCode: v.postalCode || null,
+      idDocumentType: v.idDocumentType || null,
+      idDocumentNumber: v.idDocumentNumber || null,
     };
     this.api.createAgentReceiver(dto).subscribe({
       next: (r: any) => {
@@ -1134,7 +1160,7 @@ export class SendMoneyComponent implements OnInit, OnDestroy {
       const acctNum = sd?.accountNumber ?? pd.accountNumber;
       if (!acctNum) { this.notify.error('Wallet number is required for wallet transfer.'); return; }
     }
-    if (this.isCashTransfer()) {
+    if (this.isCashTransfer() && !this.isMoneyGramPartner()) {
       const loc = sd?.bankName ?? pd.bankName;
       if (!loc) { this.notify.error('Payout location is required for cash payment.'); return; }
     }

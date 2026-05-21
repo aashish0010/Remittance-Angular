@@ -101,10 +101,12 @@ export const SendMoneyStore = signalStore(
       return state.currentStep() === 3 && !!state.successResult();
     }),
     customerMappings: computed(() =>
-      state.fieldMappings().filter(m => m.tableName === 'Customer')
+      state.fieldMappings().filter(m =>
+        m.tableName === 'Customers' || m.tableName === 'Customer')
     ),
     receiverMappings: computed(() =>
-      state.fieldMappings().filter(m => m.tableName === 'Receiver')
+      state.fieldMappings().filter(m =>
+        m.tableName === 'Receivers' || m.tableName === 'Receiver')
     ),
   })),
   withMethods((store) => ({

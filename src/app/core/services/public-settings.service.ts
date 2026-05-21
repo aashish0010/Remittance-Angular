@@ -10,9 +10,11 @@ import { environment } from '../../../environments/environment';
  */
 @Injectable({ providedIn: 'root' })
 export class PublicSettingsService {
-  readonly companyName     = signal('');
-  readonly supportEmail    = signal('');
-  readonly defaultCurrency = signal('USD');
+  readonly companyName        = signal('');
+  readonly supportEmail       = signal('');
+  readonly defaultCurrency    = signal('USD');
+  readonly companyLogo        = signal('');
+  readonly noticeAlertImage   = signal('');
 
   constructor(private http: HttpClient) {
     this.http.get<any>(`${environment.apiUrl}api/public/company`).subscribe({
@@ -22,6 +24,8 @@ export class PublicSettingsService {
           if (d.companyName)     this.companyName.set(d.companyName);
           if (d.supportEmail)    this.supportEmail.set(d.supportEmail);
           if (d.defaultCurrency) this.defaultCurrency.set(d.defaultCurrency);
+          if (d.companyLogo)       this.companyLogo.set(d.companyLogo);
+          if (d.noticeAlertImage)  this.noticeAlertImage.set(d.noticeAlertImage);
         }
       },
       error: () => { /* keep defaults silently */ },

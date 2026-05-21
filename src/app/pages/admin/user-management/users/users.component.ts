@@ -52,6 +52,14 @@ export class UsersComponent implements OnInit {
   formIsActive = true;
   formRoleIds: number[] = [];
 
+  // IP Whitelist
+  showIpWhitelist = false;
+  ipWhitelistUser: UserItem | null = null;
+  ipWhitelistEntries: string[] = [];
+  ipWhitelistLoading = false;
+  newIpAddress = '';
+  ipWhitelistError = '';
+
   constructor(private api: ApiService, private confirmDelete: ConfirmDeleteService) {}
 
   ngOnInit(): void {
@@ -183,5 +191,68 @@ export class UsersComponent implements OnInit {
 
   getRoleNames(user: UserItem): string {
     return user.roles.map(r => r.name).join(', ');
+  }
+
+  // ── IP Whitelist ──────────────────────────────────────────────────────────
+
+  openIpWhitelist(user: UserItem): void {
+    this.ipWhitelistUser = user;
+    this.newIpAddress = '';
+    this.ipWhitelistError = '';
+    this.showIpWhitelist = true;
+    this.loadIpWhitelist(user.id);
+  }
+
+  closeIpWhitelist(): void {
+    this.showIpWhitelist = false;
+    this.ipWhitelistUser = null;
+    this.ipWhitelistEntries = [];
+  }
+
+  private loadIpWhitelist(userId: string): void {
+    this.ipWhitelistLoading = true;
+    this.api.getUserIpWhitelist(userId).subscribe({
+      next: res => {
+        this.ipWhitelistEntries = res?.success && res.data ? res.data : [];
+        this.ipWhitelistLoading = false;
+      },
+      error: () => {
+        this.ipWhitelistEntries = [];
+        this.ipWhitelistLoading = false;
+      },
+    });
+  }
+
+  addIp(): void {
+    const ip = this.newIpAddress.trim();
+    this.ipWhitelistError = '';
+    if (!ip) return;
+    // Basic IP / CIDR format check
+    const ipPattern = /^(\d{1,3}\.){3}\d{1,3}(\/\d{1,2})?$/;
+    if (!ipPattern.test(ip)) {
+      this.ipWhitelistError = 'Invalid IP address format. Use e.g. 192.168.1.1 or 192.168.1.0/24';
+      return;
+    }
+    if (!this.ipWhitelistUser) return;
+    this.api.addUserIpWhitelist(this.ipWhitelistUser.id, ip).subscribe({
+      next: res => {
+        if (res?.success) {
+          this.newIpAddress = '';
+          this.loadIpWhitelist(this.ipWhitelistUser!.id);
+        } else {
+          this.ipWhitelistError = res?.message || 'Failed to add IP.';
+        }
+      },
+      error: () => { this.ipWhitelistError = 'Server error.'; },
+    });
+  }
+
+  removeIp(ip: string): void {
+    if (!this.ipWhitelistUser) return;
+    this.api.removeUserIpWhitelist(this.ipWhitelistUser.id, ip).subscribe({
+      next: res => {
+        if (res?.success) this.loadIpWhitelist(this.ipWhitelistUser!.id);
+      },
+    });
   }
 }

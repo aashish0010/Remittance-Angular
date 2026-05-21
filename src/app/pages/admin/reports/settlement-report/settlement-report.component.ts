@@ -42,6 +42,7 @@ export class SettlementReportComponent {
   startDate: Date | null = null;
   endDate: Date | null = null;
   loading = false;
+  dateError = '';
 
   totalAgents = 0;
   totalSendVolume = 0;
@@ -56,7 +57,24 @@ export class SettlementReportComponent {
     return `${yyyy}-${mm}-${dd}`;
   }
 
+  onStartDateChange(): void {
+    // Clear end-date error when start changes
+    if (this.endDate && this.startDate && this.endDate < this.startDate) {
+      this.endDate = null;
+    }
+    this.dateError = '';
+  }
+
   loadReport(): void {
+    this.dateError = '';
+    if (!this.startDate || !this.endDate) {
+      this.dateError = 'Please select both From Date and To Date to generate the report.';
+      return;
+    }
+    if (this.endDate < this.startDate) {
+      this.dateError = 'End date cannot be before start date.';
+      return;
+    }
     this.loading = true;
     const params: { startDate?: string; endDate?: string } = {};
     if (this.startDate) params.startDate = this.formatDate(this.startDate);

@@ -163,7 +163,7 @@ export class ThirdPartySendComponent implements OnInit, OnDestroy {
       fieldMappings: nav.fieldMappings ?? [],
     });
 
-    this.loadData(nav.partner.payoutAgentId, nav.paymentMethodName);
+    this.loadData(nav.partner.payoutAgentId);
   }
 
   ngOnDestroy(): void {
@@ -172,10 +172,11 @@ export class ThirdPartySendComponent implements OnInit, OnDestroy {
   }
 
   // ── Data loading ──────────────────────────────────────────────────────────
-  loadData(payoutPartnerId: number, paymentMethod?: string): void {
-    // 1. Reload field mappings filtered by payment method + destination country
-    const country = this.store.receiverCountry() || undefined;
-    this.api.getAgentFieldMappings(payoutPartnerId, paymentMethod, country)
+  loadData(payoutPartnerId: number): void {
+    // Use serviceOptionCode (MG code like "BANK_DEPOSIT") and ISO3 — matches what AutoSeedFieldMappingsAsync stores
+    const serviceOptionCode = this.store.serviceOptionCode() ?? undefined;
+    const country = this.store.receiverCountryIso3() || this.store.receiverCountry() || undefined;
+    this.api.getAgentFieldMappings(payoutPartnerId, serviceOptionCode, country)
       .pipe(takeUntil(this.destroy$))
       .subscribe((r: any) => {
         if (r.success) this.store.setFieldMappings(r.data ?? []);
@@ -203,7 +204,7 @@ export class ThirdPartySendComponent implements OnInit, OnDestroy {
       });
 
     // 4. Load payout location infrastructure for this partner + payment method
-    this.loadPayoutInfrastructure(payoutPartnerId, paymentMethod ?? '');
+    this.loadPayoutInfrastructure(payoutPartnerId, this.store.paymentMethodName());
   }
 
   onPaymentMethodChange(): void {
@@ -232,7 +233,7 @@ export class ThirdPartySendComponent implements OnInit, OnDestroy {
         .subscribe((r: any) => { if (r.success) this.payoutLocations = r.data ?? []; });
     } else {
       // Default: bank transfer (covers bank, deposit, direct, wire, eft, unknown)
-      this.api.getAgentBanksForPayout(agentId, this.store.receiverCountry() || undefined)
+      this.api.getAgentBanksForPayout(agentId, this.store.receiverCountryIso3() || this.store.receiverCountry() || undefined)
         .pipe(takeUntil(this.destroy$))
         .subscribe((r: any) => { if (r.success) this.payoutBanks = r.data ?? []; });
     }
@@ -262,13 +263,12 @@ export class ThirdPartySendComponent implements OnInit, OnDestroy {
     else
       this.store.setKycWarning('');
 
+    // Always reset dobWarning first — stale warning from previous customer must not carry over
+    this.store.setDobWarning('');
     if (c.dateOfBirth) {
       const age = Math.floor((Date.now() - new Date(c.dateOfBirth).getTime()) / 31557600000);
-      this.store.setDobWarning(
-        age < (this.appSettings.minimumAge ?? 18)
-          ? `Customer is under ${this.appSettings.minimumAge ?? 18} years old.`
-          : ''
-      );
+      if (age < (this.appSettings.minimumAge ?? 18))
+        this.store.setDobWarning(`Customer is under ${this.appSettings.minimumAge ?? 18} years old.`);
     }
 
     this.checkMissingCustomerFields(c);
@@ -282,6 +282,8 @@ export class ThirdPartySendComponent implements OnInit, OnDestroy {
   clearCustomer(): void {
     this.store.setSelectedCustomer(null);
     this.store.setSelectedReceiver(null);
+    this.store.setKycWarning('');
+    this.store.setDobWarning('');
     this.customerSearch = '';
     this.showMissingCustomerForm = false;
     this.receivers = [];
@@ -355,6 +357,10 @@ export class ThirdPartySendComponent implements OnInit, OnDestroy {
             };
             this.showNewAccountForm = false;
             this.showCashSwapPanel = false;
+            // Auto-open swap panel when saved detail is incomplete (e.g. missing account number)
+            if (this.isBankTransfer() && !(first.accountNumber && (first.bankId || first.bankName))) {
+              this.showPayoutSwapPanel = true;
+            }
           } else {
             fallback();
           }
@@ -412,15 +418,32 @@ export class ThirdPartySendComponent implements OnInit, OnDestroy {
     })) {
       this.notify.error('Please fill all required fields.'); return;
     }
+    const addr = (this.missingCustomerData['address'] ?? '').trim();
+    if (addr && addr.length <= 5) {
+      this.notify.error('Address must be more than 5 characters.'); return;
+    }
+    // Convert camelCase keys to PascalCase — backend switch expects "Address" not "address"
+    const payload: Record<string, string> = {};
+    for (const [k, v] of Object.entries(this.missingCustomerData))
+      payload[k.charAt(0).toUpperCase() + k.slice(1)] = v;
     this.savingMissingCustomer = true;
-    this.api.updateAgentCustomer(c.id, this.missingCustomerData).subscribe({
+    this.api.patchCustomerFields(c.id, payload).subscribe({
       next: (r: any) => {
         this.savingMissingCustomer = false;
         if (r.success) {
-          this.store.setSelectedCustomer(r.data);
+          // Merge patched values (camelCase) into existing customer — don't rely on r.data serialization
+          const merged: any = { ...c, ...this.missingCustomerData };
+          this.store.setSelectedCustomer(merged);
+          // Re-check DOB warning with newly saved dateOfBirth
+          this.store.setDobWarning('');
+          if (merged.dateOfBirth) {
+            const age = Math.floor((Date.now() - new Date(merged.dateOfBirth).getTime()) / 31557600000);
+            if (age < (this.appSettings.minimumAge ?? 18))
+              this.store.setDobWarning(`Customer is under ${this.appSettings.minimumAge ?? 18} years old.`);
+          }
           this.store.setMissingCustomerFields([]);
           this.showMissingCustomerForm = false;
-          this.notify.success('Customer profile updated.');
+          this.goToCustomerSubStep();
         } else this.notify.error(r.message ?? 'Update failed.');
       },
       error: () => { this.savingMissingCustomer = false; this.notify.error('Update failed.'); }
@@ -436,15 +459,19 @@ export class ThirdPartySendComponent implements OnInit, OnDestroy {
     })) {
       this.notify.error('Please fill all required fields.'); return;
     }
+    // Convert camelCase keys to PascalCase — backend switch expects "Address" not "address"
+    const payload: Record<string, string> = {};
+    for (const [k, v] of Object.entries(this.missingReceiverData))
+      payload[k.charAt(0).toUpperCase() + k.slice(1)] = v;
     this.savingMissingReceiver = true;
-    this.api.updateAgentReceiver(rv.id, this.missingReceiverData).subscribe({
+    this.api.patchReceiverFields(rv.id, payload).subscribe({
       next: (r: any) => {
         this.savingMissingReceiver = false;
         if (r.success) {
-          this.store.setSelectedReceiver(r.data);
+          // Merge patched values (camelCase) into existing receiver — don't rely on r.data serialization
+          this.store.setSelectedReceiver({ ...rv, ...this.missingReceiverData } as any);
           this.store.setMissingReceiverFields([]);
           this.showMissingReceiverForm = false;
-          this.notify.success('Receiver profile updated.');
         } else this.notify.error(r.message ?? 'Update failed.');
       },
       error: () => { this.savingMissingReceiver = false; this.notify.error('Update failed.'); }
@@ -456,6 +483,9 @@ export class ThirdPartySendComponent implements OnInit, OnDestroy {
     const v = this.customerForm.value;
     if (!v.fullName || !v.phone || !v.nationality || !v.country || !v.idDocumentType || !v.idDocumentNumber) {
       this.notify.error('Please fill all required fields.'); return;
+    }
+    if (v.address && v.address.trim().length <= 5) {
+      this.notify.error('Address must be more than 5 characters.'); return;
     }
     // Also validate required field mappings
     const missingMapped = this.store.customerMappings()
