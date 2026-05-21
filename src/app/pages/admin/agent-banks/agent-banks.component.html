@@ -53,7 +53,7 @@
       <div class="flex items-center justify-between">
         <div>
           <p class="text-xs font-medium text-surface-500 dark:text-surface-400 uppercase tracking-wide">Total Banks</p>
-          <p class="mt-1 text-2xl font-bold text-surface-900 dark:text-surface-100">{{ allBanks.length }}</p>
+          <p class="mt-1 text-2xl font-bold text-surface-900 dark:text-surface-100">{{ totalActive + totalInactive }}</p>
         </div>
         <div class="w-10 h-10 rounded-xl bg-brand-50 dark:bg-brand-900/20 flex items-center justify-center">
           <svg class="w-5 h-5 text-brand-600 dark:text-brand-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -68,7 +68,7 @@
       <div class="flex items-center justify-between">
         <div>
           <p class="text-xs font-medium text-surface-500 dark:text-surface-400 uppercase tracking-wide">Active</p>
-          <p class="mt-1 text-2xl font-bold text-success-600 dark:text-success-400">{{ activeCount }}</p>
+          <p class="mt-1 text-2xl font-bold text-success-600 dark:text-success-400">{{ totalActive }}</p>
         </div>
         <div class="w-10 h-10 rounded-xl bg-success-50 dark:bg-success-900/20 flex items-center justify-center">
           <svg class="w-5 h-5 text-success-600 dark:text-success-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -83,7 +83,7 @@
       <div class="flex items-center justify-between">
         <div>
           <p class="text-xs font-medium text-surface-500 dark:text-surface-400 uppercase tracking-wide">Inactive</p>
-          <p class="mt-1 text-2xl font-bold text-surface-600 dark:text-surface-400">{{ inactiveCount }}</p>
+          <p class="mt-1 text-2xl font-bold text-surface-600 dark:text-surface-400">{{ totalInactive }}</p>
         </div>
         <div class="w-10 h-10 rounded-xl bg-surface-100 dark:bg-surface-700 flex items-center justify-center">
           <svg class="w-5 h-5 text-surface-500 dark:text-surface-400" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -189,8 +189,8 @@
     <!-- Results count -->
     <div *ngIf="hasActiveFilters" class="px-5 py-2 border-b border-surface-100 dark:border-surface-700 bg-brand-50 dark:bg-brand-900/10">
       <p class="text-xs text-brand-700 dark:text-brand-400">
-        Showing {{ filteredBanks.length }} of {{ allBanks.length }} banks
-        <span *ngIf="searchString"> matching "<strong>{{ searchString }}</strong>"</span>
+        {{ totalCount }} banks match current filters
+        <span *ngIf="searchString"> for "<strong>{{ searchString }}</strong>"</span>
       </p>
     </div>
 
@@ -210,7 +210,7 @@
           </tr>
         </thead>
         <tbody class="divide-y divide-surface-100 dark:divide-surface-700/50">
-          <tr *ngFor="let bank of pagedBanks"
+          <tr *ngFor="let bank of banks"
             class="hover:bg-surface-50 dark:hover:bg-surface-750 transition-colors group">
 
             <!-- Bank Name + Code -->
@@ -328,7 +328,7 @@
     </div>
 
     <!-- Empty state -->
-    <div *ngIf="!pagedBanks.length" class="text-center py-14">
+    <div *ngIf="!banks.length && !loading" class="text-center py-14">
       <div class="flex flex-col items-center gap-3">
         <div class="w-12 h-12 rounded-xl bg-surface-100 dark:bg-surface-700 flex items-center justify-center">
           <svg class="w-6 h-6 text-surface-400" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
@@ -347,10 +347,10 @@
     </div>
 
     <!-- Pagination -->
-    <div *ngIf="filteredBanks.length > 0"
+    <div *ngIf="totalCount > 0"
       class="flex flex-col sm:flex-row items-center justify-between gap-3 px-5 py-4 border-t border-surface-200 dark:border-surface-700">
       <span class="text-xs text-surface-500 dark:text-surface-400">
-        {{ filteredBanks.length }} banks &middot; Page {{ pageIndex + 1 }} of {{ totalPages }}
+        {{ totalCount }} banks &middot; Page {{ pageIndex + 1 }} of {{ totalPages }}
       </span>
       <div class="flex items-center gap-2">
         <label class="text-xs text-surface-500 dark:text-surface-400">Rows:</label>

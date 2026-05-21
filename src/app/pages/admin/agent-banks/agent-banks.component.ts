@@ -1,6 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
 import { Subject } from 'rxjs';
 import { debounceTime, takeUntil } from 'rxjs/operators';
 import { ApiService } from '../../../core/services/api.service';
@@ -69,8 +70,9 @@ export class AgentBanksComponent implements OnInit, OnDestroy {
     return this.agents.find(a => a.id === this.selectedAgentId) ?? null;
   }
 
-  // Banks data
-  allBanks: AgentBankModel[] = [];
+  // Banks (server-side)
+  banks: AgentBankModel[] = [];
+  totalCount = 0;
   loading = false;
 
   // Filters
@@ -84,43 +86,12 @@ export class AgentBanksComponent implements OnInit, OnDestroy {
   // Pagination
   pageIndex = 0;
   pageSize = 20;
+  get totalPages(): number { return Math.max(1, Math.ceil(this.totalCount / this.pageSize)); }
 
-  get filteredBanks(): AgentBankModel[] {
-    let result = [...this.allBanks];
-    const q = this.searchString.toLowerCase().trim();
-    if (q) {
-      result = result.filter(b =>
-        b.bankName.toLowerCase().includes(q) ||
-        (b.bankCode ?? '').toLowerCase().includes(q) ||
-        (b.swiftCode ?? '').toLowerCase().includes(q) ||
-        (b.city ?? '').toLowerCase().includes(q) ||
-        (b.country ?? '').toLowerCase().includes(q)
-      );
-    }
-    if (this.filterCountry) result = result.filter(b => b.country === this.filterCountry);
-    if (this.filterPaymentMethodId) result = result.filter(b => String(b.paymentMethodId) === this.filterPaymentMethodId);
-    if (this.filterStatus === 'active') result = result.filter(b => b.isActive);
-    if (this.filterStatus === 'inactive') result = result.filter(b => !b.isActive);
-    return result;
-  }
-
-  get pagedBanks(): AgentBankModel[] {
-    const start = this.pageIndex * this.pageSize;
-    return this.filteredBanks.slice(start, start + this.pageSize);
-  }
-
-  get totalPages(): number {
-    return Math.max(1, Math.ceil(this.filteredBanks.length / this.pageSize));
-  }
-
-  get uniqueCountries(): string[] {
-    const set = new Set(this.allBanks.map(b => b.country).filter(Boolean) as string[]);
-    return Array.from(set).sort();
-  }
-
-  get activeCount(): number { return this.allBanks.filter(b => b.isActive).length; }
-  get inactiveCount(): number { return this.allBanks.filter(b => !b.isActive).length; }
-  get totalBranches(): number { return this.allBanks.reduce((acc, b) => acc + (b.branches?.length ?? 0), 0); }
+  // Stats (from current page result — reset on each load)
+  totalActive = 0;
+  totalInactive = 0;
+  totalBranches = 0;
 
   // Bank form modal
   showBankModal = false;
@@ -144,16 +115,29 @@ export class AgentBanksComponent implements OnInit, OnDestroy {
     private api: ApiService,
     private notify: NotificationService,
     private confirmDelete: ConfirmDeleteService,
+    private route: ActivatedRoute,
   ) {}
 
   ngOnInit(): void {
-    this.searchSubject.pipe(debounceTime(300), takeUntil(this.destroy$)).subscribe(() => {
+    this.searchSubject.pipe(debounceTime(400), takeUntil(this.destroy$)).subscribe(() => {
       this.pageIndex = 0;
+      this.loadBanks();
     });
+
     this.api.getAgents().subscribe(r => {
-      if (r?.success && r.data) this.agents = r.data;
+      if (r?.success && r.data) {
+        this.agents = r.data;
+        // Auto-select from query param after agents loaded
+        const qpId = this.route.snapshot.queryParamMap.get('agentId');
+        if (qpId) {
+          this.selectedAgentId = +qpId;
+          this.loadBanks();
+          this.loadAllBanksForStats();
+        }
+      }
       this.loadingAgents = false;
     });
+
     this.api.getPaymentMethods().subscribe(r => {
       if (r?.success && r.data) this.paymentMethods = r.data;
     });
@@ -170,20 +154,54 @@ export class AgentBanksComponent implements OnInit, OnDestroy {
     this.filterCountry = '';
     this.filterPaymentMethodId = '';
     this.filterStatus = '';
-    this.allBanks = [];
-    if (this.selectedAgentId) this.loadBanks();
+    this.banks = [];
+    this.totalCount = 0;
+    this.totalActive = 0;
+    this.totalInactive = 0;
+    this.totalBranches = 0;
+    if (this.selectedAgentId) {
+      this.loadBanks();
+      this.loadAllBanksForStats();
+    }
+  }
+
+  private loadAllBanksForStats(): void {
+    if (!this.selectedAgentId) return;
+    this.api.getAgentBanksPaged(this.selectedAgentId, { page: 1, pageSize: 1000 }).subscribe(r => {
+      if (r?.success && r.data) {
+        const all = r.data.items;
+        this.totalActive = all.filter(b => b.isActive).length;
+        this.totalInactive = all.filter(b => !b.isActive).length;
+        this.totalBranches = all.reduce((acc, b) => acc + (b.branches?.length ?? 0), 0);
+      }
+    });
   }
 
   loadBanks(): void {
     if (!this.selectedAgentId) return;
     this.loading = true;
-    this.api.getAgentBanks(this.selectedAgentId).subscribe({
+    const isActive = this.filterStatus === 'active' ? true : this.filterStatus === 'inactive' ? false : null;
+    this.api.getAgentBanksPaged(this.selectedAgentId, {
+      page: this.pageIndex + 1,
+      pageSize: this.pageSize,
+      search: this.searchString || undefined,
+      country: this.filterCountry || undefined,
+      paymentMethodId: this.filterPaymentMethodId ? +this.filterPaymentMethodId : undefined,
+      isActive,
+    }).subscribe({
       next: r => {
-        this.allBanks = r?.success && r.data ? r.data : [];
+        if (r?.success && r.data) {
+          this.banks = r.data.items;
+          this.totalCount = r.data.totalCount;
+        } else {
+          this.banks = [];
+          this.totalCount = 0;
+        }
         this.loading = false;
       },
       error: () => {
-        this.allBanks = [];
+        this.banks = [];
+        this.totalCount = 0;
         this.loading = false;
         this.notify.error('Failed to load banks.');
       },
@@ -191,19 +209,25 @@ export class AgentBanksComponent implements OnInit, OnDestroy {
   }
 
   onSearchChange(): void {
-    this.pageIndex = 0;
     this.searchSubject.next(this.searchString);
   }
 
-  onFilterChange(): void { this.pageIndex = 0; }
+  onFilterChange(): void {
+    this.pageIndex = 0;
+    this.loadBanks();
+  }
 
   goToPage(page: number): void {
-    if (page >= 0 && page < this.totalPages) this.pageIndex = page;
+    if (page >= 0 && page < this.totalPages) {
+      this.pageIndex = page;
+      this.loadBanks();
+    }
   }
 
   onPageSizeChange(size: number): void {
     this.pageSize = +size;
     this.pageIndex = 0;
+    this.loadBanks();
   }
 
   clearFilters(): void {
@@ -212,6 +236,7 @@ export class AgentBanksComponent implements OnInit, OnDestroy {
     this.filterPaymentMethodId = '';
     this.filterStatus = '';
     this.pageIndex = 0;
+    this.loadBanks();
   }
 
   get hasActiveFilters(): boolean {
@@ -260,7 +285,7 @@ export class AgentBanksComponent implements OnInit, OnDestroy {
     if (this.isEditingBank && this.editingBankId != null) {
       this.api.updateAgentBank(this.editingBankId, payload).subscribe({
         next: r => {
-          if (r?.success) { this.notify.success('Bank updated.'); this.closeBankModal(); this.loadBanks(); }
+          if (r?.success) { this.notify.success('Bank updated.'); this.closeBankModal(); this.refreshAfterChange(); }
           else { this.bankFormError = r?.message || 'Failed to update bank.'; }
           this.savingBank = false;
         },
@@ -269,7 +294,7 @@ export class AgentBanksComponent implements OnInit, OnDestroy {
     } else {
       this.api.createAgentBank(payload).subscribe({
         next: r => {
-          if (r?.success) { this.notify.success('Bank added successfully.'); this.closeBankModal(); this.loadBanks(); }
+          if (r?.success) { this.notify.success('Bank added successfully.'); this.closeBankModal(); this.refreshAfterChange(); }
           else { this.bankFormError = r?.message || 'Failed to add bank.'; }
           this.savingBank = false;
         },
@@ -283,6 +308,7 @@ export class AgentBanksComponent implements OnInit, OnDestroy {
       if (r?.success) {
         bank.isActive = !bank.isActive;
         this.notify.success(bank.isActive ? `${bank.bankName} activated.` : `${bank.bankName} deactivated.`);
+        this.loadAllBanksForStats();
       } else {
         this.notify.error(r?.message || 'Failed.');
       }
@@ -292,10 +318,15 @@ export class AgentBanksComponent implements OnInit, OnDestroy {
   deleteBank(bank: AgentBankModel): void {
     this.confirmDelete.confirm(bank.bankName).then(() => {
       this.api.deleteAgentBank(bank.id).subscribe(r => {
-        if (r?.success) { this.notify.success('Bank deleted.'); this.loadBanks(); }
+        if (r?.success) { this.notify.success('Bank deleted.'); this.refreshAfterChange(); }
         else { this.notify.error(r?.message || 'Failed to delete bank.'); }
       });
     }).catch(() => {});
+  }
+
+  private refreshAfterChange(): void {
+    this.loadBanks();
+    this.loadAllBanksForStats();
   }
 
   // ─── Branch management ────────────────────────────────────────────────────
@@ -373,14 +404,16 @@ export class AgentBanksComponent implements OnInit, OnDestroy {
 
   private refreshBanksAndSelectedBank(): void {
     if (!this.selectedAgentId) return;
-    this.api.getAgentBanks(this.selectedAgentId).subscribe(r => {
+    this.api.getAgentBanksPaged(this.selectedAgentId, { page: this.pageIndex + 1, pageSize: this.pageSize }).subscribe(r => {
       if (r?.success && r.data) {
-        this.allBanks = r.data;
+        this.banks = r.data.items;
+        this.totalCount = r.data.totalCount;
         if (this.selectedBank) {
-          this.selectedBank = this.allBanks.find(b => b.id === this.selectedBank!.id) ?? this.selectedBank;
+          this.selectedBank = this.banks.find(b => b.id === this.selectedBank!.id) ?? this.selectedBank;
         }
       }
     });
+    this.loadAllBanksForStats();
   }
 
   getPaymentMethodName(id?: number | null): string {

@@ -1,6 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule, DecimalPipe, DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { Subject } from 'rxjs';
 import { debounceTime, takeUntil } from 'rxjs/operators';
 import { ApiService } from '../../../core/services/api.service';
@@ -179,6 +180,7 @@ export class AgentManagementComponent implements OnInit, OnDestroy {
     private notify: NotificationService,
     private exportService: ExportService,
     private confirmDelete: ConfirmDeleteService,
+    private router: Router,
   ) {}
 
   ngOnInit(): void {
@@ -688,13 +690,7 @@ export class AgentManagementComponent implements OnInit, OnDestroy {
   // Bank Management
   // ===========================================================================
   openBankManagement(agent: AgentModel): void {
-    this.bankAgent = agent;
-    this.loadPaymentMethods();
-    this.api.getAgentBanks(agent.id).subscribe(r => {
-      if (r?.success && r.data) this.agentBanks = r.data;
-      else this.agentBanks = [];
-      this.showBankPopup = true;
-    });
+    this.router.navigate(['/admin/agent-banks'], { queryParams: { agentId: agent.id } });
   }
 
   closeBankPopup(): void { this.showBankPopup = false; }

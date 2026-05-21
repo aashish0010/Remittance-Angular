@@ -626,6 +626,21 @@ export class ApiService {
     return this.get<AgentBankModel[]>(`api/admin/agent-banks/agent/${agentId}`);
   }
 
+  getAgentBanksPaged(agentId: number, params: {
+    page?: number; pageSize?: number; search?: string;
+    country?: string; paymentMethodId?: number; isActive?: boolean | null;
+  }): Observable<ApiResponse<PagedResult<AgentBankModel>>> {
+    const p = new URLSearchParams();
+    if (params.page) p.set('page', String(params.page));
+    if (params.pageSize) p.set('pageSize', String(params.pageSize));
+    if (params.search) p.set('search', params.search);
+    if (params.country) p.set('country', params.country);
+    if (params.paymentMethodId) p.set('paymentMethodId', String(params.paymentMethodId));
+    if (params.isActive != null) p.set('isActive', String(params.isActive));
+    const qs = p.toString() ? `?${p.toString()}` : '';
+    return this.get<PagedResult<AgentBankModel>>(`api/admin/agent-banks/agent/${agentId}/paged${qs}`);
+  }
+
   createAgentBank(dto: any): Observable<ApiResponse<AgentBankModel>> {
     return this.post<AgentBankModel>('api/admin/agent-banks', dto);
   }
