@@ -174,6 +174,8 @@ export class SendMoneyComponent implements OnInit, OnDestroy {
   selectedPaymentMethodId: number | null = null;
   mgServiceOptions: any[] = [];
   selectedMgOption: any | null = null;
+  availableReceiveCurrencies: string[] = [];
+  selectedReceiveCurrency = '';
   transactionPayoutDetails: {
     bankName: string | null; bankCode: string | null; bankId: number | null;
     accountNumber: string | null; branchName: string | null;
@@ -419,6 +421,21 @@ export class SendMoneyComponent implements OnInit, OnDestroy {
     this.receiverCountryCode = found?.code ?? '';
     this.receiverCountryIso2 = found?.iso2 ?? found?.code ?? '';
     this.receiverCountryIso3 = found?.iso3 ?? '';
+    this.initReceiveCurrencies();
+    this.findRoute();
+    this.onAmountChange();
+  }
+
+  private initReceiveCurrencies(): void {
+    const base = this.receiverCurrency;
+    this.availableReceiveCurrencies = base && base !== 'USD' ? [base, 'USD'] : ['USD'];
+    if (!this.selectedReceiveCurrency || !this.availableReceiveCurrencies.includes(this.selectedReceiveCurrency))
+      this.selectedReceiveCurrency = base || 'USD';
+    this.receiverCurrency = this.selectedReceiveCurrency;
+  }
+
+  onReceiveCurrencyChange(): void {
+    this.receiverCurrency = this.selectedReceiveCurrency;
     this.findRoute();
     this.onAmountChange();
   }
@@ -504,7 +521,37 @@ export class SendMoneyComponent implements OnInit, OnDestroy {
   onMgOptionSelected(option: any): void {
     if (!option) return;
     this.selectedMgOption = option;
+    // MG: receive currency locked to service option's destination currency (e.g. NPR, USD per option)
+    if (option.destinationCurrencyCode) {
+      this.receiverCurrency = option.destinationCurrencyCode;
+      this.selectedReceiveCurrency = option.destinationCurrencyCode;
+    }
     this.calcSubject.next();
+  }
+
+  private loadMoneyGramPayoutFieldsAndBanks(option: any): void {
+    const partner = this.store.selectedPartner();
+    if (!partner) return;
+    const amount = this.toNum(this.sendAmountInput) || undefined;
+    this.api.getMoneyGramPayoutFields(
+      option.serviceOptionCode,
+      this.senderCountry,
+      this.receiverCountry,
+      amount,
+      option.serviceOptionRoutingCode ?? undefined
+    ).pipe(takeUntil(this.destroy$)).subscribe(() => {
+      // Only reload bank list for bank-type options
+      if (option.payoutType === 'bank') {
+        this.api.getAgentBanksForPayout(
+          partner.payoutAgentId,
+          this.receiverCountryCode || undefined,
+          undefined,
+          option.serviceOptionRoutingCode ?? undefined
+        ).pipe(takeUntil(this.destroy$)).subscribe((r: any) => {
+          if (r.success) this.payoutBanks = r.data ?? [];
+        });
+      }
+    });
   }
 
   getMgOptionByIndex(i: number): any {
@@ -611,6 +658,10 @@ export class SendMoneyComponent implements OnInit, OnDestroy {
           this.api.getAgentFieldMappings(payoutAgentId).subscribe((mr: any) => {
             if (mr.success) this.store.setFieldMappings(mr.data ?? []);
           });
+          // After calculation we have real amount — seed MG payout fields (enums, field mappings, banks)
+          if (partner.apiProviderKey === 'moneygram' && this.selectedMgOption) {
+            this.loadMoneyGramPayoutFieldsAndBanks(this.selectedMgOption);
+          }
         } else {
           this.calcError = r.message ?? 'Calculation failed.';
           this.complianceViolations = [];
@@ -716,6 +767,22 @@ export class SendMoneyComponent implements OnInit, OnDestroy {
     return n.includes('wallet') || n.includes('mobile');
   }
 
+  get isPayoutReady(): boolean {
+    const sd = this.selectedSavedDetail;
+    const pd = this.transactionPayoutDetails;
+    if (this.isBankTransfer()) return !!(sd?.accountNumber ?? pd.accountNumber);
+    if (this.isWalletTransfer()) return !!(sd?.accountNumber ?? pd.accountNumber);
+    if (this.isCashTransfer()) {
+      if (this.isMoneyGramPartner()) return true; // MG cash pickup needs no pre-filled account
+      return !!(sd?.bankName ?? pd.bankName);
+    }
+    return true;
+  }
+
+  get canProceedReceiver(): boolean {
+    return this.store.canProceedStep1() && this.isPayoutReady;
+  }
+
   // ── Customer search/select ────────────────────────────────────────────────
   hideCustomerDropdownDelayed(): void {
     setTimeout(() => { this.showCustomerDropdown = false; }, 200);
@@ -783,7 +850,11 @@ export class SendMoneyComponent implements OnInit, OnDestroy {
       return;
     }
     const data = c as any;
-    const missing = this.store.customerMappings().filter(m => m.isRequired && !data[m.ourColumn]);
+    const missing = this.store.customerMappings().filter(m => {
+      if (!m.isRequired) return false;
+      const camelKey = m.ourColumn.charAt(0).toLowerCase() + m.ourColumn.slice(1);
+      return !data[camelKey] && !data[m.ourColumn];
+    });
     this.store.setMissingCustomerFields(missing);
     if (missing.length > 0) {
       this.missingCustomerData = {};
@@ -797,7 +868,11 @@ export class SendMoneyComponent implements OnInit, OnDestroy {
       return;
     }
     const data = r as any;
-    const missing = this.store.receiverMappings().filter(m => m.isRequired && !data[m.ourColumn]);
+    const missing = this.store.receiverMappings().filter(m => {
+      if (!m.isRequired) return false;
+      const camelKey = m.ourColumn.charAt(0).toLowerCase() + m.ourColumn.slice(1);
+      return !data[camelKey] && !data[m.ourColumn];
+    });
     this.store.setMissingReceiverFields(missing);
     if (missing.length > 0) {
       this.missingReceiverData = {};
@@ -863,7 +938,8 @@ export class SendMoneyComponent implements OnInit, OnDestroy {
       // Start with company base rules, then upgrade optionals to required per MG field mappings
       const overrides: Record<string, z.ZodTypeAny> = {};
       this.store.customerMappings().filter(m => m.isRequired).forEach(m => {
-        overrides[m.ourColumn] = z.string().min(1, `${m.ourColumn} is required`);
+        const camelKey = m.ourColumn.charAt(0).toLowerCase() + m.ourColumn.slice(1);
+        overrides[camelKey] = z.string().min(1, `${m.ourColumn} is required`);
       });
       schema = CustomerFormSchema.extend(overrides);
     }
@@ -990,7 +1066,8 @@ export class SendMoneyComponent implements OnInit, OnDestroy {
       // Start with company base rules, then upgrade optionals to required per MG field mappings
       const overrides: Record<string, z.ZodTypeAny> = {};
       this.store.receiverMappings().filter(m => m.isRequired).forEach(m => {
-        overrides[m.ourColumn] = z.string().min(1, `${m.ourColumn} is required`);
+        const camelKey = m.ourColumn.charAt(0).toLowerCase() + m.ourColumn.slice(1);
+        overrides[camelKey] = z.string().min(1, `${m.ourColumn} is required`);
       });
       schema = ReceiverFormSchema.extend(overrides);
     }
@@ -1172,7 +1249,7 @@ export class SendMoneyComponent implements OnInit, OnDestroy {
   }
 
   proceedFromCustomerReceiver(): void {
-    if (!this.store.canProceedStep1()) return;
+    if (!this.canProceedReceiver) return;
     const sd = this.selectedSavedDetail;
     const pd = this.transactionPayoutDetails;
     if (this.isBankTransfer()) {
@@ -1318,6 +1395,7 @@ export class SendMoneyComponent implements OnInit, OnDestroy {
     this.customers = []; this.receivers = [];
     this.complianceViolations = [];
     this.currentQuoteId = null;
+    this.initReceiveCurrencies();
     this.loadInitialData();
     this.goToStep(0, 'backward');
   }
@@ -1334,12 +1412,12 @@ export class SendMoneyComponent implements OnInit, OnDestroy {
 
   isFieldShownCustomer(col: string): boolean {
     if (this.store.apiType() !== 'thirdParty') return true;
-    return this.store.customerMappings().some(m => m.ourColumn === col);
+    return this.store.customerMappings().some(m => m.ourColumn.toLowerCase() === col.toLowerCase());
   }
 
   isFieldShownReceiver(col: string): boolean {
     if (this.store.apiType() !== 'thirdParty') return true;
-    return this.store.receiverMappings().some(m => m.ourColumn === col);
+    return this.store.receiverMappings().some(m => m.ourColumn.toLowerCase() === col.toLowerCase());
   }
 
   private resolvePaymentMethodEnum(name: string): number {

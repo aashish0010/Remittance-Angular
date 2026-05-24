@@ -120,6 +120,7 @@ export class ThirdPartySendComponent implements OnInit, OnDestroy {
 
   // ── New receiver form ─────────────────────────────────────────────────────
   showCreateReceiver = false;
+  showExtraReceiverFields = false;
   receiverForm = new FormGroup({
     fullName: new FormControl(''), phone: new FormControl(''), email: new FormControl(''),
     country: new FormControl(''), city: new FormControl(''), relationship: new FormControl(''),
@@ -127,6 +128,11 @@ export class ThirdPartySendComponent implements OnInit, OnDestroy {
     branchName: new FormControl(''), branchCode: new FormControl(''),
     bankId: new FormControl<number | null>(null), branchId: new FormControl<number | null>(null),
     gender: new FormControl(''), address: new FormControl(''), postalCode: new FormControl(''),
+    nationality: new FormControl(''),
+    occupation: new FormControl(''),
+    dateOfBirth: new FormControl(''),
+    idDocumentType: new FormControl(''),
+    idDocumentNumber: new FormControl(''),
   });
   receiverFormErrors: Record<string, string> = {};
   savingReceiver = false;
@@ -532,14 +538,31 @@ export class ThirdPartySendComponent implements OnInit, OnDestroy {
     if (!ThirdPartySendComponent.PHONE_REGEX.test(v.phone.trim())) {
       this.notify.error('Phone must contain only digits, +, spaces, - or ().'); return;
     }
+    // Validate required receiver field mappings (e.g. MG Gender, Nationality, DOB)
+    const missingMapped = this.store.receiverMappings()
+      .filter(m => {
+        const key = m.ourColumn.charAt(0).toLowerCase() + m.ourColumn.slice(1);
+        return m.isRequired && !(v as any)[key];
+      });
+    if (missingMapped.length > 0) {
+      this.notify.error(`Required: ${missingMapped.map(m => m.ourColumn).join(', ')}`); return;
+    }
     this.savingReceiver = true;
-    this.api.createAgentReceiver({ ...v, customerId: c.id }).subscribe({
+    const payload: any = { ...v, customerId: c.id };
+    if (!payload.dateOfBirth) payload.dateOfBirth = null;
+    if (!payload.bankId) payload.bankId = null;
+    if (!payload.branchId) payload.branchId = null;
+    if (!payload.gender) payload.gender = null;
+    if (!payload.nationality) payload.nationality = null;
+    if (!payload.idDocumentType) payload.idDocumentType = null;
+    this.api.createAgentReceiver(payload).subscribe({
       next: (r: any) => {
         this.savingReceiver = false;
         if (r.success) {
           this.receivers = [r.data, ...this.receivers];
           this.selectReceiver(r.data);
           this.showCreateReceiver = false;
+          this.showExtraReceiverFields = false;
           this.receiverForm.reset();
         } else this.notify.error(r.message ?? 'Failed to create receiver.');
       },
@@ -841,6 +864,13 @@ export class ThirdPartySendComponent implements OnInit, OnDestroy {
   isReceiverFieldRequired(ourColumn: string): boolean {
     return this.store.receiverMappings().some(
       m => m.ourColumn.toLowerCase() === ourColumn.toLowerCase() && m.isRequired
+    );
+  }
+
+  isReceiverFieldVisible(ourColumn: string): boolean {
+    if (this.store.receiverMappings().length === 0) return true;
+    return this.store.receiverMappings().some(
+      m => m.ourColumn.toLowerCase() === ourColumn.toLowerCase()
     );
   }
 

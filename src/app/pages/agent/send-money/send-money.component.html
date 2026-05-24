@@ -221,7 +221,7 @@
                     @for (opt of mgCashOptions; track opt.serviceOptionCode + opt.serviceOptionRoutingCode) {
                       <option [value]="mgServiceOptions.indexOf(opt)"
                         [selected]="selectedMgOption?.serviceOptionCode === opt.serviceOptionCode && selectedMgOption?.serviceOptionRoutingCode === opt.serviceOptionRoutingCode">
-                        {{ opt.serviceOptionName }}@if (opt.serviceOptionRoutingName) { – {{ opt.serviceOptionRoutingName }} }
+                        {{ opt.serviceOptionName }}@if (opt.destinationCurrencyCode) { ({{ opt.destinationCurrencyCode }}) }@if (opt.serviceOptionRoutingName) { – {{ opt.serviceOptionRoutingName }} }
                       </option>
                     }
                   </optgroup>
@@ -232,7 +232,7 @@
                     @for (opt of mgBankOptions; track opt.serviceOptionCode + opt.serviceOptionRoutingCode) {
                       <option [value]="mgServiceOptions.indexOf(opt)"
                         [selected]="selectedMgOption?.serviceOptionCode === opt.serviceOptionCode && selectedMgOption?.serviceOptionRoutingCode === opt.serviceOptionRoutingCode">
-                        {{ opt.serviceOptionName }}@if (opt.serviceOptionRoutingName) { – {{ opt.serviceOptionRoutingName }} }
+                        {{ opt.serviceOptionName }}@if (opt.destinationCurrencyCode) { ({{ opt.destinationCurrencyCode }}) }@if (opt.serviceOptionRoutingName) { – {{ opt.serviceOptionRoutingName }} }
                       </option>
                     }
                   </optgroup>
@@ -243,7 +243,7 @@
                     @for (opt of mgWalletOptions; track opt.serviceOptionCode + opt.serviceOptionRoutingCode) {
                       <option [value]="mgServiceOptions.indexOf(opt)"
                         [selected]="selectedMgOption?.serviceOptionCode === opt.serviceOptionCode && selectedMgOption?.serviceOptionRoutingCode === opt.serviceOptionRoutingCode">
-                        {{ opt.serviceOptionName }}@if (opt.serviceOptionRoutingName) { – {{ opt.serviceOptionRoutingName }} }
+                        {{ opt.serviceOptionName }}@if (opt.destinationCurrencyCode) { ({{ opt.destinationCurrencyCode }}) }@if (opt.serviceOptionRoutingName) { – {{ opt.serviceOptionRoutingName }} }
                       </option>
                     }
                   </optgroup>
@@ -336,11 +336,25 @@
           <div>
             <label class="block text-xs font-medium text-surface-500 dark:text-surface-400 mb-1.5">They receive</label>
             <div class="relative">
-              <span class="absolute left-3 top-1/2 -translate-y-1/2 text-emerald-500 dark:text-emerald-400 text-sm font-semibold">{{ receiverCurrency || '···' }}</span>
-              <input type="text" inputmode="decimal" [(ngModel)]="receiveAmountInput" (ngModelChange)="onReceiveAmountChange()"
-                (keydown)="onAmountKeyDown($event)" (paste)="onAmountPaste($event)"
-                class="w-full pl-14 pr-3 py-3 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/50 text-emerald-700 dark:text-emerald-400 text-lg font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
-                placeholder="0.00" />
+              @if (!isMoneyGramPartner() && availableReceiveCurrencies.length > 1) {
+                <select [(ngModel)]="selectedReceiveCurrency" (ngModelChange)="onReceiveCurrencyChange()"
+                  class="absolute left-0 top-0 h-full pl-2 pr-6 rounded-l-xl bg-emerald-100 dark:bg-emerald-900/40 border-r border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 text-sm font-semibold focus:outline-none appearance-none cursor-pointer z-10"
+                  style="width: 5.5rem">
+                  @for (c of availableReceiveCurrencies; track c) {
+                    <option [value]="c">{{ c }}</option>
+                  }
+                </select>
+                <input type="text" inputmode="decimal" [(ngModel)]="receiveAmountInput" (ngModelChange)="onReceiveAmountChange()"
+                  (keydown)="onAmountKeyDown($event)" (paste)="onAmountPaste($event)"
+                  class="w-full pl-24 pr-3 py-3 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/50 text-emerald-700 dark:text-emerald-400 text-lg font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
+                  placeholder="0.00" />
+              } @else {
+                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-emerald-500 dark:text-emerald-400 text-sm font-semibold">{{ receiverCurrency || '···' }}</span>
+                <input type="text" inputmode="decimal" [(ngModel)]="receiveAmountInput" (ngModelChange)="onReceiveAmountChange()"
+                  (keydown)="onAmountKeyDown($event)" (paste)="onAmountPaste($event)"
+                  class="w-full pl-14 pr-3 py-3 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/50 text-emerald-700 dark:text-emerald-400 text-lg font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
+                  placeholder="0.00" />
+              }
             </div>
           </div>
         </div>
@@ -1027,6 +1041,74 @@
                 </select>
               </div>
               }
+              @if (isFieldShownReceiver('city')) {
+              <div>
+                <label class="block text-xs font-medium text-surface-500 dark:text-surface-400 mb-1">City</label>
+                <input type="text" formControlName="city" class="input-field" placeholder="City" />
+              </div>
+              }
+              @if (isFieldShownReceiver('gender')) {
+              <div>
+                <label class="block text-xs font-medium text-surface-500 dark:text-surface-400 mb-1">Gender <span class="text-rose-500">*</span></label>
+                <select formControlName="gender" class="input-field">
+                  <option value="">Select</option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                </select>
+              </div>
+              }
+              @if (isFieldShownReceiver('dateOfBirth')) {
+              <div>
+                <label class="block text-xs font-medium text-surface-500 dark:text-surface-400 mb-1">Date of Birth <span class="text-rose-500">*</span></label>
+                <input type="date" formControlName="dateOfBirth" class="input-field" />
+              </div>
+              }
+              @if (isFieldShownReceiver('nationality')) {
+              <div>
+                <label class="block text-xs font-medium text-surface-500 dark:text-surface-400 mb-1">Nationality <span class="text-rose-500">*</span></label>
+                <select formControlName="nationality" class="input-field">
+                  <option value="">Select</option>
+                  @for (c of countries; track c.name) {
+                  <option [value]="c.name">{{ c.name }}</option>
+                  }
+                </select>
+              </div>
+              }
+              @if (isFieldShownReceiver('occupation')) {
+              <div>
+                <label class="block text-xs font-medium text-surface-500 dark:text-surface-400 mb-1">Occupation <span class="text-rose-500">*</span></label>
+                <input type="text" formControlName="occupation" class="input-field" placeholder="Occupation" />
+              </div>
+              }
+              @if (isFieldShownReceiver('address')) {
+              <div>
+                <label class="block text-xs font-medium text-surface-500 dark:text-surface-400 mb-1">Address <span class="text-rose-500">*</span></label>
+                <input type="text" formControlName="address" class="input-field" placeholder="Street address" />
+              </div>
+              }
+              @if (isFieldShownReceiver('postalCode')) {
+              <div>
+                <label class="block text-xs font-medium text-surface-500 dark:text-surface-400 mb-1">Postal Code <span class="text-rose-500">*</span></label>
+                <input type="text" formControlName="postalCode" class="input-field" placeholder="Postal code" />
+              </div>
+              }
+              @if (isFieldShownReceiver('idDocumentType')) {
+              <div>
+                <label class="block text-xs font-medium text-surface-500 dark:text-surface-400 mb-1">ID Document Type <span class="text-rose-500">*</span></label>
+                <select formControlName="idDocumentType" class="input-field">
+                  <option value="">Select</option>
+                  <option value="PASSPORT">Passport</option>
+                  <option value="NATIONAL_ID">National ID</option>
+                  <option value="DRIVING_LICENSE">Driving License</option>
+                </select>
+              </div>
+              }
+              @if (isFieldShownReceiver('idDocumentNumber')) {
+              <div>
+                <label class="block text-xs font-medium text-surface-500 dark:text-surface-400 mb-1">ID Document Number <span class="text-rose-500">*</span></label>
+                <input type="text" formControlName="idDocumentNumber" class="input-field" placeholder="Document number" />
+              </div>
+              }
 
               <!-- ── Bank Transfer ──────────────────────────────────── -->
               @if (isBankTransfer()) {
@@ -1137,9 +1219,9 @@
 
           <!-- Proceed from customer+receiver -->
           <button (click)="proceedFromCustomerReceiver()"
-            [disabled]="!store.canProceedStep1()"
+            [disabled]="!canProceedReceiver"
             class="w-full py-4 rounded-2xl font-semibold text-base transition-all active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed"
-            [class]="store.canProceedStep1() ? 'bg-brand-600 hover:bg-brand-700 text-white shadow-sm' : 'bg-surface-100 dark:bg-surface-800 text-surface-400 dark:text-surface-500'">
+            [class]="canProceedReceiver ? 'bg-brand-600 hover:bg-brand-700 text-white shadow-sm' : 'bg-surface-100 dark:bg-surface-800 text-surface-400 dark:text-surface-500'">
             Next: Compliance →
           </button>
         </div>

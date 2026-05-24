@@ -90,7 +90,6 @@ export const SendMoneyStore = signalStore(
     }),
     canProceedStep1: computed(() => {
       return !!state.selectedCustomer()
-        && !state.kycWarning()
         && !state.dobWarning()
         && state.missingCustomerFields().length === 0
         && !!state.selectedReceiver()

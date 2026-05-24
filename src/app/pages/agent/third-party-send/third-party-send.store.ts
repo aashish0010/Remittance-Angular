@@ -94,7 +94,6 @@ export const ThirdPartySendStore = signalStore(
     ),
     canProceedStep1: computed(() =>
       !!state.selectedCustomer()
-      && !state.kycWarning()
       && !state.dobWarning()
       && state.missingCustomerFields().length === 0
       && !!state.selectedReceiver()

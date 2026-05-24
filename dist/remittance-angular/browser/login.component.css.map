@@ -1,7 +1,7 @@
 {
   "version": 3,
   "sources": ["src/app/pages/auth/login/login.component.scss"],
-  "sourcesContent": [":host {\r\n  display: block;\r\n  width: 100%;\r\n  height: 100%;\r\n}\r\n"],
-  "mappings": ";AAAA;AACE,WAAA;AACA,SAAA;AACA,UAAA;;",
+  "sourcesContent": [":host {\r\n  display: block;\r\n  width: 100%;\r\n  height: 100%;\r\n}\r\n\r\n/* Hide browser-native password reveal button (Edge/Chrome) so only our custom toggle shows */\r\ninput[type=\"password\"]::-ms-reveal,\r\ninput[type=\"password\"]::-ms-clear {\r\n  display: none !important;\r\n}\r\ninput[type=\"password\"]::-webkit-contacts-auto-fill-button,\r\ninput[type=\"password\"]::-webkit-credentials-auto-fill-button {\r\n  visibility: hidden;\r\n  display: none !important;\r\n  pointer-events: none;\r\n}\r\n"],
+  "mappings": ";AAAA;AACE,WAAA;AACA,SAAA;AACA,UAAA;;AAIF,KAAA,CAAA,cAAA;AAAA,KAAA,CAAA,cAAA;AAEE,WAAA;;AAEF,KAAA,CAAA,cAAA;AAAA,KAAA,CAAA,cAAA;AAEE,cAAA;AACA,WAAA;AACA,kBAAA;;",
   "names": []
 }

@@ -513,14 +513,24 @@ export class ApiService {
   }
 
   // Agent: Banks for a payout agent
-  getAgentBanksForPayout(agentId: number, country?: string, paymentMethodId?: number): Observable<ApiResponse<AgentBankModel[]>> {
+  getAgentBanksForPayout(agentId: number, country?: string, paymentMethodId?: number, additionalFields?: string): Observable<ApiResponse<AgentBankModel[]>> {
     const params: string[] = [];
     if (country) params.push(`country=${encodeURIComponent(country)}`);
     if (paymentMethodId) params.push(`paymentMethodId=${paymentMethodId}`);
+    if (additionalFields) params.push(`additionalFields=${encodeURIComponent(additionalFields)}`);
     const url = params.length
       ? `api/agent/banks/agent/${agentId}?${params.join('&')}`
       : `api/agent/banks/agent/${agentId}`;
     return this.get<AgentBankModel[]>(url);
+  }
+
+  getMoneyGramPayoutFields(serviceOptionCode: string, sendingCountry?: string, payoutCountry?: string, amount?: number, serviceOptionRoutingCode?: string): Observable<ApiResponse<any>> {
+    const params: string[] = [`serviceOptionCode=${encodeURIComponent(serviceOptionCode)}`];
+    if (sendingCountry) params.push(`sendingCountry=${encodeURIComponent(sendingCountry)}`);
+    if (payoutCountry) params.push(`payoutCountry=${encodeURIComponent(payoutCountry)}`);
+    if (amount != null) params.push(`amount=${amount}`);
+    if (serviceOptionRoutingCode) params.push(`serviceOptionRoutingCode=${encodeURIComponent(serviceOptionRoutingCode)}`);
+    return this.get<any>(`api/utility/moneygram/payout-fields?${params.join('&')}`);
   }
 
   // Agent: Cash pickup locations for a payout agent (banks with cash payment method)

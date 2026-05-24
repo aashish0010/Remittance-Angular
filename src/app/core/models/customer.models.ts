@@ -54,6 +54,14 @@ export interface ReceiverModel {
   email?: string;
   country: string;
   city?: string;
+  address?: string;
+  postalCode?: string;
+  gender?: string;
+  nationality?: string;
+  dateOfBirth?: string;
+  occupation?: string;
+  idDocumentType?: string;
+  idDocumentNumber?: string;
   bankName?: string;
   bankCode?: string;
   accountNumber?: string;
