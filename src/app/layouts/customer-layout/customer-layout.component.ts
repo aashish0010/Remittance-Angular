@@ -1,7 +1,9 @@
-import { Component, OnInit, HostListener, ElementRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, HostListener, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { AuthStateService } from '../../core/services/auth-state.service';
+import { IdleTimeoutService } from '../../core/services/idle-timeout.service';
 
 interface NavItem {
   label: string;
@@ -38,7 +40,7 @@ const NAV_ITEMS: NavItem[] = [
   templateUrl: './customer-layout.component.html',
   styleUrls: ['./customer-layout.component.scss']
 })
-export class CustomerLayoutComponent implements OnInit {
+export class CustomerLayoutComponent implements OnInit, OnDestroy {
   isDarkMode = false;
   sidenavOpened = false;          // closed by default on mobile
   showUserMenu = false;
@@ -47,16 +49,25 @@ export class CustomerLayoutComponent implements OnInit {
   userName = 'Customer';
   userInitial = 'C';
 
-  constructor(private elRef: ElementRef) {}
+  constructor(
+    private elRef: ElementRef,
+    private auth: AuthStateService,
+    private router: Router,
+    public idleTimeout: IdleTimeoutService,
+  ) {}
 
   ngOnInit(): void {
+    this.idleTimeout.start();
     this.isDarkMode = localStorage.getItem('darkMode') === 'true';
     this.applyBodyClass();
 
-    // Open sidebar by default on large screens
     if (typeof window !== 'undefined' && window.innerWidth >= 1024) {
       this.sidenavOpened = true;
     }
+  }
+
+  ngOnDestroy(): void {
+    this.idleTimeout.stop();
   }
 
   /** Close user dropdown when clicking outside */
@@ -82,8 +93,9 @@ export class CustomerLayoutComponent implements OnInit {
   }
 
   logout(): void {
-    localStorage.removeItem('token');
-    window.location.href = '/';
+    this.idleTimeout.stop();
+    this.auth.logout();
+    this.router.navigate(['/auth/login']);
   }
 
   private applyBodyClass(): void {

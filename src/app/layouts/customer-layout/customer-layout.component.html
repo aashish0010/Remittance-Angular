@@ -166,4 +166,34 @@
     </div>
   </main>
 
+  <!-- ── Session Timeout Warning Overlay ── -->
+  <div *ngIf="idleTimeout.showWarning"
+    class="fixed inset-0 z-[99999] bg-black/60 backdrop-blur-sm flex items-center justify-center">
+    <div
+      class="bg-white dark:bg-surface-800 rounded-2xl px-10 py-8 max-w-[420px] w-[90%] text-center shadow-dialog animate-slide-up">
+      <div class="mb-4">
+        <svg class="w-12 h-12 mx-auto text-warning-500" fill="none" stroke="currentColor" stroke-width="1.5"
+          viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+        </svg>
+      </div>
+      <h3 class="text-xl font-semibold text-surface-900 dark:text-surface-100 mb-2">Session Timeout Warning</h3>
+      <p class="text-sm text-surface-500 dark:text-surface-400 mb-6 leading-relaxed">
+        Your session will expire in
+        <strong class="text-danger-500 text-lg">{{ idleTimeout.remainingSeconds }}</strong>
+        seconds due to inactivity.
+      </p>
+      <div class="flex gap-3 justify-center">
+        <button (click)="idleTimeout.extendSession()"
+          class="px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold rounded-xl transition-all duration-150 shadow-sm active:scale-95">
+          Stay Logged In
+        </button>
+        <button (click)="logout()"
+          class="px-5 py-2.5 border border-surface-200 dark:border-surface-600 text-surface-700 dark:text-surface-300 text-sm font-semibold rounded-xl hover:bg-surface-50 dark:hover:bg-surface-700 transition-all duration-150 active:scale-95">
+          Sign Out
+        </button>
+      </div>
+    </div>
+  </div>
+
 </div>

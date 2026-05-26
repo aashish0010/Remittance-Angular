@@ -252,6 +252,10 @@ export class SendMoneyComponent implements OnInit, OnDestroy {
   allBranches: any[] = [];
   filteredBranches: any[] = [];
   branchContext: 'form' | 'txn' = 'form';
+  branchSearchLoading = false;
+  branchSearchDone = false;
+  selectedBankHasBranches = false;
+  selectedBankIdForBranch: number | null = null;
 
   // ── Compliance ────────────────────────────────────────────────────────────
   purpose = '';
@@ -770,7 +774,11 @@ export class SendMoneyComponent implements OnInit, OnDestroy {
   get isPayoutReady(): boolean {
     const sd = this.selectedSavedDetail;
     const pd = this.transactionPayoutDetails;
-    if (this.isBankTransfer()) return !!(sd?.accountNumber ?? pd.accountNumber);
+    if (this.isBankTransfer()) {
+      const hasAcct = !!(sd?.accountNumber ?? pd.accountNumber);
+      const branchOk = !this.selectedBankHasBranches || !!(sd?.branchId ?? pd.branchId);
+      return hasAcct && branchOk;
+    }
     if (this.isWalletTransfer()) return !!(sd?.accountNumber ?? pd.accountNumber);
     if (this.isCashTransfer()) {
       if (this.isMoneyGramPartner()) return true; // MG cash pickup needs no pre-filled account
@@ -1144,12 +1152,11 @@ export class SendMoneyComponent implements OnInit, OnDestroy {
   // ── Bank / branch ─────────────────────────────────────────────────────────
   onBankSelected(bank: AgentBankModel): void {
     this.receiverForm.patchValue({ bankName: bank.bankName, bankCode: bank.bankCode ?? '', bankId: bank.id, branchName: '', branchCode: '', branchId: null, accountNumber: '' });
-    this.allBranches = bank.branches ?? [];
-    this.filteredBranches = bank.branches ?? [];
-    if (bank.branches?.length) {
+    this.selectedBankIdForBranch = bank.id;
+    this.selectedBankHasBranches = bank.hasBranches ?? (bank.branches?.length > 0);
+    if (this.selectedBankHasBranches) {
       this.branchBankName = bank.bankName;
-      this.branchContext = 'form';
-      this.showBranchPopup = true;
+      this.openBranchPopup('form');
     }
   }
 
@@ -1211,9 +1218,12 @@ export class SendMoneyComponent implements OnInit, OnDestroy {
       accountNumber: this.transactionPayoutDetails.accountNumber,
       branchName: null, branchCode: null, branchId: null,
     };
-    this.allBranches = bank.branches ?? [];
-    this.filteredBranches = bank.branches ?? [];
-    if (bank.branches?.length) { this.branchBankName = bank.bankName; this.branchContext = 'txn'; this.showBranchPopup = true; }
+    this.selectedBankIdForBranch = bank.id;
+    this.selectedBankHasBranches = bank.hasBranches ?? (bank.branches?.length > 0);
+    if (this.selectedBankHasBranches) {
+      this.branchBankName = bank.bankName;
+      this.openBranchPopup('txn');
+    }
   }
 
   onCashLocationSelectedTxn(bank: AgentBankModel): void {
@@ -1229,6 +1239,26 @@ export class SendMoneyComponent implements OnInit, OnDestroy {
       accountNumber: this.transactionPayoutDetails.accountNumber,
       branchName: null, branchCode: null, branchId: null,
     };
+  }
+
+  openBranchPopup(context: 'form' | 'txn'): void {
+    this.branchContext = context;
+    this.branchSearch = '';
+    this.filteredBranches = [];
+    this.branchSearchDone = false;
+    this.branchSearchLoading = false;
+    this.showBranchPopup = true;
+  }
+
+  executeBranchSearch(): void {
+    if (this.branchSearch.length < 3 || !this.selectedBankIdForBranch) return;
+    this.branchSearchLoading = true;
+    this.branchSearchDone = true;
+    this.filteredBranches = [];
+    this.api.searchAgentBankBranches(this.selectedBankIdForBranch, this.branchSearch).subscribe({
+      next: r => { this.filteredBranches = r.data ?? []; this.branchSearchLoading = false; },
+      error: () => { this.branchSearchLoading = false; }
+    });
   }
 
   selectBranchTxn(branch: any): void {

@@ -121,16 +121,17 @@
           </td>
           <td class="px-4 py-3 text-surface-900 dark:text-surface-100 whitespace-nowrap">{{ txn.createdAt | date:'MMM dd, HH:mm' }}</td>
           <td class="px-4 py-3 text-center whitespace-nowrap">
-            <div class="inline-flex items-center gap-1">
+            <div class="inline-flex items-center gap-0.5">
               <!-- View Details -->
               <button
                 (click)="viewDetail(txn)"
-                class="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium text-brand-600 dark:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-900/20 transition">
-                <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                title="View Details"
+                aria-label="View transaction details"
+                class="p-1.5 rounded-md text-brand-600 dark:text-brand-400 hover:bg-brand-50 dark:hover:bg-brand-900/20 transition">
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
                   <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
                 </svg>
-                View
               </button>
 
               <!-- Pending: Complete -->
@@ -138,35 +139,38 @@
                 *ngIf="txn.status === 'Pending'"
                 (click)="completeTransaction(txn)"
                 [disabled]="actionLoadingId === txn.id"
-                class="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium text-success-600 dark:text-success-400 hover:bg-success-50 dark:hover:bg-success-900/20 transition disabled:opacity-50 disabled:cursor-not-allowed">
-                <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                title="Complete Transaction"
+                aria-label="Complete transaction"
+                class="p-1.5 rounded-md text-success-600 dark:text-success-400 hover:bg-success-50 dark:hover:bg-success-900/20 transition disabled:opacity-50 disabled:cursor-not-allowed">
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
                 </svg>
-                Complete
               </button>
 
-              <!-- Pending: Confirm Payout -->
+              <!-- Confirm Payout -->
               <button
                 *ngIf="canConfirmPayout(txn.status)"
                 (click)="confirmPayout(txn)"
                 [disabled]="actionLoadingId === txn.id"
-                class="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition disabled:opacity-50 disabled:cursor-not-allowed">
-                <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                title="Confirm Payout"
+                aria-label="Confirm payout"
+                class="p-1.5 rounded-md text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition disabled:opacity-50 disabled:cursor-not-allowed">
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0 1 21.485 12 59.77 59.77 0 0 1 3.27 20.876L5.999 12Zm0 0h7.5" />
                 </svg>
-                Confirm Payout
               </button>
 
-              <!-- Pending/Completed: Cancel -->
+              <!-- Cancel — only ProcessingAtPartner -->
               <button
-                *ngIf="(txn.status === 'Pending' || txn.status === 'Completed') && appSettings.cancellationAllowed"
+                *ngIf="txn.status === 'ProcessingAtPartner' && appSettings.cancellationAllowed"
                 (click)="cancelTransaction(txn)"
                 [disabled]="actionLoadingId === txn.id"
-                class="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium text-danger-600 dark:text-danger-400 hover:bg-danger-50 dark:hover:bg-danger-900/20 transition disabled:opacity-50 disabled:cursor-not-allowed">
-                <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                title="Cancel Transaction"
+                aria-label="Cancel transaction"
+                class="p-1.5 rounded-md text-danger-600 dark:text-danger-400 hover:bg-danger-50 dark:hover:bg-danger-900/20 transition disabled:opacity-50 disabled:cursor-not-allowed">
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
                 </svg>
-                Cancel
               </button>
             </div>
           </td>

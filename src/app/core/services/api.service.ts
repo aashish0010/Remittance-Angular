@@ -513,6 +513,10 @@ export class ApiService {
   }
 
   // Agent: Banks for a payout agent
+  searchAgentBankBranches(bankId: number, q: string): Observable<ApiResponse<AgentBankBranchModel[]>> {
+    return this.get<AgentBankBranchModel[]>(`api/agent/banks/${bankId}/branches/search?q=${encodeURIComponent(q)}`);
+  }
+
   getAgentBanksForPayout(agentId: number, country?: string, paymentMethodId?: number, additionalFields?: string): Observable<ApiResponse<AgentBankModel[]>> {
     const params: string[] = [];
     if (country) params.push(`country=${encodeURIComponent(country)}`);

@@ -90,6 +90,10 @@ export class ThirdPartySendComponent implements OnInit, OnDestroy {
   branchSearch = '';
   branchBankName = '';
   branchContext: 'form' | 'txn' = 'form';
+  branchSearchLoading = false;
+  branchSearchDone = false;
+  selectedBankHasBranches = false;
+  selectedBankIdForBranch: number | null = null;
 
   // ── Compliance ────────────────────────────────────────────────────────────
   purpose = '';
@@ -571,6 +575,26 @@ export class ThirdPartySendComponent implements OnInit, OnDestroy {
   }
 
   // ── Branch popup ──────────────────────────────────────────────────────────
+  openBranchPopup(context: 'form' | 'txn'): void {
+    this.branchContext = context;
+    this.branchSearch = '';
+    this.filteredBranches = [];
+    this.branchSearchDone = false;
+    this.branchSearchLoading = false;
+    this.showBranchPopup = true;
+  }
+
+  executeBranchSearch(): void {
+    if (this.branchSearch.length < 3 || !this.selectedBankIdForBranch) return;
+    this.branchSearchLoading = true;
+    this.branchSearchDone = true;
+    this.filteredBranches = [];
+    this.api.searchAgentBankBranches(this.selectedBankIdForBranch, this.branchSearch).subscribe({
+      next: r => { this.filteredBranches = r.data ?? []; this.branchSearchLoading = false; },
+      error: () => { this.branchSearchLoading = false; }
+    });
+  }
+
   selectBranchTxn(branch: any): void {
     this.transactionPayoutDetails = { ...this.transactionPayoutDetails, branchName: branch.branchName, branchCode: branch.branchCode ?? null, branchId: branch.id };
     this.showBranchPopup = false;
@@ -674,7 +698,7 @@ export class ThirdPartySendComponent implements OnInit, OnDestroy {
       receiverCountryIso3: this.store.receiverCountryIso3(),
       paymentMethod: this.resolvePaymentMethodEnum(this.store.paymentMethodName()),
       paymentMethodName: this.store.paymentMethodName(),
-      payoutMethod: this.resolvePaymentMethodEnum(this.store.paymentMethodName()),
+      payoutMethod: this.resolvedPayoutType() === 'bank' ? 1 : this.resolvedPayoutType() === 'wallet' ? 3 : 0,
       payoutMethodName: this.store.paymentMethodName(),
       payoutPartnerId: partner.payoutAgentId,
       customerId: c.id, receiverId: rv.id,
@@ -712,12 +736,11 @@ export class ThirdPartySendComponent implements OnInit, OnDestroy {
       bankId: bank.id,
       branchName: null, branchCode: null, branchId: null,
     };
-    this.allBranches = bank.branches ?? [];
-    this.filteredBranches = bank.branches ?? [];
-    if (bank.branches?.length) {
+    this.selectedBankIdForBranch = bank.id;
+    this.selectedBankHasBranches = bank.hasBranches ?? (bank.branches?.length > 0);
+    if (this.selectedBankHasBranches) {
       this.branchBankName = bank.bankName;
-      this.branchContext = 'txn';
-      this.showBranchPopup = true;
+      this.openBranchPopup('txn');
     }
   }
 
@@ -807,7 +830,7 @@ export class ThirdPartySendComponent implements OnInit, OnDestroy {
       const effectiveBankName = this.resolveDisplayBankName(pd.bankId, pd.bankName);
       const bankIdentified = !!(pd.bankId || (pd.bankCode && effectiveBankName));
       const bankOk = !!(pd.accountNumber && bankIdentified);
-      const branchOk = this.allBranches.length === 0 || !!pd.branchId;
+      const branchOk = !this.selectedBankHasBranches || !!pd.branchId;
       return bankOk && branchOk;
     }
     if (this.isCashTransfer()) {
@@ -818,11 +841,12 @@ export class ThirdPartySendComponent implements OnInit, OnDestroy {
     }
     if (this.isWalletTransfer()) {
       const sd = this.selectedSavedDetail;
-      // Saved detail: just needs wallet number
-      if (sd) return !!(sd.accountNumber);
-      // New manual entry: wallet number + code required
+      const hasRoutingCode = !!this.store.serviceOptionRoutingCode();
+      // Saved detail: wallet number required; bank code required unless routing code covers it
+      if (sd) return !!(sd.accountNumber && (sd.bankCode || hasRoutingCode));
+      // New manual entry: wallet number + code required (routing code covers bank code)
       const pd = this.transactionPayoutDetails;
-      return !!(pd.accountNumber && pd.bankCode);
+      return !!(pd.accountNumber && (pd.bankCode || hasRoutingCode));
     }
     return true;
   }

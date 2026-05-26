@@ -5,19 +5,12 @@ import { switchMap, takeUntil, tap } from 'rxjs/operators';
 import { AuthStateService } from './auth-state.service';
 import { AppSettingsService } from './app-settings.service';
 
-/**
- * Tracks user activity (mouse, keyboard, touch, scroll) and auto-logs out
- * after a period of inactivity.
- *
- * - Timeout: driven by user.sessionTimeout setting (default 15 min)
- * - Warning: shown 3 minutes before logout (or at 80% of timeout if < 4 min total)
- * - Resets on any user interaction
- */
 @Injectable({ providedIn: 'root' })
 export class IdleTimeoutService implements OnDestroy {
-  // Set at start() time from settings; stored so showTimeoutWarning() can use them
-  private _idleTimeoutMs = 15 * 60 * 1000;
-  private _warningAtMs   = 12 * 60 * 1000;
+  private readonly WARNING_LEAD_MS = 2 * 60 * 1000; // show warning 2 min before forced logout
+
+  private _idleTimeoutMs = 30 * 60 * 1000;
+  private _warningAtMs   = 28 * 60 * 1000;
 
   private destroy$ = new Subject<void>();
   private timerSub?: Subscription;
@@ -37,75 +30,83 @@ export class IdleTimeoutService implements OnDestroy {
   ) {}
 
   /**
-   * Call this once from the root layout (admin/agent/customer) after login.
-   * Reads user.sessionTimeout from AppSettingsService (defaults to 15 min).
+   * Call once from layout ngOnInit after login.
+   * Idle threshold: user.sessionTimeout setting (default 30 min).
+   * Warning fires at threshold - 2 min; countdown runs to 0 then force-logout.
    */
   start(): void {
     this.stop();
 
-    // Compute timeouts from settings — enforce minimum of 1 minute so that
-    // a zero/missing setting value doesn't fire timer(0) and instantly log out
-    const timeoutMinutes = Math.max(this.appSettings.sessionTimeoutMinutes || 15, 1);
+    const timeoutMinutes = Math.max(this.appSettings.sessionTimeoutMinutes || 30, 1);
     this._idleTimeoutMs = timeoutMinutes * 60 * 1000;
-    // Logout fires at full idle timeout — no warning phase
-    this._warningAtMs = this._idleTimeoutMs;
+    // Warning fires 2 min before the full idle timeout (minimum at time 0)
+    this._warningAtMs = Math.max(this._idleTimeoutMs - this.WARNING_LEAD_MS, 0);
 
-    // Run outside Angular zone to avoid triggering change detection on every mouse move
     this.zone.runOutsideAngular(() => {
       const activity$ = merge(
         fromEvent(document, 'mousemove'),
         fromEvent(document, 'mousedown'),
         fromEvent(document, 'keydown'),
         fromEvent(document, 'touchstart'),
-        fromEvent(document, 'scroll')
+        fromEvent(document, 'scroll'),
       );
 
-      // Each activity event resets the timer
+      // Activity resets the timer; if warning is visible, dismiss it
       this.timerSub = activity$.pipe(
-        tap(() => this.dismissWarning()),
+        tap(() => { if (this._showWarning) this.dismissWarning(); }),
         switchMap(() => timer(this._warningAtMs)),
-        takeUntil(this.destroy$)
+        takeUntil(this.destroy$),
       ).subscribe(() => {
-        this.zone.run(() => this.showTimeoutWarning());
+        this.zone.run(() => this._triggerWarning());
       });
 
-      // Start initial timer (in case user doesn't move at all)
+      // Initial timer — fires if user is idle from the moment they log in
       this.warningSub = timer(this._warningAtMs).pipe(
-        takeUntil(this.destroy$)
+        takeUntil(this.destroy$),
       ).subscribe(() => {
-        this.zone.run(() => this.showTimeoutWarning());
+        this.zone.run(() => this._triggerWarning());
       });
     });
   }
 
-  private showTimeoutWarning(): void {
-    // Auto-logout immediately on idle timeout — no warning dialog shown
-    this.forceLogout();
+  private _triggerWarning(): void {
+    this._showWarning = true;
+    this._remainingSeconds = Math.round(this.WARNING_LEAD_MS / 1000);
+
+    // Countdown ticks every second inside Angular zone so CD picks it up
+    this.countdownInterval = setInterval(() => {
+      this._remainingSeconds--;
+      if (this._remainingSeconds <= 0) {
+        this._forceLogout();
+      }
+    }, 1000);
   }
 
+  /** Dismiss warning and reset countdown (safe to call from any zone context). */
   dismissWarning(): void {
-    this._showWarning = false;
-    this._remainingSeconds = 0;
     if (this.countdownInterval) {
       clearInterval(this.countdownInterval);
       this.countdownInterval = undefined;
     }
+    // Always run inside zone so Angular detects the binding change
+    this.zone.run(() => {
+      this._showWarning = false;
+      this._remainingSeconds = 0;
+    });
   }
 
+  /** User clicked "Stay Logged In" — dismiss and restart the full idle timer. */
   extendSession(): void {
     this.dismissWarning();
-    // Restart the idle timer
     this.stop();
     this.start();
   }
 
-  private forceLogout(): void {
+  private _forceLogout(): void {
     this.dismissWarning();
     this.stop();
     this.auth.logout();
-    this.router.navigate(['/auth/login'], {
-      queryParams: { reason: 'timeout' }
-    });
+    this.router.navigate(['/auth/login'], { queryParams: { reason: 'timeout' } });
   }
 
   stop(): void {

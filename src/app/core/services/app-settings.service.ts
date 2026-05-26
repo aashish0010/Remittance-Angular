@@ -81,7 +81,7 @@ export class AppSettingsService {
   get dailyLimit(): number             { return this.getNumber('compliance.dailyLimit', 0); }
 
   // User / session
-  get sessionTimeoutMinutes(): number    { return this.getNumber('user.sessionTimeout', 15); }
+  get sessionTimeoutMinutes(): number    { return this.getNumber('user.sessionTimeout', 30); }
   get maxLoginAttempts(): number         { return this.getNumber('user.maxLoginAttempts', 5); }
   get lockoutDurationMinutes(): number   { return this.getNumber('user.lockoutDurationMinutes', 5); }
 

@@ -29,10 +29,12 @@ export class AgentTransactionsComponent implements OnInit, OnDestroy {
   search = '';
   statusFilter = 'All';
   selectedTransaction: TransactionResult | null = null;
-  cancelConfirmId: number | null = null;
+
+  cancelPendingTx: TransactionResult | null = null;
+  cancelLoading = false;
+
   actionLoadingId: number | null = null;
 
-  // Server-side pagination
   pageIndex = 0;
   pageSize = 20;
   totalCount = 0;
@@ -40,6 +42,12 @@ export class AgentTransactionsComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
 
   Math = Math;
+
+  cancelableStatuses = ['Pending', 'PendingApproval', 'Compliance', 'OnHold', 'PendingPayout', 'ProcessingAtPartner'];
+
+  detailTab: 'details' | 'logs' = 'details';
+  payoutLogs: any[] = [];
+  logsLoading = false;
 
   constructor(
     private api: ApiService,
@@ -65,7 +73,6 @@ export class AgentTransactionsComponent implements OnInit, OnDestroy {
 
   private loadTransactions(): void {
     this.loading = true;
-
     this.api.getAgentTransactionsPaged({ page: this.pageIndex + 1, pageSize: this.pageSize, search: this.search }).subscribe({
       next: (res) => {
         if (res?.success && res.data) {
@@ -112,60 +119,44 @@ export class AgentTransactionsComponent implements OnInit, OnDestroy {
           this.notify.error(res?.message || 'Failed to release transaction.');
         }
       },
-      error: () => {
-        this.notify.error('Error releasing transaction.');
-      },
+      error: () => this.notify.error('Error releasing transaction.'),
     });
   }
 
-  rejectTransaction(tx: TransactionResult): void {
-    this.api.rejectTransaction(tx.id).subscribe({
-      next: (res) => {
-        if (res?.success) {
-          tx.status = 'Cancelled';
-          this.notify.warn(`Transaction ${tx.referenceNumber} rejected.`);
-        } else {
-          this.notify.error(res?.message || 'Failed to reject transaction.');
-        }
-      },
-      error: () => {
-        this.notify.error('Error rejecting transaction.');
-      },
-    });
+  requestCancelTx(tx: TransactionResult): void {
+    this.cancelPendingTx = tx;
   }
 
-  cancelableStatuses = ['OnHold', 'Compliance', 'PendingApproval'];
-
-  detailTab: 'details' | 'logs' = 'details';
-  payoutLogs: any[] = [];
-  logsLoading = false;
-
-  requestCancel(tx: TransactionResult): void {
-    this.cancelConfirmId = tx.id;
+  dismissCancelDialog(): void {
+    this.cancelPendingTx = null;
   }
 
-  confirmCancel(tx: TransactionResult): void {
-    this.cancelConfirmId = null;
-    this.actionLoadingId = tx.id;
+  confirmCancelDialog(): void {
+    const tx = this.cancelPendingTx;
+    if (!tx) return;
+    this.cancelLoading = true;
     this.api.rejectTransaction(tx.id).subscribe({
       next: (res) => {
+        this.cancelLoading = false;
+        this.cancelPendingTx = null;
         if (res?.success) {
           tx.status = 'Cancelled';
+          const listed = this.transactions.find(t => t.id === tx.id);
+          if (listed) listed.status = 'Cancelled';
+          if (this.selectedTransaction?.id === tx.id) {
+            this.selectedTransaction = { ...this.selectedTransaction, status: 'Cancelled' };
+          }
           this.notify.warn(`Transaction ${tx.referenceNumber} cancelled.`);
         } else {
           this.notify.error(res?.message || 'Failed to cancel transaction.');
         }
-        this.actionLoadingId = null;
       },
       error: () => {
+        this.cancelLoading = false;
+        this.cancelPendingTx = null;
         this.notify.error('Error cancelling transaction.');
-        this.actionLoadingId = null;
       },
     });
-  }
-
-  dismissCancel(): void {
-    this.cancelConfirmId = null;
   }
 
   viewDetail(tx: TransactionResult): void {
@@ -213,6 +204,8 @@ export class AgentTransactionsComponent implements OnInit, OnDestroy {
     switch (status) {
       case 'OnHold': return 'On Hold';
       case 'PendingApproval': return 'Pending Approval';
+      case 'PendingPayout': return 'Pending Payout';
+      case 'ProcessingAtPartner': return 'Processing';
       default: return status;
     }
   }

@@ -4,6 +4,7 @@ import { Router, RouterModule } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 import { AppSettingsService } from '../../core/services/app-settings.service';
 import { AuthStateService } from '../../core/services/auth-state.service';
+import { IdleTimeoutService } from '../../core/services/idle-timeout.service';
 import { SignalRService, TransactionStatusUpdate } from '../../core/services/signalr.service';
 
 interface NavItem {
@@ -94,10 +95,12 @@ export class AgentLayoutComponent implements OnInit, OnDestroy {
     private auth: AuthStateService,
     private router: Router,
     private signalR: SignalRService,
+    public idleTimeout: IdleTimeoutService,
   ) {}
 
   ngOnInit(): void {
     this.appSettings.load();
+    this.idleTimeout.start();
     this.isDarkMode = localStorage.getItem('darkMode') === 'true';
     this.applyBodyClass();
 
@@ -129,6 +132,7 @@ export class AgentLayoutComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+    this.idleTimeout.stop();
   }
 
   // ── Section collapse/expand ──────────────────────────────────────────────
@@ -204,6 +208,7 @@ export class AgentLayoutComponent implements OnInit, OnDestroy {
   }
 
   logout(): void {
+    this.idleTimeout.stop();
     this.auth.logout();
     this.router.navigate(['/auth/login']);
   }

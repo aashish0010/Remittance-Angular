@@ -150,6 +150,8 @@ export interface AgentBankModel {
   additionalInfo?: string;
   isActive: boolean;
   createdAt: string;
+  hasBranches: boolean;
+  branchCount: number;
   branches: AgentBankBranchModel[];
 }
 
@@ -157,6 +159,7 @@ export interface AgentBankBranchModel {
   id: number;
   agentBankId: number;
   branchName: string;
+  ifscCode?: string;
   branchCode?: string;
   swiftCode?: string;
   address?: string;
