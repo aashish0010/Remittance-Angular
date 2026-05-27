@@ -296,6 +296,10 @@ export class ApiService {
     return this.put<TransactionResult>(`api/agent/transactions/${id}/reject`);
   }
 
+  amendTransaction(id: number, dto: { receiverFirstName: string; receiverLastName: string; amendmentReason: string }): Observable<ApiResponse<any>> {
+    return this.put<any>(`api/agent/transactions/${id}/amend`, dto);
+  }
+
   // ---------------------------------------------------------------------------
   // Compliance
   // ---------------------------------------------------------------------------

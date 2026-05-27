@@ -53,6 +53,14 @@ export class AgentTransactionsComponent implements OnInit, OnDestroy {
   checkStatusResult: { isSuccess: boolean; status: string; partnerReferenceId?: string; rawResponse?: string; errorMessage?: string } | null = null;
   showCheckStatusModal = false;
 
+  // Amend
+  amendTx: TransactionResult | null = null;
+  amendFirstName = '';
+  amendLastName = '';
+  amendReason = '';
+  amendLoading = false;
+  amendError: string | null = null;
+
   constructor(
     private api: ApiService,
     private auth: AuthStateService,
@@ -248,5 +256,68 @@ export class AgentTransactionsComponent implements OnInit, OnDestroy {
       case 'ProcessingAtPartner': return 'Processing';
       default: return status;
     }
+  }
+
+  canAmend(tx: TransactionResult): boolean {
+    return tx.status === 'ProcessingAtPartner' && !!tx.partnerReferenceId;
+  }
+
+  openAmend(tx: TransactionResult): void {
+    this.amendTx = tx;
+    const parts = (tx.receiverName ?? '').trim().split(' ');
+    this.amendFirstName = parts[0] ?? '';
+    this.amendLastName = parts.slice(1).join(' ') ?? '';
+    this.amendReason = '';
+    this.amendError = null;
+  }
+
+  closeAmend(): void {
+    this.amendTx = null;
+    this.amendFirstName = '';
+    this.amendLastName = '';
+    this.amendReason = '';
+    this.amendError = null;
+    this.amendLoading = false;
+  }
+
+  submitAmend(): void {
+    if (!this.amendTx) return;
+    if (!this.amendFirstName.trim() || !this.amendLastName.trim()) {
+      this.amendError = 'First name and last name are required.';
+      return;
+    }
+    if (!this.amendReason.trim()) {
+      this.amendError = 'Amendment reason is required.';
+      return;
+    }
+    this.amendLoading = true;
+    this.amendError = null;
+    this.api.amendTransaction(this.amendTx.id, {
+      receiverFirstName: this.amendFirstName.trim(),
+      receiverLastName: this.amendLastName.trim(),
+      amendmentReason: this.amendReason.trim(),
+    }).pipe(takeUntil(this.destroy$)).subscribe({
+      next: res => {
+        this.amendLoading = false;
+        if (res?.success) {
+          const newName = `${this.amendFirstName.trim()} ${this.amendLastName.trim()}`;
+          if (this.amendTx) {
+            const listed = this.transactions.find(t => t.id === this.amendTx!.id);
+            if (listed) listed.receiverName = newName;
+            if (this.selectedTransaction?.id === this.amendTx.id) {
+              this.selectedTransaction = { ...this.selectedTransaction, receiverName: newName };
+            }
+          }
+          this.notify.success('Receiver name amended successfully.');
+          this.closeAmend();
+        } else {
+          this.amendError = res?.message || 'Amendment failed.';
+        }
+      },
+      error: () => {
+        this.amendLoading = false;
+        this.amendError = 'Server error. Please try again.';
+      },
+    });
   }
 }
