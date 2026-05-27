@@ -1,4 +1,4 @@
-import { ApplicationConfig, APP_INITIALIZER, isDevMode, provideZoneChangeDetection, Injectable, inject } from '@angular/core';
+import { ApplicationConfig, APP_INITIALIZER, ErrorHandler, isDevMode, provideZoneChangeDetection, Injectable, inject } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { HttpClient, provideHttpClient, withInterceptors } from '@angular/common/http';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
@@ -10,6 +10,8 @@ import { provideTransloco, TranslocoLoader } from '@jsverse/transloco';
 import { routes } from './app.routes';
 import { authInterceptor } from './core/interceptors/auth.interceptor';
 import { LanguageService } from './core/services/language.service';
+import { GlobalErrorHandler } from './core/global-error-handler';
+import { ErrorTrackingService } from './core/services/error-tracking.service';
 
 @Injectable({ providedIn: 'root' })
 class HttpLoader implements TranslocoLoader {
@@ -47,6 +49,13 @@ export const appConfig: ApplicationConfig = {
       deps: [LanguageService],
       multi: true,
     },
+    {
+      provide: APP_INITIALIZER,
+      useFactory: (tracker: ErrorTrackingService) => () => tracker.init(),
+      deps: [ErrorTrackingService],
+      multi: true,
+    },
+    { provide: ErrorHandler, useClass: GlobalErrorHandler },
     MessageService,
   ]
 };

@@ -6,6 +6,7 @@ import { AuthStateService } from '../services/auth-state.service';
 import { ApiResponse, LoginResponse } from '../models/auth.models';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
+import { ErrorTrackingService } from '../services/error-tracking.service';
 
 let isRefreshing = false;
 const refreshTokenSubject = new BehaviorSubject<string | null>(null);
@@ -14,6 +15,7 @@ export const authInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown>, ne
   const authState = inject(AuthStateService);
   const router = inject(Router);
   const http = inject(HttpClient);
+  const tracker = inject(ErrorTrackingService);
 
   // Skip auth header for login and refresh endpoints
   const isAuthEndpoint = req.url.includes('/auth/login') || req.url.includes('/auth/refresh');
@@ -36,8 +38,14 @@ export const authInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown>, ne
 
   return next(authReq).pipe(
     catchError((error) => {
-      if (error instanceof HttpErrorResponse && error.status === 401 && !isAuthEndpoint) {
-        return handle401Error(authReq, next, authState, router, http);
+      if (error instanceof HttpErrorResponse) {
+        if (error.status === 401 && !isAuthEndpoint) {
+          return handle401Error(authReq, next, authState, router, http);
+        }
+        // Track 4xx (except 401) and 5xx errors
+        if (error.status !== 401 && (error.status >= 400 || error.status === 0)) {
+          tracker.trackHttpError(error.status, req.url, req.method);
+        }
       }
       return throwError(() => error);
     })
