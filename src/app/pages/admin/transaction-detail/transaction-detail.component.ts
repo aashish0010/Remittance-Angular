@@ -177,7 +177,7 @@ export class TransactionDetailComponent implements OnInit, OnDestroy {
   }
 
   isPayoutStatus(status: string): boolean {
-    return ['PendingPayout', 'ProcessingAtPartner', 'Completed', 'Failed'].includes(status);
+    return ['PendingPayout', 'ProcessingAtPartner', 'Completed', 'Failed', 'Cancelled'].includes(status);
   }
 
   goBack(): void {
@@ -283,10 +283,11 @@ export class TransactionDetailComponent implements OnInit, OnDestroy {
     if (!this.txn) return;
     this.cancelDialogOpen = false;
     this.actionLoading = true;
+    const prev = this.txn;
     this.api.cancelTransaction(this.txn.id).subscribe({
       next: res => {
-        if (res?.success && res.data) {
-          this.txn = res.data;
+        if (res?.success) {
+          this.txn = res.data ?? { ...prev, status: 'Cancelled' };
           this.notify.success('Transaction cancelled.');
         } else {
           this.notify.error(res?.message || 'Failed.');
