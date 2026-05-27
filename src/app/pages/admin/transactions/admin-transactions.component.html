@@ -163,7 +163,7 @@
               <!-- Cancel — only ProcessingAtPartner -->
               <button
                 *ngIf="txn.status === 'ProcessingAtPartner' && appSettings.cancellationAllowed"
-                (click)="cancelTransaction(txn)"
+                (click)="requestCancelTx(txn)"
                 [disabled]="actionLoadingId === txn.id"
                 title="Cancel Transaction"
                 aria-label="Cancel transaction"
@@ -394,7 +394,7 @@
 
     <!-- Partner Error Alert -->
     <div
-      *ngIf="selectedTransaction.lastPartnerError"
+      *ngIf="selectedTransaction?.lastPartnerError"
       class="mt-4 rounded-xl border border-danger-200 dark:border-danger-800 bg-danger-50 dark:bg-danger-900/20 p-4 flex items-start gap-3"
     >
       <svg class="h-5 w-5 text-danger-500 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -404,6 +404,46 @@
         <p class="text-sm font-medium text-danger-700 dark:text-danger-300">Partner Error</p>
         <p class="text-xs text-danger-600 dark:text-danger-400 mt-1">{{ selectedTransaction.lastPartnerError }}</p>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- Cancel Confirmation Dialog -->
+<div *ngIf="cancelPendingTx" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+  <div class="absolute inset-0 bg-black/50" (click)="dismissCancelDialog()"></div>
+  <div class="relative bg-white dark:bg-surface-900 rounded-2xl shadow-xl w-full max-w-md p-6">
+    <div class="flex items-start gap-4">
+      <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-danger-100 dark:bg-danger-900/30">
+        <svg class="h-6 w-6 text-danger-600 dark:text-danger-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
+        </svg>
+      </div>
+      <div class="flex-1 min-w-0">
+        <h3 class="text-base font-semibold text-surface-900 dark:text-surface-100">Cancel Transaction</h3>
+        <p class="mt-1.5 text-sm text-surface-600 dark:text-surface-400">
+          Are you sure you want to cancel transaction
+          <span class="font-medium text-surface-800 dark:text-surface-200">{{ cancelPendingTx.referenceNumber }}</span>?
+          This action cannot be undone.
+        </p>
+      </div>
+    </div>
+    <div class="mt-6 flex justify-end gap-3">
+      <button
+        (click)="dismissCancelDialog()"
+        [disabled]="cancelLoading"
+        class="px-4 py-2 rounded-xl text-sm font-medium text-surface-700 dark:text-surface-300 bg-surface-100 dark:bg-surface-800 hover:bg-surface-200 dark:hover:bg-surface-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+        Keep Transaction
+      </button>
+      <button
+        (click)="confirmCancelTx()"
+        [disabled]="cancelLoading"
+        class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium text-white bg-danger-600 hover:bg-danger-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+        <svg *ngIf="cancelLoading" class="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+        </svg>
+        {{ cancelLoading ? 'Cancelling…' : 'Yes, Cancel' }}
+      </button>
     </div>
   </div>
 </div>

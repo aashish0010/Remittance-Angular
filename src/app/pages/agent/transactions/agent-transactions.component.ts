@@ -49,6 +49,10 @@ export class AgentTransactionsComponent implements OnInit, OnDestroy {
   payoutLogs: any[] = [];
   logsLoading = false;
 
+  checkStatusLoading = false;
+  checkStatusResult: { isSuccess: boolean; status: string; partnerReferenceId?: string; rawResponse?: string; errorMessage?: string } | null = null;
+  showCheckStatusModal = false;
+
   constructor(
     private api: ApiService,
     private auth: AuthStateService,
@@ -169,6 +173,8 @@ export class AgentTransactionsComponent implements OnInit, OnDestroy {
     this.selectedTransaction = null;
     this.detailTab = 'details';
     this.payoutLogs = [];
+    this.checkStatusResult = null;
+    this.showCheckStatusModal = false;
   }
 
   switchTab(tab: 'details' | 'logs'): void {
@@ -198,6 +204,40 @@ export class AgentTransactionsComponent implements OnInit, OnDestroy {
       case 'PendingApproval': return 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400';
       default: return 'bg-surface-100 text-surface-600 dark:bg-surface-700 dark:text-surface-400';
     }
+  }
+
+  canCheckStatus(tx: TransactionResult): boolean {
+    return tx.status === 'ProcessingAtPartner' && !!tx.partnerReferenceId;
+  }
+
+  checkStatus(tx: TransactionResult): void {
+    this.checkStatusLoading = true;
+    this.checkStatusResult = null;
+    this.api.checkAgentPayoutStatus(tx.id).subscribe({
+      next: res => {
+        this.checkStatusLoading = false;
+        if (res?.success && res.data) {
+          this.checkStatusResult = res.data;
+          this.showCheckStatusModal = true;
+          if (res.data.status && res.data.status !== tx.status) {
+            tx.status = res.data.status;
+            if (this.selectedTransaction?.id === tx.id) {
+              this.selectedTransaction = { ...this.selectedTransaction, status: res.data.status };
+            }
+            const listed = this.transactions.find(t => t.id === tx.id);
+            if (listed) listed.status = res.data.status;
+          }
+        } else {
+          this.notify.error(res?.message || 'Check status failed.');
+        }
+      },
+      error: () => { this.checkStatusLoading = false; this.notify.error('Server error.'); },
+    });
+  }
+
+  closeCheckStatusModal(): void {
+    this.showCheckStatusModal = false;
+    this.checkStatusResult = null;
   }
 
   getStatusLabel(status: string): string {

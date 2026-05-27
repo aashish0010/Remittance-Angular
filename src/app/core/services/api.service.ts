@@ -283,6 +283,10 @@ export class ApiService {
     return this.get<any[]>(`api/admin/transactions/${id}/integration-logs`);
   }
 
+  checkPayoutStatus(id: number): Observable<ApiResponse<any>> {
+    return this.post<any>(`api/admin/transactions/${id}/check-status`);
+  }
+
   // Agent transaction actions
   releaseTransaction(id: number): Observable<ApiResponse<TransactionResult>> {
     return this.put<TransactionResult>(`api/agent/transactions/${id}/release`);
@@ -1053,6 +1057,10 @@ export class ApiService {
 
   getAgentTransactionPayoutLogs(id: number): Observable<ApiResponse<any[]>> {
     return this.get<any[]>(`api/agent/transactions/${id}/payout-logs`);
+  }
+
+  checkAgentPayoutStatus(id: number): Observable<ApiResponse<any>> {
+    return this.post<any>(`api/agent/transactions/${id}/check-status`);
   }
 
   // ---------------------------------------------------------------------------

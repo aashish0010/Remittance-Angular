@@ -32,11 +32,16 @@ export class TransactionDetailComponent implements OnInit, OnDestroy {
   txn: TransactionResult | null = null;
   loading = true;
   actionLoading = false;
+  cancelDialogOpen = false;
   integrationLogs: PayoutIntegrationLog[] = [];
   logsLoading = false;
   showLogs = false;
   expandedGroups: { [key: string]: boolean } = {};
   expandedPayloads = new Set<string>();
+
+  checkStatusLoading = false;
+  checkStatusResult: { isSuccess: boolean; status: string; partnerReferenceId?: string; rawResponse?: string; errorMessage?: string } | null = null;
+  showCheckStatusModal = false;
 
   private destroy$ = new Subject<void>();
 
@@ -266,8 +271,17 @@ export class TransactionDetailComponent implements OnInit, OnDestroy {
     });
   }
 
-  cancel(): void {
+  requestCancel(): void {
+    this.cancelDialogOpen = true;
+  }
+
+  dismissCancelDialog(): void {
+    this.cancelDialogOpen = false;
+  }
+
+  confirmCancel(): void {
     if (!this.txn) return;
+    this.cancelDialogOpen = false;
     this.actionLoading = true;
     this.api.cancelTransaction(this.txn.id).subscribe({
       next: res => {
@@ -342,5 +356,36 @@ export class TransactionDetailComponent implements OnInit, OnDestroy {
       && this.txn.status !== 'Completed'
       && this.txn.status !== 'Cancelled'
       && this.txn.status !== 'Failed';
+  }
+
+  canCheckStatus(): boolean {
+    return !!this.txn && this.txn.status === 'ProcessingAtPartner' && !!this.txn.partnerReferenceId;
+  }
+
+  checkStatus(): void {
+    if (!this.txn) return;
+    this.checkStatusLoading = true;
+    this.checkStatusResult = null;
+    this.api.checkPayoutStatus(this.txn.id).subscribe({
+      next: res => {
+        this.checkStatusLoading = false;
+        if (res?.success && res.data) {
+          this.checkStatusResult = res.data;
+          this.showCheckStatusModal = true;
+          if (this.txn && res.data.status && res.data.status !== this.txn.status) {
+            this.txn = { ...this.txn, status: res.data.status, partnerReferenceId: res.data.partnerReferenceId ?? this.txn.partnerReferenceId };
+            if (this.showLogs) this.loadIntegrationLogs(this.txn.id);
+          }
+        } else {
+          this.notify.error(res?.message || 'Check status failed.');
+        }
+      },
+      error: () => { this.checkStatusLoading = false; this.notify.error('Server error.'); },
+    });
+  }
+
+  closeCheckStatusModal(): void {
+    this.showCheckStatusModal = false;
+    this.checkStatusResult = null;
   }
 }

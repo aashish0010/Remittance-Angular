@@ -45,6 +45,8 @@ export class AdminTransactionsComponent implements OnInit, OnDestroy {
   statusFilter = 'All';
   selectedTransaction: TransactionResult | null = null;
   actionLoadingId: number | null = null;
+  cancelPendingTx: TransactionResult | null = null;
+  cancelLoading = false;
 
   pageIndex = 0;
   pageSize = 20;
@@ -207,10 +209,22 @@ export class AdminTransactionsComponent implements OnInit, OnDestroy {
     });
   }
 
-  cancelTransaction(txn: TransactionResult): void {
-    this.actionLoadingId = txn.id;
+  requestCancelTx(txn: TransactionResult): void {
+    this.cancelPendingTx = txn;
+  }
+
+  dismissCancelDialog(): void {
+    this.cancelPendingTx = null;
+  }
+
+  confirmCancelTx(): void {
+    const txn = this.cancelPendingTx;
+    if (!txn) return;
+    this.cancelLoading = true;
     this.api.cancelTransaction(txn.id).subscribe({
       next: (res) => {
+        this.cancelLoading = false;
+        this.cancelPendingTx = null;
         if (res?.success) {
           this.notify.warn(`Transaction ${txn.referenceNumber} cancelled.`);
           this.loadTransactions();
@@ -220,6 +234,8 @@ export class AdminTransactionsComponent implements OnInit, OnDestroy {
         this.actionLoadingId = null;
       },
       error: () => {
+        this.cancelLoading = false;
+        this.cancelPendingTx = null;
         this.notify.error('Error cancelling transaction.');
         this.actionLoadingId = null;
       },
